@@ -1,0 +1,14 @@
+Instantiate project folder and views required for a solutution architect in the correct model repository, region, function or Asset	Creates project folder and initial viewpoints for a HLD within given Model (applicable for Asset/Function)	Y	Create Folder+Views
+
+Generate legend for viewpoint	Generate a legend of elements in the given selected view	Y	Generate Legend	Y	" - Ensure created legend elements are created within a Legend folder and have an Object Status of legend
+ - Reuse previously created legend element whose concept type property Object Status is legend
+ - Add relationships to legend"
+
+
+
+
+ Viewpoint title label inclusive of name of project, author and date created	Generates a viewpoint title bar at top of viewpoint	Y	Create Title Block
+
+
+ Add required attributes to all elements in a given view (architect is prompted for or selects information)	All elements in selected view has 	Y	Add Object Properties - Selected View	Y	" - Add remaining elements and attributes (as per Content Framework and SoR's)
+ - UI needs bit of a makeover :)"		Content Framework Entities - Attributes (Inc iServer).xlsx
