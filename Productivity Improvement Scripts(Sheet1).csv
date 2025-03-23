@@ -1,0 +1,16 @@
+ID,Productivity Concept Outline,Expected Outcome(s),Script Exists,Script Name,Enhancement Needed,Enhancement Outline,"Dependencies
+(outside of jArchi)",
+1,"Instantiate project folder and views required for a solutution architect in the correct model repository, region, function or Asset",Creates project folder and initial viewpoints for a HLD within given Model (applicable for Asset/Function),Y,Create Folder+Views,,,,
+2,"Compare current and target state viewpoints, selected from navigation pane, providing a list of differences between the two viewpoints",Lists differences between views,Y,Compare Views,Y," - Include changes in relationships
+ - Export differences to  csv file in order to cut/paste into respective tables in HLD",,
+3,Determine other active projects (work packages) which are impacted by the current project the architect is working on,List of projects impacted,Y,Impacted Work Packages,Y," - Whilst script currently looks at active work packages, an enhancement could be done to validate the dates
+ - Potentially could also check the respective business outcome viewpoints (if they exist) to provide exact nature of impacts.",,
+4,Generate legend for viewpoint,Generate a legend of elements in the given selected view,Y,Generate Legend,Y," - Ensure created legend elements are created within a Legend folder and have an Object Status of legend
+ - Reuse previously created legend element whose concept type property Object Status is legend
+ - Add relationships to legend",,
+5,"Viewpoint title label inclusive of name of project, author and date created",Generates a viewpoint title bar at top of viewpoint,Y,Create Title Block,,,,
+6,Add required attributes to all elements in a given view (architect is prompted for or selects information),All elements in selected view has ,Y,Add Object Properties - Selected View,Y," - Add remaining elements and attributes (as per Content Framework and SoR's)
+ - UI needs bit of a makeover :)",,Content Framework Entities - Attributes (Inc iServer).xlsx
+7,,,,,,,,
+8,,,,,,,,
+9,,,,,,,,
