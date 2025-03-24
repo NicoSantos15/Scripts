@@ -43,6 +43,16 @@ if (!currentView) {
   exit();
 }
 
+// Create a legend folder if not exist
+var otherFolder = $("folder.Other").first();
+var legendFolder = $("folder.Legend").first();
+if (!legendFolder) {
+  otherFolder.createFolder("Legend"); 
+  console.log("> No Legend folder detected. Legend Folder Created");
+}else{
+  // console.log("Legend Folder Exists");
+}
+
 // Loop through all elements used in selected view and push into array elements type
 $(currentView)
   .find()
@@ -113,7 +123,7 @@ for (var i = 0; i < typesList.length; i++) {
     default_height,
     true
   );
-
+  
   currentNote.setFigureType(noteFigureType);
   currentNote.opacity = noteOpacity;
   currentNote.outlineOpacity = noteOutlineOpacity;
