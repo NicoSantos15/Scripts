@@ -53,6 +53,15 @@ if (!currentView) {
   exit();
 }
 
+var otherFolder = $("folder.Other").first();
+var legendFolder = $("folder.Legend").first();
+if (!legendFolder) {
+  otherFolder.createFolder("Legend"); 
+  console.log("Legend Folder Created");
+}else{
+  console.log("Legend Folder Exists");
+}
+
 // Loop through all elements used in selected view and pus into array elements type
 $(currentView)
   .find()
