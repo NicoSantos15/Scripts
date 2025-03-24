@@ -84,10 +84,18 @@ typesList = typesList.filter(function(item) {
 // For each type found in the view
 for (var i=0; i<typesList.length; i++) {
 	// Search the corresponding standard element to be used for legend purpose
-    	theConcept = $("."+prefix+typesList[i]).first() ;
-	if (!(theConcept)) {
-        	var theConcept = model.createElement(typesList[i],prefix+typesList[i]);
-    	};
+	theConcept = $("."+prefix+typesList[i]).filter(function(e) {
+		return e.prop("Object Status") === "legend";
+	}).first();
+	
+	if (!theConcept) {
+		var legendFolder = model.folders.find(f => f.name === "Legend");
+		if (!legendFolder) {
+			legendFolder = model.createFolder("Legend", "elements");
+		}
+		theConcept = legendFolder.createElement(typesList[i], prefix + typesList[i]);
+		theConcept.prop("Object Status", "legend");
+	}	
 };    
 
 // Create the group with a default size and position, and name it
@@ -97,6 +105,7 @@ legendGroup.name = groupName ;
 // Update 'y' value and groupHeight
 y += 30 ;
 groupHeight += 30 ;
+
 for (var i=0; i<typesList.length; i++) {
 	pictogram = $("."+prefix+typesList[i]).first() ; 
 	// Update the group width and height to ensure autonesting will work
@@ -110,7 +119,54 @@ for (var i=0; i<typesList.length; i++) {
 	currentNote.text = typesList[i][0].toUpperCase()+typesList[i].slice(1);
     	// Update 'y' value and groupHeight
 	y += 40 ;
-    	groupHeight += 40 ;
+	groupHeight += 40 ;
+}
+
+// Add relationships to the legend
+var dummyA = $("." + prefix + "DummyA").first();
+if (!dummyA) {
+    dummyA = model.createElement("application-component", prefix + "DummyA");
+    dummyA.prop("Object Status", "legend");
+}
+var dummyB = $("." + prefix + "DummyB").first();
+if (!dummyB) {
+    dummyB = model.createElement("application-component", prefix + "DummyB");
+    dummyB.prop("Object Status", "legend");
+}
+
+var relationshipTypesList = [];
+$(currentView).find("relationship").each(function(r) {
+    if (!relationshipTypesList.includes(r.type)) {
+        relationshipTypesList.push(r.type);
+    }
+});
+
+relationshipTypesList.sort();
+
+for (var i = 0; i < relationshipTypesList.length; i++) {
+    var rel = $("." + prefix + relationshipTypesList[i]).filter(function(e) {
+        return e.prop("Object Status") === "legend";
+    }).first();
+
+    if (!rel) {
+        rel = model.createRelationship(relationshipTypesList[i], dummyA, dummyB, prefix + relationshipTypesList[i]);
+        rel.prop("Object Status", "legend");
+    }
+
+    legendGroup.bounds = { width: groupWidth, height: groupHeight };
+
+    var source = currentView.add(dummyA, pictogram_x, y, default_width, default_height, true);
+    var target = currentView.add(dummyB, pictogram_x + 100, y, default_width, default_height, true);
+    var relView = currentView.add(rel, source, target, true);
+
+    var currentNote = currentView.createObject("note", label_x, y, label_width, default_height, true);
+    currentNote.setFigureType(noteFigureType);
+    currentNote.opacity = noteOpacity;
+    currentNote.outlineOpacity = noteOutlineOpacity;
+    currentNote.text = relationshipTypesList[i][0].toUpperCase() + relationshipTypesList[i].slice(1);
+
+    y += 40;
+    groupHeight += 40;
 }
 
 console.log("> Ending properly");
