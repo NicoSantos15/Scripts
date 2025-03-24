@@ -91,6 +91,12 @@ for (var i = 0; i < typesList.length; i++) {
   if (!theConcept) {
     var theConcept = model.createElement(typesList[i], prefix + typesList[i]);
   }
+
+  // Move legend concept to Legend folder
+  if (!theConcept.container || theConcept.container.id !== legendFolder.id) {
+    legendFolder.add(theConcept);
+    console.log("> Moved concept to Legend folder: " + theConcept.name);
+  }
 }
 
 // Create the group with a default size and position
