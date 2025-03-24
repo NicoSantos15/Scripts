@@ -1,9 +1,6 @@
 ﻿//
 // Generate diagram legend
 //
-// 2020 David GERARD
-// 2025 Nico SANTOS
-//
 // For a selected view, create a group named 'Legend', in which will be nested for each concepts type found in view
 // - a concept, specifically sized to show the pictogram
 // - a note, to be used to name or explain the concept specifically in the view, hence preventing to rename the concept
@@ -16,14 +13,9 @@
 // - improve typesList cleaning (removing types not concerned by legend) to avoid adding an exception
 //
 
-// # Functions
-
-// Get all unique values in a JavaScript array (remove duplicates): [Get all unique values in a JavaScript array (remove duplicates) - Stack Overflow](https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates)
 function onlyUnique(value, index, self) {
   return self.indexOf(value) === index;
 }
-
-// # Variables
 
 var x = 10;
 var y = 10;
@@ -41,19 +33,17 @@ var noteFigureType = 0;
 var noteOpacity = 0;
 var noteOutlineOpacity = 0;
 
-// # Main
-
 console.show();
 console.clear();
 console.log("> Generate diagram legend:");
 
-var currentView = $(selection).filter("archimate-diagram-model").first(); //= selection.first();
+var currentView = $(selection).filter("archimate-diagram-model").first();
 if (!currentView) {
   console.log("> No view identified: exiting.");
   exit();
 }
 
-// Loop through all elements used in selected view and pus into array elements type
+// Loop through all elements used in selected view and push into array elements type
 $(currentView)
   .find()
   .not("relationship")
@@ -61,7 +51,6 @@ $(currentView)
     typesList.push(e.type);
   });
 
-// Alphabetically sort the array: [javascript - Sort objects in an array alphabetically on one property of the array - Stack Overflow](https://stackoverflow.com/questions/8900732/sort-objects-in-an-array-alphabetically-on-one-property-of-the-array)
 typesList.sort(function (a, b) {
   var textA = a.toUpperCase();
   var textB = b.toUpperCase();
@@ -94,17 +83,18 @@ for (var i = 0; i < typesList.length; i++) {
   }
 }
 
-// Create the group with a default size and position, and name it
+// Create the group with a default size and position
 var legendGroup = currentView.createObject("group", x, y, 10, 10, true);
 legendGroup.name = groupName;
-
-// Update 'y' value and groupHeight
 y += 30;
 groupHeight += 30;
+
 for (var i = 0; i < typesList.length; i++) {
   pictogram = $("." + prefix + typesList[i]).first();
+
   // Update the group width and height to ensure autonesting will work
   legendGroup.bounds = { width: groupWidth, height: groupHeight };
+
   // Add the concept sized specifically to illustrate pictogram, and a note to bear the text, both with autonesting
   var object = currentView.add(
     pictogram,
@@ -114,6 +104,7 @@ for (var i = 0; i < typesList.length; i++) {
     default_height,
     true
   );
+
   var currentNote = currentView.createObject(
     "note",
     pictogram_x + label_x,
@@ -122,11 +113,12 @@ for (var i = 0; i < typesList.length; i++) {
     default_height,
     true
   );
+
   currentNote.setFigureType(noteFigureType);
   currentNote.opacity = noteOpacity;
   currentNote.outlineOpacity = noteOutlineOpacity;
   currentNote.text = typesList[i][0].toUpperCase() + typesList[i].slice(1);
-  // Update 'y' value and groupHeight
+
   y += 40;
   groupHeight += 40;
 }

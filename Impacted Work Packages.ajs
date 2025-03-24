@@ -9,11 +9,8 @@ console.log("> Impacted Work Packages Script");
 
 var nameDiagram = window.prompt("View Name (leave empty to cancel)?", "");
 
-
-//-------------------------
 // get a diagram by name
-function selectDiagram(diagramName)
-{
+function selectDiagram(diagramName) {
   return $("archimate-diagram-model").filter("."+diagramName).first() ;
 }
 
