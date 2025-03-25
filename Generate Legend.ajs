@@ -13,10 +13,6 @@
 // - improve typesList cleaning (removing types not concerned by legend) to avoid adding an exception
 //
 
-function onlyUnique(value, index, self) {
-  return self.indexOf(value) === index;
-}
-
 var x = 10;
 var y = 10;
 var default_width = 50;
@@ -38,21 +34,37 @@ var businessFolder,
     technologyFolder,
     motivationFolder,
     implementationFolder,
-    physicalFolder,
-    otherFolder;
+    otherFolder,
+    relationsFolder;
 
-var businessFolderObj,
-    strategyFolderObj,
-    applicationFolderObj,
-    technologyFolderObj,
-    motivationFolderObj,
-    implementationFolderObj,
-    physicalFolderObj,
-    otherFolderObj;
+// const folders = {
+//     business: "Business-Legends",
+//     strategy: "Strategy-Legends",
+//     application: "Application-Legends",
+//     technology: "Technology-Legends",
+//     motivation: "Motivation-Legends",
+//     implementation: "Implementation-Legends",
+//     other: "Other-Legends",
+//     relations: "Relations-Legends"
+// };
 
 console.show();
 console.clear();
 console.log("> Generate diagram legend:");
+
+
+function onlyUnique(value, index, self) {
+  return self.indexOf(value) === index;
+}
+
+function generateFolder(parentFolder, nameSuffix) {
+  var folderName = parentFolder.name + nameSuffix;
+  var existing = $("folder." + folderName).first();
+  if (!existing) {
+    console.log("> Creating folder: " + folderName);
+    return parentFolder.createFolder(folderName);
+  }
+}
 
 var currentView = $(selection).filter("archimate-diagram-model").first();
 if (!currentView) {
@@ -73,34 +85,45 @@ if (!currentView) {
 businessFolder = $("folder.Business").first();
 strategyFolder = $("folder.Strategy").first();
 applicationFolder = $("folder.Application").first();
-technologyFolder = $("folder.Technology").first();
+technologyFolder = $("folder.Technology & Physical").first();
 motivationFolder = $("folder.Motivation").first();
-implementationFolder = $("folder.Implementation").first();
-physicalFolder = $("folder.Physical").first();
+implementationFolder = $("folder.Implementation & Migration").first();
 otherFolder = $("folder.Other").first();
-// businessFolder.createFolder(groupName + "-" + businessFolder.name + "-Folder");
-// strategyFolder.createFolder(groupName + "-" + strategyFolder.name + "-Folder");
-// applicationFolder.createFolder(groupName + "-" + applicationFolder.name + "-Folder");
-// technologyFolder.createFolder(groupName + "-" + technologyFolder.name + "-Folder");
-// motivationFolder.createFolder(groupName + "-" + motivationFolder.name + "-Folder");
-// implementationFolder.createFolder(groupName + "-" + implementationFolder.name + "-Folder");
-// physicalFolder.createFolder(groupName + "-" + physicalFolder.name + "-Folder");
-// otherFolder.createFolder(groupName + "-" + otherFolder.name + "-Folder");
+relationsFolder = $("folder.Relations").first();
 
-businessFolderObj = $(groupName + "-" + businessFolder.name + "-Folder").first();
-strategyFolderObj = $(groupName + "-" + strategyFolder.name + "-Folder").first();
-applicationFolderObj = $(groupName + "-" + applicationFolder.name + "-Folder").first();
+// Go through each folder type
+generateFolder(businessFolder, groupName);
+generateFolder(strategyFolder, groupName)
+generateFolder(applicationFolder, groupName)
+generateFolder(technologyFolder, groupName)
+generateFolder(motivationFolder, groupName)
+generateFolder(implementationFolder, groupName)
+generateFolder(otherFolder, groupName)
+generateFolder(relationsFolder, groupName)
+
+// businessFolder.createFolder(groupName + "-" + businessFolder.name);
+// strategyFolder.createFolder(groupName + "-" + strategyFolder.name);
+// applicationFolder.createFolder(groupName + "-" + applicationFolder.name);
+// technologyFolder.createFolder(groupName + "-" + technologyFolder.name);
+// motivationFolder.createFolder(groupName + "-" + motivationFolder.name);
+// implementationFolder.createFolder(groupName + "-" + implementationFolder.name);
+
+// otherFolder.createFolder(groupName + "-" + otherFolder.name);
+
+// This is a terrible way to get the name of the folder
+
+// businessFolderObj = $(groupName + "-" + businessFolder.name + "-Folder").first();
+// strategyFolderObj = $(groupName + "-" + strategyFolder.name + "-Folder").first();
+// applicationFolderObj = $(groupName + "-" + applicationFolder.name + "-Folder").first();
 // technologyFolderObj = $(groupName + "-" + technologyFolder.name + "-Folder").first();
 // motivationFolderObj = $(groupName + "-" + motivationFolder.name + "-Folder").first();
 // implementationFolderObj = $(groupName + "-" + implementationFolder.name + "-Folder").first();
-// physicalFolderObj = $(groupName + "-" + physicalFolder.name + "-Folder").first();
 // otherFolderObj = $(groupName + "-" + otherFolder.name + "-Folder").first();
 
 
 // testingChildren = businessFolder.children().each(function(f){
 //   console.log(f)
 // })
-console.log(businessFolder)
 
 // var mySubfolder = businessFolder.folders.filter(function(f) {
 //   console.log(f)
