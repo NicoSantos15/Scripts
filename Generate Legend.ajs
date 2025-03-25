@@ -62,7 +62,9 @@ function generateFolder(parentFolder, nameSuffix) {
   var existing = $("folder." + folderName).first();
   if (!existing) {
     console.log("> Creating folder: " + folderName);
-    return parentFolder.createFolder(folderName);
+    var newFolder = parentFolder.createFolder(folderName); 
+    newFolder.prop("Object State", "Legend")
+    return newFolder
   }
 }
 
