@@ -32,6 +32,23 @@ var groupName = "Legend";
 var noteFigureType = 0;
 var noteOpacity = 0;
 var noteOutlineOpacity = 0;
+var businessFolder, 
+    strategyFolder,
+    applicationFolder,
+    technologyFolder,
+    motivationFolder,
+    implementationFolder,
+    physicalFolder,
+    otherFolder;
+
+var businessFolderObj,
+    strategyFolderObj,
+    applicationFolderObj,
+    technologyFolderObj,
+    motivationFolderObj,
+    implementationFolderObj,
+    physicalFolderObj,
+    otherFolderObj;
 
 console.show();
 console.clear();
@@ -44,14 +61,51 @@ if (!currentView) {
 }
 
 // Create a legend folder if not exist
-var otherFolder = $("folder.Other").first();
-var legendFolder = $("folder.Legend").first();
-if (!legendFolder) {
-  otherFolder.createFolder("Legend"); 
-  console.log("> No Legend folder detected. Legend Folder Created");
-}else{
-  // console.log("Legend Folder Exists");
-}
+// var otherFolder = $("folder.Other").first();
+// var legendFolder = $("folder.Legend").first();
+// if (!legendFolder) {
+//   otherFolder.createFolder("Legend"); 
+//   console.log("> No Legend folder detected. Legend Folder Created");
+// }else{
+//   // console.log("Legend Folder Exists");
+// }
+
+businessFolder = $("folder.Business").first();
+strategyFolder = $("folder.Strategy").first();
+applicationFolder = $("folder.Application").first();
+technologyFolder = $("folder.Technology").first();
+motivationFolder = $("folder.Motivation").first();
+implementationFolder = $("folder.Implementation").first();
+physicalFolder = $("folder.Physical").first();
+otherFolder = $("folder.Other").first();
+// businessFolder.createFolder(groupName + "-" + businessFolder.name + "-Folder");
+// strategyFolder.createFolder(groupName + "-" + strategyFolder.name + "-Folder");
+// applicationFolder.createFolder(groupName + "-" + applicationFolder.name + "-Folder");
+// technologyFolder.createFolder(groupName + "-" + technologyFolder.name + "-Folder");
+// motivationFolder.createFolder(groupName + "-" + motivationFolder.name + "-Folder");
+// implementationFolder.createFolder(groupName + "-" + implementationFolder.name + "-Folder");
+// physicalFolder.createFolder(groupName + "-" + physicalFolder.name + "-Folder");
+// otherFolder.createFolder(groupName + "-" + otherFolder.name + "-Folder");
+
+businessFolderObj = $(groupName + "-" + businessFolder.name + "-Folder").first();
+strategyFolderObj = $(groupName + "-" + strategyFolder.name + "-Folder").first();
+applicationFolderObj = $(groupName + "-" + applicationFolder.name + "-Folder").first();
+// technologyFolderObj = $(groupName + "-" + technologyFolder.name + "-Folder").first();
+// motivationFolderObj = $(groupName + "-" + motivationFolder.name + "-Folder").first();
+// implementationFolderObj = $(groupName + "-" + implementationFolder.name + "-Folder").first();
+// physicalFolderObj = $(groupName + "-" + physicalFolder.name + "-Folder").first();
+// otherFolderObj = $(groupName + "-" + otherFolder.name + "-Folder").first();
+
+
+// testingChildren = businessFolder.children().each(function(f){
+//   console.log(f)
+// })
+console.log(businessFolder)
+
+// var mySubfolder = businessFolder.folders.filter(function(f) {
+//   console.log(f)
+//   return f.name === "Legend";
+// }).first();
 
 // Loop through all elements used in selected view and push into array elements type
 $(currentView)
@@ -93,10 +147,11 @@ for (var i = 0; i < typesList.length; i++) {
   }
 
   // Move legend concept to Legend folder
-  if (!theConcept.container || theConcept.container.id !== legendFolder.id) {
-    legendFolder.add(theConcept);
-    console.log("> Moved concept to Legend folder: " + theConcept.name);
-  }
+  // if (!theConcept.container || theConcept.container.id !== legendFolder.id) {
+  //   // legendFolder.add(theConcept);
+  //   theConcept.container = legendFolder;
+  //   console.log("> Moved concept to Legend folder: " + theConcept.name);
+  // }
 }
 
 // Create the group with a default size and position
@@ -129,7 +184,7 @@ for (var i = 0; i < typesList.length; i++) {
     default_height,
     true
   );
-  
+
   currentNote.setFigureType(noteFigureType);
   currentNote.opacity = noteOpacity;
   currentNote.outlineOpacity = noteOutlineOpacity;
