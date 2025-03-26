@@ -62,8 +62,8 @@ function generateFolder(parentFolder, nameSuffix) {
   var existing = $("folder." + folderName).first();
   if (!existing) {
     console.log("> Creating folder: " + folderName);
-    var newFolder = parentFolder.createFolder(folderName); 
-    newFolder.prop("Object State", "Legend")
+    var newFolder = parentFolder.createFolder(folderName);
+    newFolder.prop("Object State", groupName);
     return newFolder
   }
 }
@@ -169,14 +169,8 @@ for (var i = 0; i < typesList.length; i++) {
   theConcept = $("." + prefix + typesList[i]).first();
   if (!theConcept) {
     var theConcept = model.createElement(typesList[i], prefix + typesList[i]);
+    theConcept.prop("Object State", groupName);
   }
-
-  // Move legend concept to Legend folder
-  // if (!theConcept.container || theConcept.container.id !== legendFolder.id) {
-  //   // legendFolder.add(theConcept);
-  //   theConcept.container = legendFolder;
-  //   console.log("> Moved concept to Legend folder: " + theConcept.name);
-  // }
 }
 
 // Create the group with a default size and position
