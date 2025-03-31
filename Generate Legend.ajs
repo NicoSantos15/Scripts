@@ -28,6 +28,8 @@ var groupName = "Legend";
 var noteFigureType = 0;
 var noteOpacity = 0;
 var noteOutlineOpacity = 0;
+
+// Folders to be created if not exist
 var businessFolder, 
     strategyFolder,
     applicationFolder,
@@ -37,12 +39,14 @@ var businessFolder,
     otherFolder,
     relationsFolder;
 
+// Types to exclude from the legend
 var excludedTypes = [
   "diagram-model-group",
   "diagram-model-note",
   "diagram-model-connection",
   "archimate-diagram-model"
 ];
+
 // const folders = {
 //     business: "Business-Legends",
 //     strategy: "Strategy-Legends",
@@ -58,11 +62,11 @@ console.show();
 console.clear();
 console.log("> Generate diagram legend:");
 
-
 function onlyUnique(value, index, self) {
   return self.indexOf(value) === index;
 }
 
+// Generate a folder if it does not exist
 function generateFolder(parentFolder, nameSuffix) {
   var folderName = parentFolder.name + nameSuffix;
   var existing = $("folder." + folderName).first();
@@ -79,6 +83,15 @@ if (!currentView) {
   console.log("> No view identified: exiting.");
   exit();
 }
+
+// (1) Create the Grouping element at the model level
+var groupingElement = model.createElement("grouping", "My Grouping Element");
+
+// (2) Add it visually to your view
+var groupingViewObject = currentView.add(groupingElement, 100, 100, 200, 120);
+
+// (Optional) Customize its appearance
+groupingViewObject.fillOpacity = 0;       // fully transparent if desired
 
 // Create a legend folder if not exist
 // var otherFolder = $("folder.Other").first();
@@ -146,12 +159,12 @@ $(currentView)
     typesList.push(e.type);
   });
 
-// Also collect relationship types from the current view
-$(currentView)
-.find("relationship")
-.each(function (r) {
-  typesList.push(r.type);
-});
+// // Also collect relationship types from the current view
+// $(currentView)
+// .find("relationship")
+// .each(function (r) {
+//   typesList.push(r.type);
+// });
 
 typesList.sort(function (a, b) {
   var textA = a.toUpperCase();
@@ -171,14 +184,16 @@ typesList = typesList.filter(function (item) {
 for (var i = 0; i < typesList.length; i++) {
   // Search the corresponding standard element to be used for legend purpose
   theConcept = $("." + prefix + typesList[i]).first();
-  if (!theConcept && !typesList[i].includes("-relationship")) {
+  if (!theConcept) {
     var theConcept = model.createElement(typesList[i], prefix + typesList[i]);
     theConcept.prop("Object State", groupName);
   }
 }
+
 $("element").each(function(e) {
   console.log(e.type)
 })
+
 // Create the group with a default size and position
 var legendGroup = currentView.createObject("group", x, y, 10, 10, true);
 legendGroup.name = groupName;
