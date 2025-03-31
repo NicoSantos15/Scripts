@@ -139,7 +139,7 @@ $(currentView)
   .each(function (e) {
     typesList.push(e.type);
   });
-  
+
 // Also collect relationship types from the current view
 $(currentView)
 .find("relationship")
@@ -174,7 +174,7 @@ typesList = typesList.filter(function (item) {
 for (var i = 0; i < typesList.length; i++) {
   // Search the corresponding standard element to be used for legend purpose
   theConcept = $("." + prefix + typesList[i]).first();
-  if (!theConcept) {
+  if (!theConcept && !typesList[i].includes("-relationship")) {
     var theConcept = model.createElement(typesList[i], prefix + typesList[i]);
     theConcept.prop("Object State", groupName);
   }
