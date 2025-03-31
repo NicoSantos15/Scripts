@@ -90,9 +90,12 @@ var groupingElement = model.createElement("grouping", "My Grouping Element");
 // (2) Add it visually to your view
 var groupingViewObject = currentView.add(groupingElement, 100, 100, 200, 120);
 
-// (Optional) Customize its appearance
-groupingViewObject.fillOpacity = 0;       // fully transparent if desired
+// (Optional) Customize ii appearance
+groupingViewObject.name = "";
 
+
+groupingViewObject.image = null
+groupingViewObject.outlineOpacity = 0;       // fully transparent if desired
 // Create a legend folder if not exist
 // var otherFolder = $("folder.Other").first();
 // var legendFolder = $("folder.Legend").first();
