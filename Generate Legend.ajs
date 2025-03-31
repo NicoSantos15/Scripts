@@ -139,6 +139,13 @@ $(currentView)
   .each(function (e) {
     typesList.push(e.type);
   });
+  
+// Also collect relationship types from the current view
+$(currentView)
+.find("relationship")
+.each(function (r) {
+  typesList.push(r.type);
+});
 
 typesList.sort(function (a, b) {
   var textA = a.toUpperCase();
