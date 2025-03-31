@@ -91,7 +91,7 @@ var groupingElement = model.createElement("grouping", "My Grouping Element");
 var groupingViewObject = currentView.add(groupingElement, 100, 100, 200, 120);
 
 
-var blankImage = model.createImage("C:/Temp/transparent.png"); // Use a valid transparent image file path here
+var blankImage = model.createImage("/transparent.png"); // Use a valid transparent image file path here
 groupingViewObject.image = blankImage; //Proper image assignment
 
 // (Optional) Customize ii appearance
