@@ -26,6 +26,7 @@ var groupHeight = default_height + y;
 var prefix = "legend-purpose-";
 var groupName = "Legend";
 var noteFigureType = 0;
+var transparentFigureType = 1;
 var noteOpacity = 0;
 var noteOutlineOpacity = 0;
 
@@ -84,21 +85,21 @@ if (!currentView) {
   exit();
 }
 
-// (1) Create the Grouping element at the model level
-var groupingElement = model.createElement("grouping", "My Grouping Element");
-
-// (2) Add it visually to your view
-var groupingViewObject = currentView.add(groupingElement, 100, 100, 200, 120);
-
-
-// var blankImage = model.createImage("C:\\Users\\santniab\\Repositories\\Scripts\\transparent.png"); // Use a valid transparent image file path here
-// groupingViewObject.image = blankImage; //Proper image assignment
-
-// console.log(groupingViewObject.prop("showIcon"));
-// groupingViewObject.prop("figure", "frame")
-groupingViewObject.setFigureType(1);
+// Relationship legend element 1
+var groupingElement = model.createElement("grouping", "relationship-legend-placeholder");
+var groupingViewObject = currentView.add(groupingElement, 100, 100, 1, 1);
+groupingViewObject.setFigureType(transparentFigureType);
 groupingViewObject.name = "";
 groupingViewObject.outlineOpacity = 0;
+
+
+
+// Relationship legend element 2
+var rightElement = model.createElement("grouping", "relationship-legend-placeholder");
+var rightView = currentView.add(rightElement, 400, 100, 1, 1); // X=400 (adds gap of 300px)
+groupingViewObject.setFigureType(transparentFigureType);
+rightView.outlineOpacity = 0;
+rightElement.name = "";
 
 // Add the names of the folders
 businessFolder = $("folder.Business").first();
