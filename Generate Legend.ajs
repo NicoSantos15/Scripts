@@ -91,25 +91,16 @@ var groupingElement = model.createElement("grouping", "My Grouping Element");
 var groupingViewObject = currentView.add(groupingElement, 100, 100, 200, 120);
 
 
-var blankImage = model.createImage("/transparent.png"); // Use a valid transparent image file path here
-groupingViewObject.image = blankImage; //Proper image assignment
+// var blankImage = model.createImage("C:\\Users\\santniab\\Repositories\\Scripts\\transparent.png"); // Use a valid transparent image file path here
+// groupingViewObject.image = blankImage; //Proper image assignment
 
-// (Optional) Customize ii appearance
+// console.log(groupingViewObject.prop("showIcon"));
+// groupingViewObject.prop("figure", "frame")
+groupingViewObject.setFigureType(1);
 groupingViewObject.name = "";
-console.log(groupingViewObject);
-groupingViewObject.image = "";
 groupingViewObject.outlineOpacity = 0;
 
-// Create a legend folder if not exist
-// var otherFolder = $("folder.Other").first();
-// var legendFolder = $("folder.Legend").first();
-// if (!legendFolder) {
-//   otherFolder.createFolder("Legend"); 
-//   console.log("> No Legend folder detected. Legend Folder Created");
-// }else{
-//   // console.log("Legend Folder Exists");
-// }
-
+// Add the names of the folders
 businessFolder = $("folder.Business").first();
 strategyFolder = $("folder.Strategy").first();
 applicationFolder = $("folder.Application").first();
@@ -192,7 +183,10 @@ for (var i = 0; i < typesList.length; i++) {
   // Search the corresponding standard element to be used for legend purpose
   theConcept = $("." + prefix + typesList[i]).first();
   if (!theConcept) {
-    var theConcept = model.createElement(typesList[i], prefix + typesList[i]);
+    // Improvise this with the use of Duplicate. 
+    //Its easier to duplicate an element instead of creating a new one. 
+    //Just check if the element already has a legend version then dont duplicate.
+    var theConcept = model.createElement(typesList[i], prefix + typesList[i]);  
     theConcept.prop("Object State", groupName);
   }
 }
