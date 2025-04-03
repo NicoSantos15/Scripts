@@ -5,135 +5,138 @@ console.clear();
 
 console.log("> Add element Properties - Selected View");
 
-// Prompt for Author and Date
 var propAuthor = window.prompt("Value for element Author (leave empty to cancel)?", "");
 var propDate = window.prompt("Value for element Date (leave empty to set to current date) (Format: YYYY-MM-DD)?", "");
 
-// Set default date if none provided
+// original date fallback logic preserved
 if (!propDate) {
 	var date = new Date();
-	propDate = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
+	var month = date.getMonth() + 1;
+	if (month < 10) {
+		month = "0" + month;
+	}
+	var day = date.getDate();
+	if (day < 10) {
+		day = "0" + day;
+	}
+	propDate = date.getFullYear() + "-" + month + "-" + day;
 }
 
-// === Helper Functions ===
-function setPropIfMissing(element, propName, value) {
-	if (!element.prop(propName)) {
-		element.prop(propName, value, false);
-		if (debug) console.log(element.name, ` - No ${propName}, adding ${propName}`);
+// === DRY Helpers ===
+function setPropIfMissing(el, key, val) {
+	if (!el.prop(key)) el.prop(key, val, false);
+}
+
+function promptProp(el, key, message, options = null) {
+	if (!el.prop(key)) {
+		var value = options ? window.promptSelection(message, options) : window.prompt(message, "");
+		el.prop(key, value, false);
 	}
 }
 
-function promptAndSetProp(element, propName, message, options = null) {
-	if (!element.prop(propName)) {
-		let value = options ? window.promptSelection(message, options) : window.prompt(message, "");
-		element.prop(propName, value, false);
-		if (debug) console.log(element.name, ` - ${propName} added`);
-	}
+function addToFolder(folderName, el) {
+	var folder = $("folder." + folderName).first();
+	folder.add(el);
 }
 
-function addToFolder(folderName, element) {
-	const folder = $(`folder.${folderName}`).first();
-	folder.add(element);
-}
+if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model'))) {
 
-function addCommonProps(element) {
-	setPropIfMissing(element, "Object Author", propAuthor || "");
-	setPropIfMissing(element, "Object Date", propDate);
-	setPropIfMissing(element, "Object Status", "Draft");
-}
-
-function setObjectType(element, type) {
-	setPropIfMissing(element, "Object Type", type);
-}
-
-// === Main Processing ===
-if (selection.size() === 1 && $(selection.get(0)).is('archimate-diagram-model')) {
-	let diagram = $("archimate-diagram-model").filter("." + selection.get(0).name).first();
+	// Select diagram and its elements
+	var diagram = $("archimate-diagram-model").filter("." + selection.get(0).name).first();
 	console.log("Diagram: ", diagram.name);
 
-	let elements = $(diagram).find("element");
+	var elements = $(diagram).find("element");
+
 	console.log("Elements in View: ", elements.length);
 
 	elements.forEach(function (element) {
-		let modelElement = $("." + element.name).first();
-		console.log("Model element:", modelElement.name, " View Element :", element.name);
+		var modelelement = $("." + element.name).first();
+		if (!modelelement) {
+			console.warn("Skipping missing model element for:", element.name);
+			return;
+		}
 
-		addCommonProps(modelElement);
+		console.log("Model element:", modelelement.name, " View Element :", element.name);
 
-		switch (modelElement.type) {
+		// Common properties
+		setPropIfMissing(modelelement, "Object Author", propAuthor || "");
+		setPropIfMissing(modelelement, "Object Date", propDate);
+		setPropIfMissing(modelelement, "Object Status", "Draft");
+
+		switch (modelelement.type) {
 			case "business-role":
-				addToFolder("Business Roles", modelElement);
-				setObjectType(modelElement, "Business Role");
-				promptAndSetProp(modelElement, "Position Identifier", "Position Identifier: ");
+				addToFolder("Business Roles", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Business Role");
+				promptProp(modelelement, "Position Identifier", "Position Identifier: ");
 				break;
 
 			case "system-software":
-				addToFolder("System Software", modelElement);
-				setObjectType(modelElement, "System Software");
-				promptAndSetProp(modelElement, "System Software Vendor", "System Software Vendor: ");
-				promptAndSetProp(modelElement, "System Software Product", "System Software Product: ");
-				promptAndSetProp(modelElement, "System Software Version", "System Software Version: ");
-				promptAndSetProp(modelElement, "System Software Lifecycle State", "System Software Lifecycle State: ", ["Unknown", "Current", "Supported", "End-of-Life"]);
-				promptAndSetProp(modelElement, "System Software Licensed", "System Software Licensed: ", ["Unknown", "Yes", "No"]);
-				promptAndSetProp(modelElement, "System Software License Type", "System Software License Type: ", ["Unknown", "COTS", "Bespoke (Internal)", "Bespoke (External)", "Open Source (GPLv2)", "Open Source (GPLv3)", "Open Source (MIT)", "Open Source (GNU)"]);
+				addToFolder("System Software", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "System Software");
+				promptProp(modelelement, "System Software Vendor", "System Software Vendor: ");
+				promptProp(modelelement, "System Software Product", "System Software Product: ");
+				promptProp(modelelement, "System Software Version", "System Software Version: ");
+				promptProp(modelelement, "System Software Lifecycle State", "System Software Lifecycle State: ", ["Unknown", "Current", "Supported", "End-of-Life"]);
+				promptProp(modelelement, "System Software Licensed", "System Software Licensed: ", ["Unknown", "Yes", "No"]);
+				promptProp(modelelement, "System Software License Type", "System Software License Type: ", ["Unknown", "COTS", "Bespoke (Internal)", "Bespoke (External)", "Open Source (GPLv2)", "Open Source (GPLv3)", "Open Source (MIT)", "Open Source (GNU)"]);
 				break;
 
 			case "technology-service":
-				addToFolder("Technology Services", modelElement);
-				setObjectType(modelElement, "Technology Service");
+				addToFolder("Technology Services", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Technology Service");
 				break;
 
 			case "equipment":
-				addToFolder("Technology Equipment", modelElement);
-				setObjectType(modelElement, "Equipment");
+				addToFolder("Technology Equipment", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Equipment");
 				break;
 
 			case "gap":
-				addToFolder("Gaps", modelElement);
-				setObjectType(modelElement, "Gap");
+				addToFolder("Gaps", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Gap");
 				break;
 
 			case "business-object":
-				addToFolder("Business Information", modelElement);
-				setPropIfMissing(modelElement, "Entity Class", "");
-				setPropIfMissing(modelElement, "Entity Data Domain", "");
+				addToFolder("Business Information", modelelement);
+				setPropIfMissing(modelelement, "Entity Class", "");
+				setPropIfMissing(modelelement, "Entity Data Domain", "");
 				break;
 
 			case "goal":
-				addToFolder("Goals", modelElement);
+				addToFolder("Goals", modelelement);
 				break;
 
 			case "driver":
-				addToFolder("Drivers", modelElement);
+				addToFolder("Drivers", modelelement);
 				break;
 
 			case "requirement":
-				addToFolder("Requirements", modelElement);
-				promptAndSetProp(modelElement, "Requirement Type", "Requirement Type: ", ["Functional", "Non-Functional", "Business", "Undefined"]);
+				addToFolder("Requirements", modelelement);
+				promptProp(modelelement, "Requirement Type", "Requirement Type: ", ["Functional", "Non-Functional", "Business", "Undefined"]);
 				break;
 
 			case "location":
-				setPropIfMissing(modelElement, "Location Type", "Logical");
-				setPropIfMissing(modelElement, "Location Address", "");
-				setPropIfMissing(modelElement, "Location Identifier", "");
+				setPropIfMissing(modelelement, "Location Type", "Logical");
+				setPropIfMissing(modelelement, "Location Address", "");
+				setPropIfMissing(modelelement, "Location Identifier", "");
 				break;
 
 			case "work-package":
-				addToFolder("Work Packages", modelElement);
-				setObjectType(modelElement, "Work Package");
-				promptAndSetProp(modelElement, "Work Package State", "Work Package State: ", ["Unknown", "Active", "Inactive", "Halted", "Completed", "Proposed"]);
-				promptAndSetProp(modelElement, "Work Package Type", "Work Package Type: ", ["Unknown", "Non-Project", "Project", "Program of Work"]);
-				promptAndSetProp(modelElement, "Work Package Project Type", "Work Package Project Type: ", ["Unknown", "Compliance: External", "Compliance: Internal", "Improvement: Cost", "Improvement: Culture", "Improvement: Production", "Risk Reduction: Material", "Risk Reduction: Non-Material", "Sustaining: Asset Integrity", "Sustaining: Cost", "Sustaining: Capacity"]);
-				promptAndSetProp(modelElement, "Work Package Budget", "Work Package Budget: ");
-				promptAndSetProp(modelElement, "Work Package Start Date", "Work Package Start Date (YYYY-MM-DD): ");
-				promptAndSetProp(modelElement, "Work Package End Date", "Work Package End Date (YYYY-MM-DD): ");
-				promptAndSetProp(modelElement, "Work Package Requestor", "Work Package Requestor: ");
-				promptAndSetProp(modelElement, "Work Package Sponsor", "Work Package Sponsor: ");
-				setPropIfMissing(modelElement, "Work Package Reference", "");
-				promptAndSetProp(modelElement, "Work Package Investment Amount", "Work Package Investment Amount: ");
-				promptAndSetProp(modelElement, "Work Package Function", "Work Package Function: ", ["Unknown", "Commercial", "Technology", "Exploration", "External Affairs", "Finance", "Human Resources", "HSE", "Innovation", "Maintenance & Engineering", "Projects", "Supply", "Value Engineering"]);
-				promptAndSetProp(modelElement, "Work Package Asset", "Work Package Asset: ", ["Unknown", "Coal", "CopperSA", "Escondida", "Legacy Assets", "Mt Arthur Coal", "Pampa Norte", "Potash", "Technical", "WAIO"]);
-				promptAndSetProp(modelElement, "Work Package Identifier", "Work Package Identifier (Planview ID): ");
+				addToFolder("Work Packages", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Work Package");
+				promptProp(modelelement, "Work Package State", "Work Package State: ", ["Unknown", "Active", "Inactive", "Halted", "Completed", "Proposed"]);
+				promptProp(modelelement, "Work Package Type", "Work Package Type: ", ["Unknown", "Non-Project", "Project", "Program of Work"]);
+				promptProp(modelelement, "Work Package Project Type", "Work Package Project Type: ", ["Unknown", "Compliance: External", "Compliance: Internal", "Improvement: Cost", "Improvement: Culture", "Improvement: Production", "Risk Reduction: Material", "Risk Reduction: Non-Material", "Sustaining: Asset Integrity", "Sustaining: Cost", "Sustaining: Capacity"]);
+				promptProp(modelelement, "Work Package Budget", "Work Package Budget: ");
+				promptProp(modelelement, "Work Package Start Date", "Work Package Start Date (YYYY-MM-DD): ");
+				promptProp(modelelement, "Work Package End Date", "Work Package End Date (YYYY-MM-DD): ");
+				promptProp(modelelement, "Work Package Requestor", "Work Package Requestor: ");
+				promptProp(modelelement, "Work Package Sponsor", "Work Package Sponsor: ");
+				setPropIfMissing(modelelement, "Work Package Reference", "");
+				promptProp(modelelement, "Work Package Investment Amount", "Work Package Investment Amount: ");
+				promptProp(modelelement, "Work Package Function", "Work Package Function: ", ["Unknown", "Commercial", "Technology", "Exploration", "External Affairs", "Finance", "Human Resources", "HSE", "Innovation", "Maintenance & Engineering", "Projects", "Supply", "Value Engineering"]);
+				promptProp(modelelement, "Work Package Asset", "Work Package Asset: ", ["Unknown", "Coal", "CopperSA", "Escondida", "Legacy Assets", "Mt Arthur Coal", "Pampa Norte", "Potash", "Technical", "WAIO"]);
+				promptProp(modelelement, "Work Package Identifier", "Work Package Identifier (Planview ID): ");
 				break;
 		}
 	});
