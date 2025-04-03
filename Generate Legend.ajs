@@ -188,7 +188,10 @@ for (var i = 0; i < typesList.length; i++) {
 var allRelationships = model.find("relationship")
 allRelationships.forEach(function(rel) {
   // console.log("relationbship type: " + rel.type)
-  legendGroup.bounds = { width: groupWidth, height: groupHeight };
+  // var theRelationship = $("." + rel.name + "").first();
+
+  // if (!theRelationship) {
+  legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
 
   // Create transparent grouping element 1 (left side of relationship)
   var groupingElement = model.createElement("grouping", "legend-anchor-right-" + rel.type);
@@ -222,7 +225,7 @@ allRelationships.forEach(function(rel) {
   var visualRel = currentView.add(legendRel, groupingViewObject, rightView);
 
   // Add a note to describe the relationship type
-  var note = currentView.createObject("note", pictogram_x + label_x, y, label_width, default_height, true);
+  var note = currentView.createObject("note", pictogram_x + label_x, y, label_width + 20, default_height, true);
   note.setFigureType(noteFigureType);
   note.opacity = noteOpacity;
   note.outlineOpacity = noteOutlineOpacity;
@@ -230,6 +233,7 @@ allRelationships.forEach(function(rel) {
 
   y += 40;
   groupHeight += 40;
+// }
 });
 
 console.log("> Ending properly");
