@@ -30,6 +30,7 @@ var transparentFigureType = 1;
 var noteOpacity = 0;
 var noteOutlineOpacity = 0;
 var emptyLabel = ""
+var selectedFolder = ""
 
 // Folders to be created if not exist
 var businessFolder, 
@@ -49,17 +50,6 @@ var excludedTypes = [
   "archimate-diagram-model"
 ];
 
-// const folders = {
-//     business: "Business-Legends",
-//     strategy: "Strategy-Legends",
-//     application: "Application-Legends",
-//     technology: "Technology-Legends",
-//     motivation: "Motivation-Legends",
-//     implementation: "Implementation-Legends",
-//     other: "Other-Legends",
-//     relations: "Relations-Legends"
-// };
-
 console.show();
 console.clear();
 console.log("> Generate diagram legend:");
@@ -68,17 +58,28 @@ function onlyUnique(value, index, self) {
   return self.indexOf(value) === index;
 }
 
+// Detemine the layer for a given type
+function getLayerForType(type) {
+  if (type.startsWith("business-")) return "Business";
+  if (type.startsWith("application-")) return "Application";
+  if (type.startsWith("technology-") || type.startsWith("device") || type.startsWith("node")) return "Technology & Physical";
+  if (type.startsWith("strategy-")) return "Strategy";
+  if (type.startsWith("motivation-") || type.startsWith("value")) return "Motivation";
+  if (type.startsWith("implementation-")) return "Implementation & Migration";
+  return "Other";
+}
+
 // Generate a folder if it does not exist
 function generateFolder(parentFolder, nameSuffix) {
-  var folderName = parentFolder.name + nameSuffix;
+  var folderName = parentFolder.name + " " + nameSuffix;
   var existing = $("folder." + folderName).first();
   if (!existing) {
-    console.log("> Creating folder: " + folderName);
     var newFolder = parentFolder.createFolder(folderName);
     newFolder.prop("Object State", groupName);
     return newFolder
   }
 }
+
 
 var currentView = $(selection).filter("archimate-diagram-model").first();
 if (!currentView) {
@@ -105,35 +106,6 @@ generateFolder(motivationFolder, groupName)
 generateFolder(implementationFolder, groupName)
 generateFolder(otherFolder, groupName)
 generateFolder(relationsFolder, groupName)
-
-// businessFolder.createFolder(groupName + "-" + businessFolder.name);
-// strategyFolder.createFolder(groupName + "-" + strategyFolder.name);
-// applicationFolder.createFolder(groupName + "-" + applicationFolder.name);
-// technologyFolder.createFolder(groupName + "-" + technologyFolder.name);
-// motivationFolder.createFolder(groupName + "-" + motivationFolder.name);
-// implementationFolder.createFolder(groupName + "-" + implementationFolder.name);
-
-// otherFolder.createFolder(groupName + "-" + otherFolder.name);
-
-// This is a terrible way to get the name of the folder
-
-// businessFolderObj = $(groupName + "-" + businessFolder.name + "-Folder").first();
-// strategyFolderObj = $(groupName + "-" + strategyFolder.name + "-Folder").first();
-// applicationFolderObj = $(groupName + "-" + applicationFolder.name + "-Folder").first();
-// technologyFolderObj = $(groupName + "-" + technologyFolder.name + "-Folder").first();
-// motivationFolderObj = $(groupName + "-" + motivationFolder.name + "-Folder").first();
-// implementationFolderObj = $(groupName + "-" + implementationFolder.name + "-Folder").first();
-// otherFolderObj = $(groupName + "-" + otherFolder.name + "-Folder").first();
-
-
-// testingChildren = businessFolder.children().each(function(f){
-//   console.log(f)
-// })
-
-// var mySubfolder = businessFolder.folders.filter(function(f) {
-//   console.log(f)
-//   return f.name === "Legend";
-// }).first();
 
 // Loop through all elements used in selected view and push into array elements type
 $(currentView)
@@ -169,17 +141,21 @@ for (var i = 0; i < typesList.length; i++) {
   // Search the corresponding standard element to be used for legend purpose
   theConcept = $("." + prefix + typesList[i]).first();
   if (!theConcept) {
-    // Improvise this with the use of Duplicate. 
-    //Its easier to duplicate an element instead of creating a new one. 
-    //Just check if the element already has a legend version then dont duplicate.
-    var theConcept = model.createElement(typesList[i], prefix + typesList[i]);  
+    var theConcept = model.createElement(typesList[i], prefix + typesList[i]);
     theConcept.prop("Object State", groupName);
+    
+    if (theConcept) {
+      selectedFolder = $("folder").filter(function(f) {
+        return f.name === getLayerForType(theConcept.type) + " Legend";
+      }).first();
+      selectedFolder.add(theConcept);
+    }
   }
 }
 
-$("element").each(function(e) {
-  console.log(e.type)
-})
+// $("element").each(function(e) {
+//   console.log(e.type)
+// })
 
 // Create the group with a default size and position
 var legendGroup = currentView.createObject("group", x, y, 10, 10, true);
@@ -187,6 +163,8 @@ legendGroup.name = groupName;
 y += 30;
 groupHeight += 30;
 
+
+// Create elements for each type found in the view
 for (var i = 0; i < typesList.length; i++) {
   pictogram = $("." + prefix + typesList[i]).first();
 
@@ -194,23 +172,8 @@ for (var i = 0; i < typesList.length; i++) {
   legendGroup.bounds = { width: groupWidth, height: groupHeight };
 
   // Add the concept sized specifically to illustrate pictogram, and a note to bear the text, both with autonesting
-  var object = currentView.add(
-    pictogram,
-    pictogram_x,
-    y,
-    default_width,
-    default_height,
-    true
-  );
-
-  var currentNote = currentView.createObject(
-    "note",
-    pictogram_x + label_x,
-    y,
-    label_width,
-    default_height,
-    true
-  );
+  var object = currentView.add(pictogram, pictogram_x, y, default_width, default_height, true);
+  var currentNote = currentView.createObject("note", pictogram_x + label_x, y, label_width, default_height, true);
 
   currentNote.setFigureType(noteFigureType);
   currentNote.opacity = noteOpacity;
@@ -221,25 +184,52 @@ for (var i = 0; i < typesList.length; i++) {
   groupHeight += 40;
 }
 
-// Relationship legend element 1
-var groupingElement = model.createElement("grouping", "relationship-legend-placeholder");
-var groupingViewObject = currentView.add(groupingElement, 100, 100, 1, 1);
-groupingViewObject.setFigureType(transparentFigureType);
-groupingViewObject.name = emptyLabel;
-groupingViewObject.outlineOpacity = noteOpacity;
-
-// Relationship legend element 2
-var rightElement = model.createElement("grouping", "relationship-legend-placeholder");
-var rightView = currentView.add(rightElement, 150, 100, 1, 1); // X=400 (adds gap of 300px)
-groupingViewObject.setFigureType(transparentFigureType);
-rightElement.name = emptyLabel;
-rightView.outlineOpacity = noteOpacity;
-
+// Create relationship legend
 var allRelationships = model.find("relationship")
-console.log("Total number of relationships in model " + allRelationships.length)
-
 allRelationships.forEach(function(rel) {
-  console.log("relationbship type: " + rel.type)
+  // console.log("relationbship type: " + rel.type)
+  legendGroup.bounds = { width: groupWidth, height: groupHeight };
+
+  // Create transparent grouping element 1 (left side of relationship)
+  var groupingElement = model.createElement("grouping", "legend-anchor-right-" + rel.type);
+  // selectedFolder = $("folder.Other Legend").first();
+  var selectedFolder = $("folder").filter(function(f) {
+    return f.name === "Other Legend";
+  }).first();
+  selectedFolder.add(groupingElement);
+  var groupingViewObject = currentView.add(groupingElement, pictogram_x, y + 12, 1, 1, true);
+  groupingViewObject.setFigureType(transparentFigureType);
+  groupingViewObject.outlineOpacity = noteOpacity;
+
+  // Create transparent grouping element 2 (right side of relationship)
+  var rightElement = model.createElement("grouping", "legend-anchor-left-" + rel.type);
+  selectedFolder.add(rightElement);
+  rightElement
+  var rightView = currentView.add(rightElement, pictogram_x + 48, y + 12, 1, 1, true);
+  rightView.setFigureType(transparentFigureType);
+  rightView.outlineOpacity = noteOpacity;
+
+  // Create relationship between the two dummy elements
+  var legendRel = model.createRelationship(rel.type, rel.name, groupingElement, rightElement);
+  // selectedFolder = $("folder.RelationsLegend").first();
+
+  var selectedFolder = $("folder").filter(function(f) {
+    return f.name === "Relations Legend";
+  }).first();
+  selectedFolder.add(legendRel);
+  legendRel.name = "";
+  legendRel.prop("Object State", groupName);
+  var visualRel = currentView.add(legendRel, groupingViewObject, rightView);
+
+  // Add a note to describe the relationship type
+  var note = currentView.createObject("note", pictogram_x + label_x, y, label_width, default_height, true);
+  note.setFigureType(noteFigureType);
+  note.opacity = noteOpacity;
+  note.outlineOpacity = noteOutlineOpacity;
+  note.text = rel.type.charAt(0).toUpperCase() + rel.type.slice(1);
+
+  y += 40;
+  groupHeight += 40;
 });
 
 console.log("> Ending properly");
