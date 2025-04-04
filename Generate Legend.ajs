@@ -183,57 +183,78 @@ for (var i = 0; i < typesList.length; i++) {
   y += 40;
   groupHeight += 40;
 }
+var legendExists;
+
+function isLegendExists(sourceName, anchorName) {
+  if(sourceName === anchorName){
+    legendExists = true;
+    return;
+  } else { 
+    legendExists = false
+  }
+}
 
 // Create relationship legend
 var allRelationships = model.find("relationship")
-allRelationships.forEach(function(rel) {
-  // console.log("relationbship type: " + rel.type)
-  // var theRelationship = $("." + rel.name + "").first();
+isLegendExists(legSourceName, legLefttAnchorName)
+if (!legendExists) {
+    allRelationships.forEach(function(rel) {
+    // console.log("relationbship type: " + rel.type)
 
-  // if (!theRelationship) {
-  legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
+  // console.log(rel.source.name)
+  var legSourceName = rel.source.name
+  var legTargetName = rel.target.type
+  var legRightAnchorName = "legend-anchor-right-" + rel.type
+  var legLefttAnchorName = "legend-anchor-left-" + rel.type
 
-  // Create transparent grouping element 1 (left side of relationship)
-  var groupingElement = model.createElement("grouping", "legend-anchor-right-" + rel.type);
-  // selectedFolder = $("folder.Other Legend").first();
-  var selectedFolder = $("folder").filter(function(f) {
-    return f.name === "Other Legend";
-  }).first();
-  selectedFolder.add(groupingElement);
-  var groupingViewObject = currentView.add(groupingElement, pictogram_x, y + 12, 1, 1, true);
-  groupingViewObject.setFigureType(transparentFigureType);
-  groupingViewObject.outlineOpacity = noteOpacity;
 
-  // Create transparent grouping element 2 (right side of relationship)
-  var rightElement = model.createElement("grouping", "legend-anchor-left-" + rel.type);
-  selectedFolder.add(rightElement);
-  rightElement
-  var rightView = currentView.add(rightElement, pictogram_x + 48, y + 12, 1, 1, true);
-  rightView.setFigureType(transparentFigureType);
-  rightView.outlineOpacity = noteOpacity;
+    // console.log("this is the relationship: " + r.source.name)
+    // console.log("left anchor name: " + legLefttAnchorName)
 
-  // Create relationship between the two dummy elements
-  var legendRel = model.createRelationship(rel.type, rel.name, groupingElement, rightElement);
-  // selectedFolder = $("folder.RelationsLegend").first();
 
-  var selectedFolder = $("folder").filter(function(f) {
-    return f.name === "Relations Legend";
-  }).first();
-  selectedFolder.add(legendRel);
-  legendRel.name = "";
-  legendRel.prop("Object State", groupName);
-  var visualRel = currentView.add(legendRel, groupingViewObject, rightView);
+    
+    legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
 
-  // Add a note to describe the relationship type
-  var note = currentView.createObject("note", pictogram_x + label_x, y, label_width + 20, default_height, true);
-  note.setFigureType(noteFigureType);
-  note.opacity = noteOpacity;
-  note.outlineOpacity = noteOutlineOpacity;
-  note.text = rel.type.charAt(0).toUpperCase() + rel.type.slice(1);
+    // Create transparent grouping element 1 (left side of relationship)
+    var groupingElement = model.createElement("grouping", legLefttAnchorName);
+    // selectedFolder = $("folder.Other Legend").first();
+    var selectedFolder = $("folder").filter(function(f) {
+      return f.name === "Other Legend";
+    }).first();
+    selectedFolder.add(groupingElement);
+    var groupingViewObject = currentView.add(groupingElement, pictogram_x, y + 12, 1, 1, true);
+    groupingViewObject.setFigureType(transparentFigureType);
+    groupingViewObject.outlineOpacity = noteOpacity;
 
-  y += 40;
-  groupHeight += 40;
-// }
-});
+    // Create transparent grouping element 2 (right side of relationship)
+    var rightElement = model.createElement("grouping", legRightAnchorName);
+    selectedFolder.add(rightElement);
+    rightElement
+    var rightView = currentView.add(rightElement, pictogram_x + 48, y + 12, 1, 1, true);
+    rightView.setFigureType(transparentFigureType);
+    rightView.outlineOpacity = noteOpacity;
+
+    // Create relationship between the two dummy elements
+    var legendRel = model.createRelationship(rel.type, "", groupingElement, rightElement);
+    // selectedFolder = $("folder.RelationsLegend").first();
+
+    var selectedFolder = $("folder").filter(function(f) {
+      return f.name === "Relations Legend";
+    }).first();
+    selectedFolder.add(legendRel);
+    legendRel.prop("Object State", groupName);
+    var visualRel = currentView.add(legendRel, groupingViewObject, rightView);
+
+    // Add a note to describe the relationship type
+    var note = currentView.createObject("note", pictogram_x + label_x, y, label_width + 20, default_height, true);
+    note.setFigureType(noteFigureType);
+    note.opacity = noteOpacity;
+    note.outlineOpacity = noteOutlineOpacity;
+    note.text = rel.type.charAt(0).toUpperCase() + rel.type.slice(1);
+
+    y += 40;
+    groupHeight += 40;
+  });
+}
 
 console.log("> Ending properly");
