@@ -183,36 +183,26 @@ for (var i = 0; i < typesList.length; i++) {
   y += 40;
   groupHeight += 40;
 }
-var legendExists;
-
-function isLegendExists(sourceName, anchorName) {
-  if(sourceName === anchorName){
-    legendExists = true;
-    return;
-  } else { 
-    legendExists = false
-  }
-}
 
 // Create relationship legend
-var allRelationships = model.find("relationship")
-isLegendExists(legSourceName, legLefttAnchorName)
-if (!legendExists) {
-    allRelationships.forEach(function(rel) {
-    // console.log("relationbship type: " + rel.type)
+var allRelationships = model.find("relationship");
 
-  // console.log(rel.source.name)
-  var legSourceName = rel.source.name
-  var legTargetName = rel.target.type
-  var legRightAnchorName = "legend-anchor-right-" + rel.type
-  var legLefttAnchorName = "legend-anchor-left-" + rel.type
+allRelationships.forEach(function(rel) {
+  var legLeftAnchorName = "legend-anchor-left-" + rel.type;
+  var legRightAnchorName = "legend-anchor-right-" + rel.type;
 
+  // Check if a legend relationship with these anchors already exists
+  var alreadyExists = $("relationship").filter(function(r) {
+    return r.source && r.target &&
+           r.source.name === legRightAnchorName &&
+           r.target.name === legLeftAnchorName &&
+           r.type === rel.type;
+  }).first();
 
-    // console.log("this is the relationship: " + r.source.name)
-    // console.log("left anchor name: " + legLefttAnchorName)
-
-
-    
+  if (alreadyExists) {
+    console.log("Legend already exists for: " + rel.type);
+    return; // Skip this one
+  }
     legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
 
     // Create transparent grouping element 1 (left side of relationship)
@@ -255,6 +245,5 @@ if (!legendExists) {
     y += 40;
     groupHeight += 40;
   });
-}
 
 console.log("> Ending properly");
