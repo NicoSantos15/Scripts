@@ -29,25 +29,26 @@ var noteFigureType = 0;
 var transparentFigureType = 1;
 var noteOpacity = 0;
 var noteOutlineOpacity = 0;
-var emptyLabel = ""
-var selectedFolder = ""
+var emptyLabel = "";
+var selectedFolder = "";
 
 // Folders to be created if not exist
-var businessFolder, 
-    strategyFolder,
-    applicationFolder,
-    technologyFolder,
-    motivationFolder,
-    implementationFolder,
-    otherFolder,
-    relationsFolder;
+var businessFolder,
+  strategyFolder,
+  applicationFolder,
+  technologyFolder,
+  motivationFolder,
+  implementationFolder,
+  otherFolder,
+  relationsFolder;
 
 // Types to exclude from the legend
 var excludedTypes = [
   "diagram-model-group",
+  "grouping",
   "diagram-model-note",
   "diagram-model-connection",
-  "archimate-diagram-model"
+  "archimate-diagram-model",
 ];
 
 console.show();
@@ -58,28 +59,113 @@ function onlyUnique(value, index, self) {
   return self.indexOf(value) === index;
 }
 
-// Detemine the layer for a given type
+// Determine the layer for a given type
 function getLayerForType(type) {
-  if (type.startsWith("business-")) return "Business";
-  if (type.startsWith("application-")) return "Application";
-  if (type.startsWith("technology-") || type.startsWith("device") || type.startsWith("node")) return "Technology & Physical";
-  if (type.startsWith("strategy-")) return "Strategy";
-  if (type.startsWith("motivation-") || type.startsWith("value")) return "Motivation";
-  if (type.startsWith("implementation-")) return "Implementation & Migration";
-  return "Other";
+  const typeToLayer = {
+    // Business
+    "business-actor": "Business",
+    "business-role": "Business",
+    "business-collaboration": "Business",
+    "business-interface": "Business",
+    "business-process": "Business",
+    "business-function": "Business",
+    "business-interaction": "Business",
+    "business-event": "Business",
+    "business-service": "Business",
+    "business-object": "Business",
+    "contract": "Business",
+    "representation": "Business",
+    "product": "Business",
+
+    // Application
+    "application-component": "Application",
+    "application-collaboration": "Application",
+    "application-interface": "Application",
+    "application-function": "Application",
+    "application-interaction": "Application",
+    "application-service": "Application",
+    "application-event": "Application",
+    "data-object": "Application",
+
+    // Technology & Physical
+    "node": "Technology & Physical",
+    "device": "Technology & Physical",
+    "system-software": "Technology & Physical",
+    "technology-collaboration": "Technology & Physical",
+    "technology-interface": "Technology & Physical",
+    "technology-function": "Technology & Physical",
+    "technology-service": "Technology & Physical",
+    "technology-process": "Technology & Physical",
+    "technology-interaction": "Technology & Physical",
+    "technology-event": "Technology & Physical",
+    "artifact": "Technology & Physical",
+    "communication-network": "Technology & Physical",
+    "path": "Technology & Physical",
+    "equipment": "Technology & Physical",
+    "facility": "Technology & Physical",
+    "distribution-network": "Technology & Physical",
+    "material": "Technology & Physical",
+
+    // Strategy
+    "resource": "Strategy",
+    "capability": "Strategy",
+    "course-of-action": "Strategy",
+
+    // Motivation
+    "stakeholder": "Motivation",
+    "driver": "Motivation",
+    "assessment": "Motivation",
+    "goal": "Motivation",
+    "outcome": "Motivation",
+    "principle": "Motivation",
+    "requirement": "Motivation",
+    "constraint": "Motivation",
+    "meaning": "Motivation",
+    "value": "Motivation",
+
+    // Implementation & Migration
+    "work-package": "Implementation & Migration",
+    "deliverable": "Implementation & Migration",
+    "plateau": "Implementation & Migration",
+    "gap": "Implementation & Migration",
+
+    // Composite / Other
+    "location": "Other",
+    "grouping": "Other",
+    "junction": "Other",  // junctions are special visual-only constructs
+  };
+
+  type = type.trim().toLowerCase();
+  return typeToLayer[type] || "Other";
 }
 
-// Generate a folder if it does not exist
+// function getLayerForType(type) {
+//   console.log("TYPE: " + type);
+//   if (type.startsWith("business-")) return "Business";
+//   if (type.startsWith("application-")) return "Application";
+//   if (
+//     type.startsWith("technology-") ||
+//     type.startsWith("device") ||
+//     type.startsWith("node")
+//   )
+//     return "Technology & Physical";
+//   if (type.startsWith("strategy-")) return "Strategy";
+//   if (type.startsWith("motivation-") || type.startsWith("value") || type.startsWith("meaning"))
+//     return "Motivation";
+//   if (type.startsWith("implementation-")) return "Implementation & Migration";
+//   return "Other";
+// }
+
+// Generate a folder if it doesn't exist
 function generateFolder(parentFolder, nameSuffix) {
   var folderName = parentFolder.name + " " + nameSuffix;
   var existing = $("folder." + folderName).first();
   if (!existing) {
     var newFolder = parentFolder.createFolder(folderName);
     newFolder.prop("Object State", groupName);
-    return newFolder
+    return newFolder;
   }
 }
-
 
 var currentView = $(selection).filter("archimate-diagram-model").first();
 if (!currentView) {
@@ -99,13 +185,13 @@ relationsFolder = $("folder.Relations").first();
 
 // Go through each folder type
 generateFolder(businessFolder, groupName);
-generateFolder(strategyFolder, groupName)
-generateFolder(applicationFolder, groupName)
-generateFolder(technologyFolder, groupName)
-generateFolder(motivationFolder, groupName)
-generateFolder(implementationFolder, groupName)
-generateFolder(otherFolder, groupName)
-generateFolder(relationsFolder, groupName)
+generateFolder(strategyFolder, groupName);
+generateFolder(applicationFolder, groupName);
+generateFolder(technologyFolder, groupName);
+generateFolder(motivationFolder, groupName);
+generateFolder(implementationFolder, groupName);
+generateFolder(otherFolder, groupName);
+generateFolder(relationsFolder, groupName);
 
 // Loop through all elements used in selected view and push into array elements type
 $(currentView)
@@ -114,13 +200,6 @@ $(currentView)
   .each(function (e) {
     typesList.push(e.type);
   });
-
-// // Also collect relationship types from the current view
-// $(currentView)
-// .find("relationship")
-// .each(function (r) {
-//   typesList.push(r.type);
-// });
 
 typesList.sort(function (a, b) {
   var textA = a.toUpperCase();
@@ -143,19 +222,16 @@ for (var i = 0; i < typesList.length; i++) {
   if (!theConcept) {
     var theConcept = model.createElement(typesList[i], prefix + typesList[i]);
     theConcept.prop("Object State", groupName);
-    
     if (theConcept) {
-      selectedFolder = $("folder").filter(function(f) {
-        return f.name === getLayerForType(theConcept.type) + " Legend";
-      }).first();
+      selectedFolder = $("folder")
+        .filter(function (f) {
+          return f.name === getLayerForType(theConcept.type) + " Legend";
+        })
+        .first();
       selectedFolder.add(theConcept);
     }
   }
 }
-
-// $("element").each(function(e) {
-//   console.log(e.type)
-// })
 
 // Create the group with a default size and position
 var legendGroup = currentView.createObject("group", x, y, 10, 10, true);
@@ -163,17 +239,29 @@ legendGroup.name = groupName;
 y += 30;
 groupHeight += 30;
 
-
-// Create elements for each type found in the view
+// Create element legend for each type found in the view
 for (var i = 0; i < typesList.length; i++) {
   pictogram = $("." + prefix + typesList[i]).first();
-
   // Update the group width and height to ensure autonesting will work
   legendGroup.bounds = { width: groupWidth, height: groupHeight };
 
   // Add the concept sized specifically to illustrate pictogram, and a note to bear the text, both with autonesting
-  var object = currentView.add(pictogram, pictogram_x, y, default_width, default_height, true);
-  var currentNote = currentView.createObject("note", pictogram_x + label_x, y, label_width, default_height, true);
+  var object = currentView.add(
+    pictogram,
+    pictogram_x,
+    y,
+    default_width,
+    default_height,
+    true
+  );
+  var currentNote = currentView.createObject(
+    "note",
+    pictogram_x + label_x,
+    y,
+    label_width,
+    default_height,
+    true
+  );
 
   currentNote.setFigureType(noteFigureType);
   currentNote.opacity = noteOpacity;
@@ -187,63 +275,133 @@ for (var i = 0; i < typesList.length; i++) {
 // Create relationship legend
 var allRelationships = model.find("relationship");
 
-allRelationships.forEach(function(rel) {
+allRelationships.forEach(function (rel) {
   var legLeftAnchorName = "legend-anchor-left-" + rel.type;
   var legRightAnchorName = "legend-anchor-right-" + rel.type;
 
-  // Check if a legend relationship with these anchors already exists
-  var alreadyExists = $("relationship").filter(function(r) {
-    return r.source && r.target &&
-           r.source.name === legRightAnchorName &&
-           r.target.name === legLeftAnchorName &&
-           r.type === rel.type;
-  }).first();
+  // if (rel.prop("Object State") === groupName) {
+  var alreadyExists = $("element").some(function (e) {
+    return e.name === legLeftAnchorName;
+  });
 
-  if (alreadyExists) {
-    console.log("Legend already exists for: " + rel.type);
-    return; // Skip this one
-  }
+  if (!alreadyExists) {
     legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
-
     // Create transparent grouping element 1 (left side of relationship)
-    var groupingElement = model.createElement("grouping", legLefttAnchorName);
-    // selectedFolder = $("folder.Other Legend").first();
-    var selectedFolder = $("folder").filter(function(f) {
-      return f.name === "Other Legend";
-    }).first();
+    var groupingElement = model.createElement("grouping", legLeftAnchorName);
+    var selectedFolder = $("folder")
+      .filter(function (f) {
+        return f.name === "Other Legend";
+      })
+      .first();
     selectedFolder.add(groupingElement);
-    var groupingViewObject = currentView.add(groupingElement, pictogram_x, y + 12, 1, 1, true);
+    var groupingViewObject = currentView.add(
+      groupingElement,
+      pictogram_x,
+      y + 12,
+      1,
+      1,
+      true
+    );
     groupingViewObject.setFigureType(transparentFigureType);
     groupingViewObject.outlineOpacity = noteOpacity;
 
     // Create transparent grouping element 2 (right side of relationship)
     var rightElement = model.createElement("grouping", legRightAnchorName);
     selectedFolder.add(rightElement);
-    rightElement
-    var rightView = currentView.add(rightElement, pictogram_x + 48, y + 12, 1, 1, true);
+    rightElement;
+    var rightView = currentView.add(
+      rightElement,
+      pictogram_x + 48,
+      y + 12,
+      1,
+      1,
+      true
+    );
     rightView.setFigureType(transparentFigureType);
     rightView.outlineOpacity = noteOpacity;
 
     // Create relationship between the two dummy elements
-    var legendRel = model.createRelationship(rel.type, "", groupingElement, rightElement);
+    var legendRel = model.createRelationship(
+      rel.type,
+      "",
+      groupingElement,
+      rightElement
+    );
     // selectedFolder = $("folder.RelationsLegend").first();
+    console.log("NEW CREATED RELATIONSHIP: " + legendRel);
+    var selectedFolder = $("folder")
+      .filter(function (f) {
+        return f.name === "Relations Legend";
+      })
+      .first();
 
-    var selectedFolder = $("folder").filter(function(f) {
-      return f.name === "Relations Legend";
-    }).first();
     selectedFolder.add(legendRel);
     legendRel.prop("Object State", groupName);
     var visualRel = currentView.add(legendRel, groupingViewObject, rightView);
 
     // Add a note to describe the relationship type
-    var note = currentView.createObject("note", pictogram_x + label_x, y, label_width + 20, default_height, true);
+    var note = currentView.createObject(
+      "note",
+      pictogram_x + label_x,
+      y,
+      label_width + 20,
+      default_height,
+      true
+    );
     note.setFigureType(noteFigureType);
     note.opacity = noteOpacity;
     note.outlineOpacity = noteOutlineOpacity;
     note.text = rel.type.charAt(0).toUpperCase() + rel.type.slice(1);
-
     y += 40;
     groupHeight += 40;
-  });
+  } else if (alreadyExists && rel.prop("Object State") === groupName) {
+    // console.log("IM HERE!!!!!!!");
+
+    legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
+
+    anchorGroupingLeft = $("." + legLeftAnchorName).first();
+    anchorGroupingRight = $("." + legRightAnchorName).first();
+
+    console.log("REL: " + rel);
+    console.log("LEFT: " + anchorGroupingLeft);
+
+    var leftAnc = currentView.add(
+      anchorGroupingLeft,
+      pictogram_x,
+      y + 12,
+      1,
+      1,
+      true
+    );
+    var rightAnc = currentView.add(
+      anchorGroupingRight,
+      pictogram_x + 48,
+      y + 12,
+      1,
+      1,
+      true
+    );
+    rel.source = leftAnc;
+    rel.target = rightAnc;
+
+    currentView.add(rel, leftAnc, rightAnc);
+    var note = currentView.createObject(
+      "note",
+      pictogram_x + label_x,
+      y,
+      label_width + 20,
+      default_height,
+      true
+    );
+    note.setFigureType(noteFigureType);
+    note.opacity = noteOpacity;
+    note.outlineOpacity = noteOutlineOpacity;
+    note.text = rel.type.charAt(0).toUpperCase() + rel.type.slice(1);
+    // console.log("RELATIONSHIP source id: " + rel.prop("Object State"));
+    // console.log("RELATIONSHIP anchor id: " + leftAnc.id);
+    y += 40;
+    groupHeight += 40;
+  }
+});
 
 console.log("> Ending properly");
