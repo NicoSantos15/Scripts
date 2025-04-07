@@ -32,8 +32,8 @@ var noteOpacity = 0;
 var noteOutlineOpacity = 0;
 var emptyLabel = "";
 var selectedFolder = "";
-var legLeftAnchorName;
-var legRightAnchorName;
+var legLeftAnchorName = "legend-anchor-left-";
+var legRightAnchorName = "legend-anchor-right-";
 
 // Folders to be created if not exist
 var businessFolder,
@@ -48,7 +48,6 @@ var businessFolder,
 // Types to exclude from the legend
 var excludedTypes = [
   "diagram-model-group",
-  "grouping",
   "diagram-model-note",
   "diagram-model-connection",
   "archimate-diagram-model",
@@ -76,9 +75,9 @@ function getLayerForType(type) {
     "business-event": "Business",
     "business-service": "Business",
     "business-object": "Business",
-    "contract": "Business",
-    "representation": "Business",
-    "product": "Business",
+    contract: "Business",
+    representation: "Business",
+    product: "Business",
 
     // Application
     "application-component": "Application",
@@ -91,8 +90,8 @@ function getLayerForType(type) {
     "data-object": "Application",
 
     // Technology & Physical
-    "node": "Technology & Physical",
-    "device": "Technology & Physical",
+    node: "Technology & Physical",
+    device: "Technology & Physical",
     "system-software": "Technology & Physical",
     "technology-collaboration": "Technology & Physical",
     "technology-interface": "Technology & Physical",
@@ -101,63 +100,46 @@ function getLayerForType(type) {
     "technology-process": "Technology & Physical",
     "technology-interaction": "Technology & Physical",
     "technology-event": "Technology & Physical",
-    "artifact": "Technology & Physical",
+    artifact: "Technology & Physical",
     "communication-network": "Technology & Physical",
-    "path": "Technology & Physical",
-    "equipment": "Technology & Physical",
-    "facility": "Technology & Physical",
+    path: "Technology & Physical",
+    equipment: "Technology & Physical",
+    facility: "Technology & Physical",
     "distribution-network": "Technology & Physical",
-    "material": "Technology & Physical",
+    material: "Technology & Physical",
 
     // Strategy
-    "resource": "Strategy",
-    "capability": "Strategy",
+    resource: "Strategy",
+    capability: "Strategy",
     "course-of-action": "Strategy",
 
     // Motivation
-    "stakeholder": "Motivation",
-    "driver": "Motivation",
-    "assessment": "Motivation",
-    "goal": "Motivation",
-    "outcome": "Motivation",
-    "principle": "Motivation",
-    "requirement": "Motivation",
-    "constraint": "Motivation",
-    "meaning": "Motivation",
-    "value": "Motivation",
+    stakeholder: "Motivation",
+    driver: "Motivation",
+    assessment: "Motivation",
+    goal: "Motivation",
+    outcome: "Motivation",
+    principle: "Motivation",
+    requirement: "Motivation",
+    constraint: "Motivation",
+    meaning: "Motivation",
+    value: "Motivation",
 
     // Implementation & Migration
     "work-package": "Implementation & Migration",
-    "deliverable": "Implementation & Migration",
-    "plateau": "Implementation & Migration",
-    "gap": "Implementation & Migration",
+    deliverable: "Implementation & Migration",
+    plateau: "Implementation & Migration",
+    gap: "Implementation & Migration",
 
     // Composite / Other
-    "location": "Other",
-    "grouping": "Other",
-    "junction": "Other",  // junctions are special visual-only constructs
+    location: "Other",
+    grouping: "Other",
+    junction: "Other", // junctions are special visual-only constructs
   };
 
   type = type.trim().toLowerCase();
   return typeToLayer[type] || "Other";
 }
-
-// function getLayerForType(type) {
-//   console.log("TYPE: " + type);
-//   if (type.startsWith("business-")) return "Business";
-//   if (type.startsWith("application-")) return "Application";
-//   if (
-//     type.startsWith("technology-") ||
-//     type.startsWith("device") ||
-//     type.startsWith("node")
-//   )
-//     return "Technology & Physical";
-//   if (type.startsWith("strategy-")) return "Strategy";
-//   if (type.startsWith("motivation-") || type.startsWith("value") || type.startsWith("meaning"))
-//     return "Motivation";
-//   if (type.startsWith("implementation-")) return "Implementation & Migration";
-//   return "Other";
-// }
 
 // Generate a folder if it doesn't exist
 function generateFolder(parentFolder, nameSuffix) {
@@ -168,6 +150,51 @@ function generateFolder(parentFolder, nameSuffix) {
     newFolder.prop("Object State", groupName);
     return newFolder;
   }
+}
+
+function sortFunction(type) {
+  type.sort(function (a, b) {
+    var textA = a.toUpperCase();
+    var textB = b.toUpperCase();
+    return textA < textB ? -1 : textA > textB ? 1 : 0;
+  });
+}
+
+// Remove from array types which are not concerned by the legend
+function removeFromArray(paramList) {
+  paramList = paramList.filter(function (item) {
+    return excludedTypes.indexOf(item) === -1;
+  });
+}
+
+function getTypeList(typeList) {
+  // For each type found in the view
+  for (var i = 0; i < typeList.length; i++) {
+    // Search the corresponding standard element to be used for legend purpose
+    theConcept = $("." + prefix + typeList[i]).first();
+    if (!theConcept) {
+      var theConcept = model.createElement(typeList[i], prefix + typeList[i]);
+      theConcept.prop("Object State", groupName);
+      if (theConcept) {
+        selectedFolder = $("folder")
+          .filter(function (f) {
+            return f.name === getLayerForType(theConcept.type) + " Legend";
+          })
+          .first();
+        selectedFolder.add(theConcept);
+      }
+    }
+  }
+}
+
+function removeRelationshipNames() {
+  $(currentView)
+    .find("relationship")
+    .each((connection) => {
+      if (connection.prop("Object State") === groupName) {
+        connection.labelVisible = false;
+      }
+    });
 }
 
 var currentView = $(selection).filter("archimate-diagram-model").first();
@@ -201,40 +228,17 @@ $(currentView)
   .find()
   .not("relationship")
   .each(function (e) {
-    typesList.push(e.type);
+    if (e.type !== "grouping" || e.prop("Object State") !== groupName) {
+      typesList.push(e.type);
+    }
   });
 
-typesList.sort(function (a, b) {
-  var textA = a.toUpperCase();
-  var textB = b.toUpperCase();
-  return textA < textB ? -1 : textA > textB ? 1 : 0;
-});
-
-// Remove duplicates from the array
-typesList = typesList.filter(onlyUnique);
-
-// Remove from array types which are not concerned by the legend
+sortFunction(typesList);
+typesList = typesList.filter(onlyUnique); // Remove duplicates from the array
 typesList = typesList.filter(function (item) {
   return excludedTypes.indexOf(item) === -1;
 });
-
-// For each type found in the view
-for (var i = 0; i < typesList.length; i++) {
-  // Search the corresponding standard element to be used for legend purpose
-  theConcept = $("." + prefix + typesList[i]).first();
-  if (!theConcept) {
-    var theConcept = model.createElement(typesList[i], prefix + typesList[i]);
-    theConcept.prop("Object State", groupName);
-    if (theConcept) {
-      selectedFolder = $("folder")
-        .filter(function (f) {
-          return f.name === getLayerForType(theConcept.type) + " Legend";
-        })
-        .first();
-      selectedFolder.add(theConcept);
-    }
-  }
-}
+getTypeList(typesList);
 
 // Create the group with a default size and position
 var legendGroup = currentView.createObject("group", x, y, 10, 10, true);
@@ -278,33 +282,39 @@ for (var i = 0; i < typesList.length; i++) {
 // CREATE RELATIONSHIP LEGEND
 
 // check if the given relationship is existing on the model.
-function exisitingRelationship(rel) {
-  var isExisting = false;
-  if (viewRelationshipList.length > 0) {
-    for (var i = 0; i < viewRelationshipList.length; i++) {
-      // this wil be automatic no because all viewRelationshiplist is non legend, we will have to check all available legends first
-      if (viewRelationshipList[i].prop("Object State") === groupName) {
-        isExisting = true;
-        i = viewRelationshipList.length;
-      }
-    }
-  }
-  return isExisting;
+function exisitingRelationship(rel, leftAnchorGrouping, rightAnchorGrouping) {
+  return rel && leftAnchorGrouping && rightAnchorGrouping;
 }
 
 // list all the non legend relationship. (they are needed to be created)
 function listRelationshipToCreate() {
-  $("relationship").some(function (rel) {
-    if (rel.prop("Object State") !== groupName) {
-      viewRelationshipList.push(rel);
-    }
-  });
+  $(currentView)
+    .find("relationship")
+    .each(function (e) {
+      if (e.prop("Object State") !== groupName) {
+        viewRelationshipList.push(e.type);
+      }
+    });
+
+  sortFunction(viewRelationshipList);
+  viewRelationshipList = viewRelationshipList.filter(onlyUnique);
+  removeFromArray(viewRelationshipList);
+
+  // viewRelationshipList.forEach(function (e) {
+  //   console.log("Relationship type: " + e);
+  // });
 }
 
-function createRelationship(rel, sourceAnchor, targetAnchor, sourceView, targetView) {
+function createRelationship(
+  rel,
+  sourceAnchor,
+  targetAnchor,
+  sourceView,
+  targetView
+) {
   var legendRel = model.createRelationship(
-    rel.type,
-    "",
+    rel,
+    prefix + rel,
     sourceAnchor,
     targetAnchor
   );
@@ -317,21 +327,19 @@ function createRelationship(rel, sourceAnchor, targetAnchor, sourceView, targetV
 
   selectedFolder.add(legendRel);
   legendRel.prop("Object State", groupName);
-
-  currentView.add(legendRel, sourceView, targetView)
+  currentView.add(legendRel, sourceView, targetView);
 }
 
 function createAnchors(rel) {
-  var legLeftAnchorName = "legend-anchor-left-" + rel.type;
-  var legRightAnchorName = "legend-anchor-right-" + rel.type;
-
-  var leftElement = model.createElement("grouping", legLeftAnchorName);
   var selectedFolder = $("folder")
     .filter(function (f) {
       return f.name === "Other Legend";
     })
     .first();
+
+  var leftElement = model.createElement("grouping", legLeftAnchorName);
   selectedFolder.add(leftElement);
+  leftElement.prop("Object State", groupName);
 
   var leftViewObject = currentView.add(
     leftElement,
@@ -347,7 +355,7 @@ function createAnchors(rel) {
   // Create transparent grouping element 2 (right side of relationship)
   var rightElement = model.createElement("grouping", legRightAnchorName);
   selectedFolder.add(rightElement);
-  rightElement;
+  rightElement.prop("Object State", groupName);
 
   var rightViewObject = currentView.add(
     rightElement,
@@ -360,12 +368,16 @@ function createAnchors(rel) {
   rightViewObject.setFigureType(transparentFigureType);
   rightViewObject.outlineOpacity = noteOpacity;
 
-  createRelationship(rel, leftElement, rightElement, leftViewObject, rightViewObject);
+  createRelationship(
+    rel,
+    leftElement,
+    rightElement,
+    leftViewObject,
+    rightViewObject
+  );
 }
 
-function addAnchors(rel) {
-  anchorGroupingLeft = $("." + legLeftAnchorName).first();
-  anchorGroupingRight = $("." + legRightAnchorName).first();
+function addAnchors(rel, anchorGroupingLeft, anchorGroupingRight) {
   var leftAnc = currentView.add(
     anchorGroupingLeft,
     pictogram_x,
@@ -374,6 +386,7 @@ function addAnchors(rel) {
     1,
     true
   );
+
   var rightAnc = currentView.add(
     anchorGroupingRight,
     pictogram_x + 48,
@@ -385,19 +398,7 @@ function addAnchors(rel) {
 
   rel.source = leftAnc;
   rel.target = rightAnc;
-
-  viewRelationshipList.forEach(function (e) {
-    if ((e.type === rel.type) && (rel.prop("Object State")===groupName)) {
-      currentView.add(e, leftAnc, rightAnc);
-    }
-  });
-  // console.log("test source 2" + rel.source.id);
-  // console.log("test target 2" +rel.target.id);
-  // currentView.add(rel, leftAnc, rightAnc);
-}
-
-function addRelationship(rel, sourceAnchor, targetAnchor, sourceView, targetView) {
-  currentView.add();
+  currentView.add(rel, leftAnc, rightAnc);
 }
 
 function createNote(rel) {
@@ -414,33 +415,52 @@ function createNote(rel) {
   note.setFigureType(noteFigureType);
   note.opacity = noteOpacity;
   note.outlineOpacity = noteOutlineOpacity;
-  note.text = rel.type.charAt(0).toUpperCase() + rel.type.slice(1);
+  note.text = rel.charAt(0).toUpperCase() + rel.slice(1);
 }
 
 function processView() {
-  $(currentView).find("relationship").each(function (rel) {
-    legLeftAnchorName = "legend-anchor-left-" + rel.type;
-    legRightAnchorName = "legend-anchor-right-" + rel.type;
+  for (var i = 0; i < viewRelationshipList.length; i++) {
+    legLeftAnchorName = legLeftAnchorName + viewRelationshipList[i];
+    legRightAnchorName = legRightAnchorName + viewRelationshipList[i];
+    var anchorGroupingLeft = $("." + legLeftAnchorName).first();
+    var anchorGroupingRight = $("." + legRightAnchorName).first();
+    var addRelationship = $("." + prefix + viewRelationshipList[i]).first();
 
-    // console.log("existing relationship? " + exisitingRelationship(rel))
-      if (!exisitingRelationship(rel)) {
-        legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
-        // add functions here
-        createAnchors(rel);
-        createNote(rel);
-        y += 40;
-        groupHeight += 40;
-      } else if (exisitingRelationship(rel)) {
-        legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
-        // add functions here
-        addAnchors(rel);
-        createNote(rel);
-        y += 40;
-        groupHeight += 40;
-      }
-  });
+    if (
+      !exisitingRelationship(
+        addRelationship,
+        anchorGroupingLeft,
+        anchorGroupingRight
+      )
+    ) {
+      legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
+      createAnchors(viewRelationshipList[i]);
+      createNote(viewRelationshipList[i]);
+      y += 40;
+      groupHeight += 40;
+    } else if (
+      exisitingRelationship(
+        viewRelationshipList[i],
+        anchorGroupingLeft,
+        anchorGroupingRight,
+        addRelationship
+      )
+    ) {
+      legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
+      addAnchors(
+        addRelationship,
+        addRelationship.source,
+        addRelationship.target
+      );
+      createNote(viewRelationshipList[i]);
+      y += 40;
+      groupHeight += 40;
+    }
+  }
+  removeRelationshipNames();
 }
 
 listRelationshipToCreate();
 processView();
+
 console.log("> Ending properly");
