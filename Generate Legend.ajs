@@ -18,6 +18,7 @@ var y = 10;
 var default_width = 50;
 var default_height = 30;
 var typesList = [];
+var viewRelationshipList = [];
 var pictogram_x = x + 10;
 var label_x = x + pictogram_x + 30;
 var label_width = default_width + 80;
@@ -31,6 +32,8 @@ var noteOpacity = 0;
 var noteOutlineOpacity = 0;
 var emptyLabel = "";
 var selectedFolder = "";
+var legLeftAnchorName;
+var legRightAnchorName;
 
 // Folders to be created if not exist
 var businessFolder,
@@ -272,136 +275,172 @@ for (var i = 0; i < typesList.length; i++) {
   groupHeight += 40;
 }
 
-// Create relationship legend
-// var allRelationships = model.find("relationship");
+// CREATE RELATIONSHIP LEGEND
 
-$("relationship").each(function(rel) {
+// check if the given relationship is existing on the model.
+function exisitingRelationship(rel) {
+  var isExisting = false;
+  if (viewRelationshipList.length > 0) {
+    for (var i = 0; i < viewRelationshipList.length; i++) {
+      // this wil be automatic no because all viewRelationshiplist is non legend, we will have to check all available legends first
+      if (viewRelationshipList[i].prop("Object State") === groupName) {
+        isExisting = true;
+        i = viewRelationshipList.length;
+      }
+    }
+  }
+  return isExisting;
+}
+
+// list all the non legend relationship. (they are needed to be created)
+function listRelationshipToCreate() {
+  $("relationship").some(function (rel) {
+    if (rel.prop("Object State") !== groupName) {
+      viewRelationshipList.push(rel);
+    }
+  });
+}
+
+function createRelationship(rel, sourceAnchor, targetAnchor, sourceView, targetView) {
+  var legendRel = model.createRelationship(
+    rel.type,
+    "",
+    sourceAnchor,
+    targetAnchor
+  );
+
+  var selectedFolder = $("folder")
+    .filter(function (f) {
+      return f.name === "Relations Legend";
+    })
+    .first();
+
+  selectedFolder.add(legendRel);
+  legendRel.prop("Object State", groupName);
+
+  currentView.add(legendRel, sourceView, targetView)
+}
+
+function createAnchors(rel) {
   var legLeftAnchorName = "legend-anchor-left-" + rel.type;
   var legRightAnchorName = "legend-anchor-right-" + rel.type;
 
-  // if (rel.prop("Object State") === groupName) {
-  var alreadyExists = $("element").some(function (e) {
-    return e.name === legLeftAnchorName;
+  var leftElement = model.createElement("grouping", legLeftAnchorName);
+  var selectedFolder = $("folder")
+    .filter(function (f) {
+      return f.name === "Other Legend";
+    })
+    .first();
+  selectedFolder.add(leftElement);
+
+  var leftViewObject = currentView.add(
+    leftElement,
+    pictogram_x,
+    y + 12,
+    1,
+    1,
+    true
+  );
+  leftViewObject.setFigureType(transparentFigureType);
+  leftViewObject.outlineOpacity = noteOpacity;
+
+  // Create transparent grouping element 2 (right side of relationship)
+  var rightElement = model.createElement("grouping", legRightAnchorName);
+  selectedFolder.add(rightElement);
+  rightElement;
+
+  var rightViewObject = currentView.add(
+    rightElement,
+    pictogram_x + 48,
+    y + 12,
+    1,
+    1,
+    true
+  );
+  rightViewObject.setFigureType(transparentFigureType);
+  rightViewObject.outlineOpacity = noteOpacity;
+
+  createRelationship(rel, leftElement, rightElement, leftViewObject, rightViewObject);
+}
+
+function addAnchors(rel) {
+  anchorGroupingLeft = $("." + legLeftAnchorName).first();
+  anchorGroupingRight = $("." + legRightAnchorName).first();
+  var leftAnc = currentView.add(
+    anchorGroupingLeft,
+    pictogram_x,
+    y + 12,
+    1,
+    1,
+    true
+  );
+  var rightAnc = currentView.add(
+    anchorGroupingRight,
+    pictogram_x + 48,
+    y + 12,
+    1,
+    1,
+    true
+  );
+
+  rel.source = leftAnc;
+  rel.target = rightAnc;
+
+  viewRelationshipList.forEach(function (e) {
+    if ((e.type === rel.type) && (rel.prop("Object State")===groupName)) {
+      currentView.add(e, leftAnc, rightAnc);
+    }
   });
+  // console.log("test source 2" + rel.source.id);
+  // console.log("test target 2" +rel.target.id);
+  // currentView.add(rel, leftAnc, rightAnc);
+}
 
-  if (!alreadyExists) {
-    legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
-    // Create transparent grouping element 1 (left side of relationship)
-    var groupingElement = model.createElement("grouping", legLeftAnchorName);
-    var selectedFolder = $("folder")
-      .filter(function (f) {
-        return f.name === "Other Legend";
-      })
-      .first();
-    selectedFolder.add(groupingElement);
-    var groupingViewObject = currentView.add(
-      groupingElement,
-      pictogram_x,
-      y + 12,
-      1,
-      1,
-      true
-    );
-    groupingViewObject.setFigureType(transparentFigureType);
-    groupingViewObject.outlineOpacity = noteOpacity;
+function addRelationship(rel, sourceAnchor, targetAnchor, sourceView, targetView) {
+  currentView.add();
+}
 
-    // Create transparent grouping element 2 (right side of relationship)
-    var rightElement = model.createElement("grouping", legRightAnchorName);
-    selectedFolder.add(rightElement);
-    rightElement;
-    var rightView = currentView.add(
-      rightElement,
-      pictogram_x + 48,
-      y + 12,
-      1,
-      1,
-      true
-    );
-    rightView.setFigureType(transparentFigureType);
-    rightView.outlineOpacity = noteOpacity;
+function createNote(rel) {
+  // Add a note to describe the relationship type
+  var note = currentView.createObject(
+    "note",
+    pictogram_x + label_x,
+    y,
+    label_width + 20,
+    default_height,
+    true
+  );
 
-    // Create relationship between the two dummy elements
-    var legendRel = model.createRelationship(
-      rel.type,
-      "",
-      groupingElement,
-      rightElement
-    );
-    // selectedFolder = $("folder.RelationsLegend").first();
-    console.log("NEW CREATED RELATIONSHIP: " + legendRel);
-    var selectedFolder = $("folder")
-      .filter(function (f) {
-        return f.name === "Relations Legend";
-      })
-      .first();
+  note.setFigureType(noteFigureType);
+  note.opacity = noteOpacity;
+  note.outlineOpacity = noteOutlineOpacity;
+  note.text = rel.type.charAt(0).toUpperCase() + rel.type.slice(1);
+}
 
-    selectedFolder.add(legendRel);
-    legendRel.prop("Object State", groupName);
-    var visualRel = currentView.add(legendRel, groupingViewObject, rightView);
+function processView() {
+  $(currentView).find("relationship").each(function (rel) {
+    legLeftAnchorName = "legend-anchor-left-" + rel.type;
+    legRightAnchorName = "legend-anchor-right-" + rel.type;
 
-    // Add a note to describe the relationship type
-    var note = currentView.createObject(
-      "note",
-      pictogram_x + label_x,
-      y,
-      label_width + 20,
-      default_height,
-      true
-    );
-    note.setFigureType(noteFigureType);
-    note.opacity = noteOpacity;
-    note.outlineOpacity = noteOutlineOpacity;
-    note.text = rel.type.charAt(0).toUpperCase() + rel.type.slice(1);
-    y += 40;
-    groupHeight += 40;
-  } else if (alreadyExists && rel.prop("Object State") === groupName) {
-    // console.log("IM HERE!!!!!!!");
+    // console.log("existing relationship? " + exisitingRelationship(rel))
+      if (!exisitingRelationship(rel)) {
+        legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
+        // add functions here
+        createAnchors(rel);
+        createNote(rel);
+        y += 40;
+        groupHeight += 40;
+      } else if (exisitingRelationship(rel)) {
+        legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
+        // add functions here
+        addAnchors(rel);
+        createNote(rel);
+        y += 40;
+        groupHeight += 40;
+      }
+  });
+}
 
-    legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
-
-    anchorGroupingLeft = $("." + legLeftAnchorName).first();
-    anchorGroupingRight = $("." + legRightAnchorName).first();
-
-    console.log("REL: " + rel);
-    console.log("LEFT: " + anchorGroupingLeft);
-
-    var leftAnc = currentView.add(
-      anchorGroupingLeft,
-      pictogram_x,
-      y + 12,
-      1,
-      1,
-      true
-    );
-    var rightAnc = currentView.add(
-      anchorGroupingRight,
-      pictogram_x + 48,
-      y + 12,
-      1,
-      1,
-      true
-    );
-    rel.source = leftAnc;
-    rel.target = rightAnc;
-
-    currentView.add(rel, leftAnc, rightAnc);
-    var note = currentView.createObject(
-      "note",
-      pictogram_x + label_x,
-      y,
-      label_width + 20,
-      default_height,
-      true
-    );
-    note.setFigureType(noteFigureType);
-    note.opacity = noteOpacity;
-    note.outlineOpacity = noteOutlineOpacity;
-    note.text = rel.type.charAt(0).toUpperCase() + rel.type.slice(1);
-    // console.log("RELATIONSHIP source id: " + rel.prop("Object State"));
-    // console.log("RELATIONSHIP anchor id: " + leftAnc.id);
-    y += 40;
-    groupHeight += 40;
-  }
-});
-
+listRelationshipToCreate();
+processView();
 console.log("> Ending properly");
