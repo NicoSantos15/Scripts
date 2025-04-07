@@ -185,9 +185,8 @@ for (var i = 0; i < typesList.length; i++) {
 }
 
 // Create relationship legend
-var allRelationships = model.find("relationship");
-
-allRelationships.forEach(function(rel) {
+// var allRelationships = $("relationship");
+$("relationship").each(function(rel) {
   var legLeftAnchorName = "legend-anchor-left-" + rel.type;
   var legRightAnchorName = "legend-anchor-right-" + rel.type;
 
