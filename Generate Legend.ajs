@@ -308,9 +308,7 @@ function listRelationshipToCreate() {
 function createRelationship(
   rel,
   sourceAnchor,
-  targetAnchor,
-  sourceView,
-  targetView
+  targetAnchor
 ) {
   var legendRel = model.createRelationship(
     rel,
@@ -327,10 +325,10 @@ function createRelationship(
 
   selectedFolder.add(legendRel);
   legendRel.prop("Object State", groupName);
-  currentView.add(legendRel, sourceView, targetView);
+  addToView(legendRel, sourceAnchor, targetAnchor);
 }
 
-function createAnchors(rel) {
+function createRelAndAnchors(rel) {
   var selectedFolder = $("folder")
     .filter(function (f) {
       return f.name === "Other Legend";
@@ -341,40 +339,17 @@ function createAnchors(rel) {
   selectedFolder.add(leftElement);
   leftElement.prop("Object State", groupName);
 
-  var leftViewObject = currentView.add(
-    leftElement,
-    pictogram_x,
-    y + 12,
-    1,
-    1,
-    true
-  );
-  leftViewObject.setFigureType(transparentFigureType);
-  leftViewObject.outlineOpacity = noteOpacity;
-
   // Create transparent grouping element 2 (right side of relationship)
   var rightElement = model.createElement("grouping", legRightAnchorName);
   selectedFolder.add(rightElement);
   rightElement.prop("Object State", groupName);
 
-  var rightViewObject = currentView.add(
-    rightElement,
-    pictogram_x + 48,
-    y + 12,
-    1,
-    1,
-    true
-  );
-  rightViewObject.setFigureType(transparentFigureType);
-  rightViewObject.outlineOpacity = noteOpacity;
-
-  createRelationship(
+  procRelation = createRelationship(
     rel,
     leftElement,
-    rightElement,
-    leftViewObject,
-    rightViewObject
+    rightElement
   );
+  
 }
 
 function addAnchors(rel, anchorGroupingLeft, anchorGroupingRight) {
@@ -399,6 +374,31 @@ function addAnchors(rel, anchorGroupingLeft, anchorGroupingRight) {
   rel.source = leftAnc;
   rel.target = rightAnc;
   currentView.add(rel, leftAnc, rightAnc);
+}
+
+function addToView(rel, leftAnchor, rightAnchor) {
+  var leftViewObject = currentView.add(
+    leftAnchor,
+    pictogram_x,
+    y + 12,
+    1,
+    1,
+    true
+  );
+  leftViewObject.setFigureType(transparentFigureType);
+  leftViewObject.outlineOpacity = noteOpacity;
+
+  var rightViewObject = currentView.add(
+    rightAnchor,
+    pictogram_x + 48,
+    y + 12,
+    1,
+    1,
+    true
+  );
+  rightViewObject.setFigureType(transparentFigureType);
+  rightViewObject.outlineOpacity = noteOpacity;
+  currentView.add(rel, leftViewObject, rightViewObject);
 }
 
 function createNote(rel) {
@@ -434,7 +434,7 @@ function processView() {
       )
     ) {
       legendGroup.bounds = { width: groupWidth + 20, height: groupHeight };
-      createAnchors(viewRelationshipList[i]);
+      createRelAndAnchors(viewRelationshipList[i]);
       createNote(viewRelationshipList[i]);
       y += 40;
       groupHeight += 40;
@@ -458,6 +458,14 @@ function processView() {
     }
   }
   removeRelationshipNames();
+}
+//DONT FORGET TO ADD LEGEND OBJECT STATE ON THE BIG LEGEND FOLDER
+function deleteOldLegend() {
+  // delete the old legend from view when creating a new one
+}
+
+function replaceExistingLegend() {
+  
 }
 
 listRelationshipToCreate();
