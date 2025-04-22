@@ -69,7 +69,6 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				setPropIfMissing(modelelement, "Object Type", "Business Role");
 				promptProp(modelelement, "Position Identifier", "Position Identifier: ");
 				break;
-
 			case "system-software":
 				addToFolder("System Software", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "System Software");
@@ -80,47 +79,38 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				promptProp(modelelement, "System Software Licensed", "System Software Licensed: ", ["Unknown", "Yes", "No"]);
 				promptProp(modelelement, "System Software License Type", "System Software License Type: ", ["Unknown", "COTS", "Bespoke (Internal)", "Bespoke (External)", "Open Source (GPLv2)", "Open Source (GPLv3)", "Open Source (MIT)", "Open Source (GNU)"]);
 				break;
-
 			case "technology-service":
 				addToFolder("Technology Services", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Technology Service");
 				break;
-
 			case "equipment":
 				addToFolder("Technology Equipment", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Equipment");
 				break;
-
 			case "gap":
 				addToFolder("Gaps", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Gap");
 				break;
-
 			case "business-object":
 				addToFolder("Business Information", modelelement);
 				setPropIfMissing(modelelement, "Entity Class", "");
 				setPropIfMissing(modelelement, "Entity Data Domain", "");
 				break;
-
 			case "goal":
 				addToFolder("Goals", modelelement);
 				break;
-
 			case "driver":
 				addToFolder("Drivers", modelelement);
 				break;
-
 			case "requirement":
 				addToFolder("Requirements", modelelement);
 				promptProp(modelelement, "Requirement Type", "Requirement Type: ", ["Functional", "Non-Functional", "Business", "Undefined"]);
 				break;
-
 			case "location":
 				setPropIfMissing(modelelement, "Location Type", "Logical");
 				setPropIfMissing(modelelement, "Location Address", "");
 				setPropIfMissing(modelelement, "Location Identifier", "");
 				break;
-
 			case "work-package":
 				addToFolder("Work Packages", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Work Package");
