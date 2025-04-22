@@ -61,9 +61,70 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 		// Common properties
 		setPropIfMissing(modelelement, "Object Author", propAuthor || "");
 		setPropIfMissing(modelelement, "Object Date", propDate);
-		setPropIfMissing(modelelement, "Object Status", "Draft");
+		setPropIfMissing(modelelement, "Object Status", "Draft");  //, For Review, Published, Retired, Imported");
+		setPropIfMissing(modelelement, "Object State", "Current"); //, Transition, Target, Reference, Work Package, Unknown, Decomissioned");
+		setPropIfMissing(modelelement, "Object Type", "");
+		setPropIfMissing(modelelement, "Object Version", "1.0");
 
 		switch (modelelement.type) {
+			case "requirement":
+				addToFolder("Requirements", modelelement);
+				promptProp(modelelement, "Requirement Type", "Requirement Type: ", ["Functional", "Non-Functional", "Business", "Undefined"]);
+				break;
+			case "driver":
+				addToFolder("Drivers", modelelement);
+				break;
+			case "goal":
+				addToFolder("Goals", modelelement);
+				break;
+			case "capability":
+				addToFolder("Capabilities", modelelement);
+				promptProp(modelelement, "Current Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Current Maturity Assessment - Process", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Current Maturity Assessment - Technology", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+			case "business-information":
+				// addToFolder("Business Information", modelelement);
+				// setPropIfMissing(modelelement, "Object Type", "Business Information");
+				promptProp(modelelement, "Information Class", "Information Class: ", ["Course of Action", "Ledger", "Profile", "Record", "Measure"]);
+				promptProp(modelelement, "Information Data Domain", "Information Data Domain: ", [
+					"Asset Maintenance", 
+					"Business Development", 
+					"Communications", 
+					"Engineering", 
+					"Exploration", 
+					"Finance", 
+					"Health",
+					"Safety and Environment",
+					"Legal and Regulatory Requirements",
+					"Marketing and Sales",
+					"People",
+					"Procurement",
+					"Production - Minerals",
+					"Projects",
+					"Resource Governance and Assurance",
+					"Resource Planning - Minerals",
+					"Risk and Assurance",
+					"Technology",
+					"Warehousing and Distribution",
+				]);
+			case "business-service":
+				addToFolder("Business Services", modelelement);
+				setPropIfMissing(modelelement, "Service Owner", "");
+			case "business-event":
+				// addToFolder("Business Events", modelelement);
+				setPropIfMissing(modelelement, "Event Frequency", "");
+				promptProp(modelelement, "Event Periodicity", "Event Period: ", ["msec", "sec", "min", "hour", "day", "month", "year"]);
+				promptProp(modelelement, "Event Asset/Function", "Event Type: ", ["Unknown", "Scheduled", "Triggered"]);
+				break;
+			case "business-process":
+				addToFolder("Business Processes", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Business Process");
+				promptProp(modelelement, "Process Owner", "Process Owner: ");
+				promptProp(modelelement, "Process State", "Process State: ", ["Unknown", "Active", "Inactive"]);
+				break;
 			case "business-role":
 				addToFolder("Business Roles", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Business Role");
@@ -95,16 +156,6 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				addToFolder("Business Information", modelelement);
 				setPropIfMissing(modelelement, "Entity Class", "");
 				setPropIfMissing(modelelement, "Entity Data Domain", "");
-				break;
-			case "goal":
-				addToFolder("Goals", modelelement);
-				break;
-			case "driver":
-				addToFolder("Drivers", modelelement);
-				break;
-			case "requirement":
-				addToFolder("Requirements", modelelement);
-				promptProp(modelelement, "Requirement Type", "Requirement Type: ", ["Functional", "Non-Functional", "Business", "Undefined"]);
 				break;
 			case "location":
 				setPropIfMissing(modelelement, "Location Type", "Logical");
