@@ -63,7 +63,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 		setPropIfMissing(modelelement, "Object Date", propDate);
 		setPropIfMissing(modelelement, "Object Status", "Draft");  //, For Review, Published, Retired, Imported");
 		setPropIfMissing(modelelement, "Object State", "Current"); //, Transition, Target, Reference, Work Package, Unknown, Decomissioned");
-		setPropIfMissing(modelelement, "Object Type", "");
+		setPropIfMissing(modelelement, "Object Type", ""); // check note
 		setPropIfMissing(modelelement, "Object Version", "1.0");
 
 		switch (modelelement.type) {
@@ -117,18 +117,86 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				// addToFolder("Business Events", modelelement);
 				setPropIfMissing(modelelement, "Event Frequency", "");
 				promptProp(modelelement, "Event Periodicity", "Event Period: ", ["msec", "sec", "min", "hour", "day", "month", "year"]);
-				promptProp(modelelement, "Event Asset/Function", "Event Type: ", ["Unknown", "Scheduled", "Triggered"]);
+				promptProp(modelelement, "Event Asset/Function", "Event Type: ", ["All BHP Asset and Function", "None"]); // check note
 				break;
 			case "business-process":
-				addToFolder("Business Processes", modelelement);
+				// addToFolder("Business Processes", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Business Process");
-				promptProp(modelelement, "Process Owner", "Process Owner: ");
-				promptProp(modelelement, "Process State", "Process State: ", ["Unknown", "Active", "Inactive"]);
+				promptProp(modelelement, "Process Level", "");
+				promptProp(modelelement, "Process State", "");
+				promptProp(modelelement, "Process Maturity - Current State", "Process Maturity - Current State: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Process Maturity - Target State", "Process Maturity - Target State: ", ["1", "2", "3", "4", "5"]);
+				setPropIfMissing(modelelement, "Process Improvement Opportunity", "");
+				setPropIfMissing(modelelement, "Process Artefact", "");
+				setPropIfMissing(modelelement, "Process Artefact Link Reference", ""); //show if process artefact is assigned
+				promptProp(modelelement, "Has Process Owner", "Has Process Owner: ", ["Y", "N"]); // check note
+				setPropIfMissing(modelelement, "Process Owner", ""); // check note
+				promptProp(modelelement, "Process Asset", "Process Asset: ", ["All BHP Asset and Functions", "None"]); // check note
+				promptProp(modelelement, "Process Function", "Process Function: ", ["All BHP Asset and Functions", "None"]); // check note
 				break;
 			case "business-role":
 				addToFolder("Business Roles", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Business Role");
-				promptProp(modelelement, "Position Identifier", "Position Identifier: ");
+				setPropIfMissing(modelelement, "Position Code", "");
+				promptProp(modelelement, "Role Type", "Role Type selected from list: ", ["Employee", "Fixed Term Position", "Contractor", "Apprentice", "Work Experience", "Agency Temp"]);
+				promptProp(modelelement, "Role Employment Status", "Role Employment Status selected from list: ", ["Permanent Fulltime", "Permanent Partime", "Casual", "Fix Term Fulltime", "Fixed Term Parttime"]);
+				break;
+			case "data-object":
+				// addToFolder("Data Objects", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Data Object");
+				setPropIfMissing(modelelement, "System of Record", "");
+				setPropIfMissing(modelelement, "Data Domain", "");
+				setPropIfMissing(modelelement, "Data Steward", "");
+				break;
+			case "application-interface":
+				addToFolder("Application Interfaces", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Application Interface");
+				setPropIfMissing(modelelement, "Port", "");
+				break;
+			case "application":
+				addToFolder("Applications", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Application");
+				setPropIfMissing(modelelement, "Vendor", "");
+				setPropIfMissing(modelelement, "Product", "");				
+				promptProp(modelelement, "Application Is Licensed", "Application Is Licensed: ", ["Yes", "No"]);
+				promptProp(modelelement, "Application License Type", "Application License Type: ", ["COTS", "Bespoke (In-House Developed)", "Bespoke (Externally Developed)", "Open Source (GPLv2)", "Open Source (GPLv3)"]);
+				promptProp(modelelement, "Application License Duration", "Application License Duration: ", ["Perpetual", "Annual", "Monthly", "Unknown"]);
+				setPropIfMissing(modelelement, "Application License Cost", "0.0");
+				setPropIfMissing(modelelement, "Application License Number", "");
+				promptProp(modelelement, "Application Vendor Support", "Application Vendor Support: ", ["Yes", "No", "Unknown"]);
+				setPropIfMissing(modelelement, "Application Business Owner", "");
+				promptProp(modelelement, "Application Lifecycle State", "Application Lifecycle State: ", ["Unknown", "Current", "Supported", "End-of-Life"]);
+				setPropIfMissing(modelelement, "Application Alias", "");
+				setPropIfMissing(modelelement, "Application Version", "");
+				promptProp(modelelement, "Application Asset", "Application Asset: ", ["All BHP Assets", "None", "Unknown"]);
+				promptProp(modelelement, "Application Lifecycle Assessment", "Application Lifecycle Assessment: ", ["Unknown", "Evaluate", "Tolerate", "Invest", "Migrate", "Eliminate"]);
+				promptProp(modelelement, "Application Function", "Application Function: ", ["All BHP Functions", "None", "Unknown"]);
+				promptProp(modelelement, "Application Portfolio", "Application Portfolio: ", ["List of Application Portfolios"]);
+				promptProp(modelelement, "Application Installation Type", "Application Installation Type: ", ["On-Premise", "Desktop", "PaaS", "Saas", "Hybrid", "Unknown"]);
+				setPropIfMissing(modelelement, "Application GEAR ID", "");
+				setPropIfMissing(modelelement, "Application Identifier", "");
+				promptProp(modelelement, "Application Valid Start Date", "Application Valid Start Date (Format: YYYY-MM-DD):");
+				promptProp(modelelement, "Application Valid Start End", "Application Valid Start End (Format: YYYY-MM-DD):");
+				break;
+			case "technology-interface":
+				// addToFolder("Technology Interfaces", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Technology Interface");
+				setPropIfMissing(modelelement, "Port", "");
+				break;
+			case "node":
+				addToFolder("Technology Nodes", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Logical Technology");
+				break;
+			case "location":
+				// setPropIfMissing(modelelement, "Location Type", "Logical");
+				setPropIfMissing(modelelement, "Location Address", "");
+				setPropIfMissing(modelelement, "Location Identifier", "");
+				break;
+			case "business-actor":
+				addToFolder("Business Actors", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Business Actor");
+				promptProp(modelelement, "Actor Type", "Actor Type: ", ["Asset", "Department", "Person"]);
+				setPropIfMissing(modelelement, "Position Identifier", "");
 				break;
 			case "system-software":
 				addToFolder("System Software", modelelement);
@@ -157,11 +225,6 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				setPropIfMissing(modelelement, "Entity Class", "");
 				setPropIfMissing(modelelement, "Entity Data Domain", "");
 				break;
-			case "location":
-				setPropIfMissing(modelelement, "Location Type", "Logical");
-				setPropIfMissing(modelelement, "Location Address", "");
-				setPropIfMissing(modelelement, "Location Identifier", "");
-				break;
 			case "work-package":
 				addToFolder("Work Packages", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Work Package");
@@ -178,6 +241,16 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				promptProp(modelelement, "Work Package Function", "Work Package Function: ", ["Unknown", "Commercial", "Technology", "Exploration", "External Affairs", "Finance", "Human Resources", "HSE", "Innovation", "Maintenance & Engineering", "Projects", "Supply", "Value Engineering"]);
 				promptProp(modelelement, "Work Package Asset", "Work Package Asset: ", ["Unknown", "Coal", "CopperSA", "Escondida", "Legacy Assets", "Mt Arthur Coal", "Pampa Norte", "Potash", "Technical", "WAIO"]);
 				promptProp(modelelement, "Work Package Identifier", "Work Package Identifier (Planview ID): ");
+				break;
+			case "technology":
+				// addToFolder("Technology", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Technology");	
+				setPropIfMissing(modelelement, "Vendor", "");
+				setPropIfMissing(modelelement, "Product", "");
+				promptProp(modelelement, "Environment", "Environment: ", ["Production", "Test", "Quality Assurance", "Development", "User Acceptance Testing"]);				
+				setPropIfMissing(modelelement, "Alias", "");
+				setPropIfMissing(modelelement, "IP Address", "");
+				promptProp(modelelement, "Lifecycle State", "Lifecycle State: ", ["Unknown", "Current", "Maintained", "Decomissioned"]);
 				break;
 		}
 	});
