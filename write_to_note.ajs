@@ -1,36 +1,36 @@
-// Create a Java File object pointing to your file
-var file = new java.io.File("C:/Users/nicod/Desktop/notes.txt");
-var writer = new java.io.BufferedWriter(new java.io.FileWriter(file));
+// // Create a Java File object pointing to your file
+// var file = new java.io.File("C:/Users/nicod/Desktop/notes.txt");
+// var writer = new java.io.BufferedWriter(new java.io.FileWriter(file));
 
 
-// Check if file exists
-if (!file.exists()) {
-    console.log('I AM WORKING')
-    // println("File does not exist: " + file.getAbsolutePath());
-} else {
-    // Open reader
-    console.log('I AM WORKING')
+// // Check if file exists
+// if (!file.exists()) {
+//     console.log('I AM WORKING')
+//     // println("File does not exist: " + file.getAbsolutePath());
+// } else {
+//     // Open reader
+//     console.log('I AM WORKING')
 
-    // var reader = new java.io.BufferedReader(new java.io.FileReader(file));
-    // var line;
+//     // var reader = new java.io.BufferedReader(new java.io.FileReader(file));
+//     // var line;
 
 
 
-    writer.write("Hello, World");
-    writer.newLine(); // optional: adds a newline
-    writer.write("Second line if needed");
+//     writer.write("Hello, World");
+//     writer.newLine(); // optional: adds a newline
+//     writer.write("Second line if needed");
 
-    // Close the writer
-    writer.close();
+//     // Close the writer
+//     writer.close();
 
-    // Read each line
-    // while ((line = reader.readLine()) != null) {
-    //     println("PRINTING LINE: " + line);
-    // }
+//     // Read each line
+//     // while ((line = reader.readLine()) != null) {
+//     //     println("PRINTING LINE: " + line);
+//     // }
 
-    // Close reader
-    // reader.close();
-}
+//     // Close reader
+//     // reader.close();
+// }
 
 
 var file = new java.io.File("C:/notes.txt");
