@@ -293,8 +293,8 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				case "grouping":
 					promptProp(elem, "Grouping Class", "Grouping Class: ", ["Standard (Default)", "Capability Group", "Portfolio", "Azure Subscription"]);
 					break;
-				case "flow-relationship":
-					// addToFolder("Flow Relationships", elem);
+				case "flow-relation":
+					// addToFolder("Flow Relationships", modelelement);
 					setPropIfMissing(elem, "Flow Data Entity", "");
 					promptProp(elem, "Flow Integration Type", "Flow Integration Type: ", ["API", "Data Replication", "Publish-Subscribe"]);
 					setPropIfMissing(elem, "Flow Identifier", "");
