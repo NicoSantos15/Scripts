@@ -293,27 +293,22 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				case "grouping":
 					promptProp(elem, "Grouping Class", "Grouping Class: ", ["Standard (Default)", "Capability Group", "Portfolio", "Azure Subscription"]);
 					break;
-				case "flow-relation":
-					// addToFolder("Flow Relationships", modelelement);
-					setPropIfMissing(elem, "Flow Data Entity", "");
-					promptProp(elem, "Flow Integration Type", "Flow Integration Type: ", ["API", "Data Replication", "Publish-Subscribe"]);
-					setPropIfMissing(elem, "Flow Identifier", "");
-					break;
 			}
 		});
 	});
 
-	$(diagram).find("relationship[type=flow]").forEach(function (rel) {
-		var modelRel = $("." + rel.name).first();
-		if (!modelRel) {
-			console.warn("Skipping missing model relationship for:", rel.name);
-			return;
+	$(diagram).find("relationship").forEach(function (rel) {
+		setPropIfMissing(rel, "Object Author", propAuthor || "");
+		setPropIfMissing(rel, "Object Date", propDate);
+		setPropIfMissing(rel, "Object Status", "Draft");  //, For Review, Published, Retired, Imported");
+		setPropIfMissing(rel, "Object State", "Current"); //, Transition, Target, Reference, Work Package, Unknown, Decomissioned");
+		setPropIfMissing(rel, "Object Type", ""); // check note
+		setPropIfMissing(rel, "Object Version", "1.0");
+		if(rel.type === "flow-relationship") {
+			setPropIfMissing(rel, "Flow Data Entity", "");
+			promptProp(rel, "Flow Integration Type", "Flow Integration Type: ", ["API", "Data Replication", "Publish-Subscribe"]);
+			setPropIfMissing(rel, "Flow Identifier", "");
 		}
-	
-		// Only set if missing
-		if (!modelRel.prop("Object Author")) modelRel.prop("Object Author", propAuthor || "", false);
-		if (!modelRel.prop("Object Date")) modelRel.prop("Object Date", propDate, false);
-		if (!modelRel.prop("Relationship Type")) modelRel.prop("Relationship Type", "Flow", false);
 	});
 } else {
 	window.alert("No View Selected");
