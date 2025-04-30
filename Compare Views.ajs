@@ -1,30 +1,52 @@
 ﻿/*
- *  Comparison of two views to see which Archimate elements are missing
- *  
+ * Comparison of two views to see which Archimate elements and relationships are missing
  */
 console.show();
 console.clear();
 
 console.log("> Compare Views Script");
 
-function checkViews (v1, v2) {
-    var v2elements = [];
-    $(v2).find('element').each(function (e) {
-        v2elements.push(e.concept.id);
-    })
-    var lastconceptid = -1;
-    console.log('Present in view "' + v1.name + '" but missing in view "' + v2.name + '":');
-    $(v1).find('element').each(function (e) {
-        if (e.concept.id !== lastconceptid) {
-            if (v2elements.indexOf(e.concept.id) === -1) {
+function checkViews(v1, v2) {
+    var v2ElementConcepts = [];
+    $(v2).find('element').each(function(e) {
+        v2ElementConcepts.push(e.concept.id);
+    });
+
+    console.log('Elements present in "' + v1.name + '" but missing in "' + v2.name + '":');
+    var seenElementConcepts = new Set();
+    $(v1).find('element').each(function(e) {
+        var conceptId = e.concept.id;
+        if (!seenElementConcepts.has(conceptId)) {
+            if (v2ElementConcepts.indexOf(conceptId) === -1) {
                 console.log(e.name + '   (' + e.type + ')');
             }
-            lastconceptid = e.concept.id;
+            seenElementConcepts.add(conceptId);
         }
-    })
+    });
+
+    console.log('\nRelationships present in "' + v1.name + '" but missing in "' + v2.name + '":');
+    var v2RelConcepts = [];
+    $(v2).find('connection').each(function(c) {
+        v2RelConcepts.push(c.relationship.id);
+    });
+
+    var seenRelConcepts = new Set();
+    $(v1).find('connection').each(function(c) {
+        var rel = c.relationship;
+        if (!seenRelConcepts.has(rel.id)) {
+            if (v2RelConcepts.indexOf(rel.id) === -1) {
+                console.log(rel.source.name + ' --[' + rel.type + ']--> ' + rel.target.name);
+            }
+            seenRelConcepts.add(rel.id);
+        }
+    });
 }
 
-if (selection.size() === 2 && ($(selection.get(0)).is('archimate-diagram-model') && $(selection.get(1)).is('archimate-diagram-model'))) {
+if (
+    selection.size() === 2 &&
+    $(selection.get(0)).is('archimate-diagram-model') &&
+    $(selection.get(1)).is('archimate-diagram-model')
+) {
     var v1 = selection.get(0);
     var v2 = selection.get(1);
     console.log('Compare views: "' + v1.name + '" and "' + v2.name + '"\n');
