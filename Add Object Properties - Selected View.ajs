@@ -1,4 +1,28 @@
-﻿var debug = true;
+﻿/*
+ * ----------------------------------------------------------------------------
+ * Script: Add Element Properties to Selected View
+ * Tool: jArchi
+ *
+ * Description:
+ * Prompts the user to input common metadata (e.g. Author, Date, Status) and 
+ * applies these as custom properties to all model elements drawn in the selected view.
+ * Additional prompts and folder assignment are handled based on element type.
+ *
+ * Usage:
+ * - Select a single ArchiMate diagram view.
+ * - Run the script.
+ * - Answer prompts to populate missing metadata fields.
+ *
+ * Output:
+ * - Adds properties like Object Author, Object Date, Object Status, etc.
+ * - Classifies and moves model elements into designated folders (e.g. Business Roles).
+ * - Outputs progress to the jArchi console.
+ *
+ * Ownership: Property of BHP. Unauthorized use or modification is prohibited.
+ * ----------------------------------------------------------------------------
+ */
+
+var debug = true;
 
 console.show();
 console.clear();
