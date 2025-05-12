@@ -3,17 +3,15 @@
 console.show();
 console.clear();
 
- 
 console.log("> Add element Properties - Selected View");
 
 var propAuthor = window.prompt("Value for element Author (leave empty to cancel)?", "");
 var propDate = window.prompt("Value for element Date (leave empty to set to current date) (Format: YYYY-MM-DD)?", "");
-//var propState = window.promptSelection("Value for Object State, Select from: ", ["Unknown", "Current", "Transition", "Target", "Reference", "Work Package", "Decomissioned"]);
-// var propDiagram = window.prompt("Name of View or Diagram to add Properties to: ","");
 
+// original date fallback logic preserved
 if (!propDate) {
 	var date = new Date();
-	var month = date.getMonth()+1;
+	var month = date.getMonth() + 1;
 	if (month < 10) {
 		month = "0" + month;
 	}
@@ -21,325 +19,243 @@ if (!propDate) {
 	if (day < 10) {
 		day = "0" + day;
 	}
-	 
-	propDate = date.getFullYear()+"-"+month+"-"+day;
+	propDate = date.getFullYear() + "-" + month + "-" + day;
+}
+
+// === DRY Helpers ===
+function setPropIfMissing(el, key, val) {
+	if (!el.prop(key)) el.prop(key, val, false);
+}
+
+function promptProp(el, key, message, options = null) {
+	if (!el.prop(key)) {
+		var value = options ? window.promptSelection(message, options) : window.prompt(message, "");
+		el.prop(key, value, false);
+	}
+}
+
+function addToFolder(folderName, el) {
+	var folder = $("folder." + folderName).first();
+	folder.add(el);
 }
 
 if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model'))) {
 
 	// Select diagram and its elements
-	var diagram = $("archimate-diagram-model").filter("."+selection.get(0).name).first();
-	console.log("Diagram: ",diagram.name);
+	var diagram = $("archimate-diagram-model").filter("." + selection.get(0).name).first();
+	console.log("Diagram: ", diagram.name);
 
 	var elements = $(diagram).find("element");
-	//var eles = $("Tool - Workpackage Decomposition");
 
-	console.log("Elements in View: ",elements.length);
-	//console.log("Array Length: ",eles.length);
+	console.log("Elements in View: ", elements.length);
 
-	// Step through elements on diagram adding properties
-	elements.forEach(function(element) {
-		
-		// Remember element is in the viewpoint, need to find same element in the model
-		var modelelement = $("."+element.name).first();
-		console.log("Model element:",modelelement.name," View Element :",element.name);
-
-		// Set common properties if they don't exist
-		// Now add Object Properties
-		if (!modelelement.prop("Object Author")) {
-			// Create field and set
-			if (propAuthor) {
-				modelelement.prop("Object Author",propAuthor,false);
-			} else {
-				modelelement.prop("Object Author","",false);
-			}
+	elements.forEach(function (element) {
+		var modelelement = $("." + element.name).first();
+		if (!modelelement) {
+			console.warn("Skipping missing model element for:", element.name);
+			return;
 		}
-		//
-		// Check for Object Date
-		if (!modelelement.prop("Object Date")) {
-			// Create field and set
-			if (propDate) {
-				modelelement.prop("Object Date",propDate,false);
-			}
-		}
-		//
-		// Check for Object Status
-		if (!modelelement.prop("Object Status")) {
-			// Create field and set
-			modelelement.prop("Object Status","Draft",false);
-			}
-		//
-		
-		//
-		//==
+
+		console.log("Model element:", modelelement.name, " View Element :", element.name);
+
+		// Common properties
+		setPropIfMissing(modelelement, "Object Author", propAuthor || "");
+		setPropIfMissing(modelelement, "Object Date", propDate);
+		setPropIfMissing(modelelement, "Object Status", "Draft");  //, For Review, Published, Retired, Imported");
+		setPropIfMissing(modelelement, "Object State", "Current"); //, Transition, Target, Reference, Work Package, Unknown, Decomissioned");
+		setPropIfMissing(modelelement, "Object Type", ""); // check note
+		setPropIfMissing(modelelement, "Object Version", "1.0");
+
 		switch (modelelement.type) {
-			case "business-role":
-				{
-					// Folder Path for Element
-					var busroleFolder = $("folder.Business Roles").first();
-					// Now add to folder
-					//var objectelement = $(element.name);
-					busroleFolder.add(modelelement);
-					if (!modelelement.prop("Object Type")) {
-						// Create field and set
-						modelelement.prop("Object Type","Business Role",false);
-						console.log(modelelement.name," - No Object Type, adding Object Type");
-					}
-					if (!modelelement.prop("Position Identifier")) {
-						// Create field and set
-						var propPositionIdentifier = window.prompt("Position Identifier: ","");
-						modelelement.prop("Position Identifier",propPositionIdentifier,false);
-						console.log(modelelement.name," - No Position Identifier, adding Position Identifier");
-					}
-				}
-			break;
-			case "system-software":
-				{
-					// Folder Path for Element
-					var techsoftFolder = $("folder.System Software").first();
-					// Now add to folder
-					//var objectelement = $(element.name);
-					techsoftFolder.add(modelelement);
-					if (!modelelement.prop("Object Type")) {
-						// Create field and set
-						modelelement.prop("Object Type","System Software",false);
-						console.log(modelelement.name," - No Object Type, adding Object Type");
-					}
-					if (!modelelement.prop("System Software Vendor")) {
-						// Create field and set
-						var propSystemSoftwareVendor = window.prompt("System Software Vendor: ",""); 
-						modelelement.prop("System Software Vendor",propSystemSoftwareVendor,false);
-						console.log(modelelement.name," - No System Software Vendor, added");
-					}
-					if (!modelelement.prop("System Software Product")) {
-						// Create field and set
-						var propSystemSoftwareProduct = window.prompt("System Software Product: ",""); 
-						modelelement.prop("System Software Product",propSystemSoftwareProduct,false);
-						console.log(modelelement.name," - No System Software Product, added");
-					}
-					if (!modelelement.prop("System Software Version")) {
-						// Create field and set
-						var propSystemSoftwareVersion = window.prompt("System Software Version: ",""); 
-						modelelement.prop("System Software Version",propSystemSoftwareVersion,false);
-						console.log(modelelement.name," - No System Software Version, added");
-					}
-					if (!modelelement.prop("System Software Lifecycle State")) {
-						// Create field and set
-						var propSystemSoftwareLifecycle = window.promptSelection("System Software Lifecycle State: ", ["Unknown", "Current", "Supported", "End-of-Life"]);
-						modelelement.prop("System Software Lifecyce State",propSystemSoftwareLifecycle,false);
-						console.log(modelelement.name," - No System Software Lifecycle, added");
-					}
-					if (!modelelement.prop("System Software Licensed")) {
-						// Create field and set
-						var propSystemSoftwareLicensed = window.promptSelection("System Software Licensed: ", ["Unknown", "Yes", "No"]);
-						modelelement.prop("System Software Licensed",propSystemSoftwareLicensed,false);
-						console.log(modelelement.name," - No System Software Licensed, added");
-					}
-					if (!modelelement.prop("System Software License Type")) {
-						// Create field and set
-						var propSystemSoftwareLicenseType = window.promptSelection("System Software License Type: ", ["Unknown", "COTS", "Bespoke (Internal)", "Bespoke (External)","Open Source (GPLv2)","Open Source (GPLv3)","Open Source (MIT)", "Open Source (GNU)"]);
-						modelelement.prop("System Software License Type",propSystemSoftwareLicenseType,false);
-						console.log(modelelement.name," - No System Software Licensed, added");
-					}
-				}
-			break;
-			case "technology-service":
-				{
-					// Folder Path for Element
-					var techserviceFolder = $("folder.Technology Services").first();
-					// Now add to folder
-					//var objectelement = $(element.name);
-					techserviceFolder.add(modelelement);
-					if (!modelelement.prop("Object Type")) {
-						// Create field and set
-						modelelement.prop("Object Type","Technology Service",false);
-						console.log(modelelement.name," - No Object Type, adding Object Type");
-					}
-				}
-			break;
-			case "equipment":
-					// Folder Path for Element
-					var techequipFolder = $("folder.Technology Equipment").first();
-					// Need to change context from view to whole model, in order to move to a folder
-					techequipFolder.add(modelelement);
-					if (!modelelement.prop("Object Type")) {
-						// Create field and set
-						modelelement.prop("Object Type","Equipment",false);
-						console.log(modelelement.name," - No Object Type, adding Object Type");
-					}
-			break;
-			case "gap":
-					// Folder Path for Element
-					var gapsFolder = $("folder.Gaps").first();
-					// Need to change context from view to whole model, in order to move to a folder
-					gapsFolder.add(modelelement);
-					if (!modelelement.prop("Object Type")) {
-						// Create field and set
-						modelelement.prop("Object Type","Gap",false);
-						console.log(modelelement.name," - No Object Type, adding Object Type");
-					}
-			break;
-			case "business-object":
-					//
-					// Folder Path for Element
-					var businessobjectFolder = $("folder.Business Information").first();
-					// Need to change context from view to whole model, in order to move to a folder
-					businessobjectFolder.add(modelelement);
-					if (!modelelement.prop("Entity Class")) {
-						console.log(modelelement.name," - No Property found, adding Entity Class");
-						modelelement.prop("Entity Class","",false);
-					}
-					//
-					if (!modelelement.prop("Entity Data Domain")) {
-						console.log(modelelement.name," - No Property found, adding Entity Data Domain");
-						modelelement.prop("Entity Data Domain","",false);
-					}
-			break;
-			case "goal":
-					// Folder Path for Element
-					var goalFolder = $("folder.Goals").first();
-					// Need to change context from view to whole model, in order to move to a folder
-					goalFolder.add(modelelement);
-			break;
-			case "driver":
-					// Folder Path for Element
-					var driverFolder = $("folder.Drivers").first();
-					// Need to change context from view to whole model, in order to move to a folder
-					driverFolder.add(modelelement);
-			break;
 			case "requirement":
-					// Folder Path for Element
-					var requirementFolder = $("folder.Requirements").first();
-					// Need to change context from view to whole model, in order to move to a folder
-					requirementFolder.add(modelelement);
-					// Functional, Non-Functional, Business, Undefined
-					if (!modelelement.prop("Requirement Type")) {
-						console.log(modelelement.name," - No Property found, adding Requirement Type");
-						var propRequirementType = window.promptSelection("Requirement Type: ", ["Functional", "Non-Functional", "Business", "Undefined"]);
-						modelelement.prop("Requirement Type",propRequirementType,false);
-					}
-			break;
+				addToFolder("Requirements", modelelement);
+				promptProp(modelelement, "Requirement Type", "Requirement Type: ", ["Functional", "Non-Functional", "Business", "Undefined"]);
+				break;
+			case "driver":
+				addToFolder("Drivers", modelelement);
+				break;
+			case "goal":
+				addToFolder("Goals", modelelement);
+				break;
+			case "capability":
+				addToFolder("Capabilities", modelelement);
+				promptProp(modelelement, "Current Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Current Maturity Assessment - Process", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Current Maturity Assessment - Technology", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+			case "business-information":
+				// addToFolder("Business Information", modelelement);
+				// setPropIfMissing(modelelement, "Object Type", "Business Information");
+				promptProp(modelelement, "Information Class", "Information Class: ", ["Course of Action", "Ledger", "Profile", "Record", "Measure"]);
+				promptProp(modelelement, "Information Data Domain", "Information Data Domain: ", [
+					"Asset Maintenance", 
+					"Business Development", 
+					"Communications", 
+					"Engineering", 
+					"Exploration", 
+					"Finance", 
+					"Health",
+					"Safety and Environment",
+					"Legal and Regulatory Requirements",
+					"Marketing and Sales",
+					"People",
+					"Procurement",
+					"Production - Minerals",
+					"Projects",
+					"Resource Governance and Assurance",
+					"Resource Planning - Minerals",
+					"Risk and Assurance",
+					"Technology",
+					"Warehousing and Distribution",
+				]);
+			case "business-service":
+				addToFolder("Business Services", modelelement);
+				setPropIfMissing(modelelement, "Service Owner", "");
+			case "business-event":
+				// addToFolder("Business Events", modelelement);
+				setPropIfMissing(modelelement, "Event Frequency", "");
+				promptProp(modelelement, "Event Periodicity", "Event Period: ", ["msec", "sec", "min", "hour", "day", "month", "year"]);
+				promptProp(modelelement, "Event Asset/Function", "Event Type: ", ["All BHP Asset and Function", "None"]); // check note
+				break;
+			case "business-process":
+				// addToFolder("Business Processes", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Business Process");
+				promptProp(modelelement, "Process Level", "");
+				promptProp(modelelement, "Process State", "");
+				promptProp(modelelement, "Process Maturity - Current State", "Process Maturity - Current State: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Process Maturity - Target State", "Process Maturity - Target State: ", ["1", "2", "3", "4", "5"]);
+				setPropIfMissing(modelelement, "Process Improvement Opportunity", "");
+				setPropIfMissing(modelelement, "Process Artefact", "");
+				setPropIfMissing(modelelement, "Process Artefact Link Reference", ""); //show if process artefact is assigned
+				promptProp(modelelement, "Has Process Owner", "Has Process Owner: ", ["Y", "N"]); // check note
+				setPropIfMissing(modelelement, "Process Owner", ""); // check note
+				promptProp(modelelement, "Process Asset", "Process Asset: ", ["All BHP Asset and Functions", "None"]); // check note
+				promptProp(modelelement, "Process Function", "Process Function: ", ["All BHP Asset and Functions", "None"]); // check note
+				break;
+			case "business-role":
+				addToFolder("Business Roles", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Business Role");
+				setPropIfMissing(modelelement, "Position Code", "");
+				promptProp(modelelement, "Role Type", "Role Type selected from list: ", ["Employee", "Fixed Term Position", "Contractor", "Apprentice", "Work Experience", "Agency Temp"]);
+				promptProp(modelelement, "Role Employment Status", "Role Employment Status selected from list: ", ["Permanent Fulltime", "Permanent Partime", "Casual", "Fix Term Fulltime", "Fixed Term Parttime"]);
+				break;
+			case "data-object":
+				// addToFolder("Data Objects", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Data Object");
+				setPropIfMissing(modelelement, "System of Record", "");
+				setPropIfMissing(modelelement, "Data Domain", "");
+				setPropIfMissing(modelelement, "Data Steward", "");
+				break;
+			case "application-interface":
+				// addToFolder("Application Interfaces", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Application Interface");
+				setPropIfMissing(modelelement, "Port", "");
+				break;
+			case "application":
+				// addToFolder("Applications", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Application");
+				setPropIfMissing(modelelement, "Vendor", "");
+				setPropIfMissing(modelelement, "Product", "");				
+				promptProp(modelelement, "Application Is Licensed", "Application Is Licensed: ", ["Yes", "No"]);
+				promptProp(modelelement, "Application License Type", "Application License Type: ", ["COTS", "Bespoke (In-House Developed)", "Bespoke (Externally Developed)", "Open Source (GPLv2)", "Open Source (GPLv3)"]);
+				promptProp(modelelement, "Application License Duration", "Application License Duration: ", ["Perpetual", "Annual", "Monthly", "Unknown"]);
+				setPropIfMissing(modelelement, "Application License Cost", "0.0");
+				setPropIfMissing(modelelement, "Application License Number", "");
+				promptProp(modelelement, "Application Vendor Support", "Application Vendor Support: ", ["Yes", "No", "Unknown"]);
+				setPropIfMissing(modelelement, "Application Business Owner", "");
+				promptProp(modelelement, "Application Lifecycle State", "Application Lifecycle State: ", ["Unknown", "Current", "Supported", "End-of-Life"]);
+				setPropIfMissing(modelelement, "Application Alias", "");
+				setPropIfMissing(modelelement, "Application Version", "");
+				promptProp(modelelement, "Application Asset", "Application Asset: ", ["All BHP Assets", "None", "Unknown"]);
+				promptProp(modelelement, "Application Lifecycle Assessment", "Application Lifecycle Assessment: ", ["Unknown", "Evaluate", "Tolerate", "Invest", "Migrate", "Eliminate"]);
+				promptProp(modelelement, "Application Function", "Application Function: ", ["All BHP Functions", "None", "Unknown"]);
+				promptProp(modelelement, "Application Portfolio", "Application Portfolio: ", ["List of Application Portfolios"]);
+				promptProp(modelelement, "Application Installation Type", "Application Installation Type: ", ["On-Premise", "Desktop", "PaaS", "Saas", "Hybrid", "Unknown"]);
+				setPropIfMissing(modelelement, "Application GEAR ID", "");
+				setPropIfMissing(modelelement, "Application Identifier", "");
+				promptProp(modelelement, "Application Valid Start Date", "Application Valid Start Date (Format: YYYY-MM-DD):");
+				promptProp(modelelement, "Application Valid Start End", "Application Valid Start End (Format: YYYY-MM-DD):");
+				break;
+			case "technology-interface":
+				// addToFolder("Technology Interfaces", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Technology Interface");
+				setPropIfMissing(modelelement, "Port", "");
+				break;
+			case "node":
+				// addToFolder("Technology Nodes", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Logical Technology");
+				break;
 			case "location":
-					//
-					if (!modelelement.prop("Location Type")) {
-						console.log(modelelement.name," - No Property found, adding Location Type");
-						modelelement.prop("Location Type","Logical",false);
-					}
-					//
-					if (!modelelement.prop("Location Address")) {
-						console.log(modelelement.name," - No Property found, adding Location Address");
-						modelelement.prop("Location Address","",false);
-					}
-					//
-					if (!modelelement.prop("Location Identifier")) {
-						console.log(modelelement.name," - No Property found, adding Location Identifier");
-						modelelement.prop("Location Identifier","",false);
-				}
-			break;
+				// setPropIfMissing(modelelement, "Location Type", "Logical");
+				setPropIfMissing(modelelement, "Location Address", "");
+				setPropIfMissing(modelelement, "Location Identifier", "");
+				break;
+			case "business-actor":
+				// addToFolder("Business Actors", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Business Actor");
+				promptProp(modelelement, "Actor Type", "Actor Type: ", ["Asset", "Department", "Person"]);
+				setPropIfMissing(modelelement, "Position Identifier", "");
+				break;
+			case "system-software":
+				// addToFolder("System Software", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "System Software");
+				promptProp(modelelement, "System Software Vendor", "System Software Vendor: ");
+				promptProp(modelelement, "System Software Product", "System Software Product: ");
+				promptProp(modelelement, "System Software Version", "System Software Version: ");
+				promptProp(modelelement, "System Software Lifecycle State", "System Software Lifecycle State: ", ["Unknown", "Current", "Supported", "End-of-Life"]);
+				promptProp(modelelement, "System Software Licensed", "System Software Licensed: ", ["Unknown", "Yes", "No"]);
+				promptProp(modelelement, "System Software License Type", "System Software License Type: ", ["Unknown", "COTS", "Bespoke (Internal)", "Bespoke (External)", "Open Source (GPLv2)", "Open Source (GPLv3)", "Open Source (MIT)", "Open Source (GNU)"]);
+				break;
+			case "technology-service":
+				addToFolder("Technology Services", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Technology Service");
+				break;
+			case "equipment":
+				addToFolder("Technology Equipment", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Equipment");
+				break;
+			case "gap":
+				addToFolder("Gaps", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Gap");
+				break;
+			case "business-object":
+				addToFolder("Business Information", modelelement);
+				setPropIfMissing(modelelement, "Entity Class", "");
+				setPropIfMissing(modelelement, "Entity Data Domain", "");
+				break;
 			case "work-package":
-				// Folder Path for Work Package
-					var workpackageFolder = $("folder.Work Packages").first();
-					// Need to change context from view to whole model, in order to move to a folder
-					workpackageFolder.add(modelelement);
-					
-				if (!modelelement.prop("Object Type")) {
-					// Create field and set
-					modelelement.prop("Object Type","Work Package",false);
-					console.log(modelelement.name," - No Object Type, adding Object Type");
-					}
-
-			
-				// Now check for Work Package atributes/properties
-				
-				if (!modelelement.prop("Work Package State")) {
-					console.log(modelelement.name," - No Work Package State, adding Work Package State");
-					var propWorkPackageState = window.promptSelection("Work Package State: ", ["Unknown", "Active", "Inactive", "Halted", "Completed", "Proposed"]);
-					modelelement.prop("Work Package State",propWorkPackageState,false);			
-				}
-				if (!modelelement.prop("Work Package Type")) {
-					console.log(modelelement.name," - No Work Package Type, adding Work Package Type");
-					var propWorkPackageType = window.promptSelection("Work Package Type: ", ["Unknown", "Non-Project", "Project", "Program of Work"]);
-					modelelement.prop("Work Package Type",propWorkPackageType,false);			
-				}
-				if (!modelelement.prop("Work Package Project Type")) {
-					console.log(modelelement.name," - No Work Package Project Type, adding Work Package Type");
-					var propWorkPackageProjectType = window.promptSelection("Work Package Project Type: ", ["Unknown", "Compliance: External", "Compliance: Internal", "Improvement: Cost","Improvement: Culture","Improvement: Production","Risk Reduction: Material","Risk Reduction: Non-Material","Sustaining: Asset Integrity","Sustaining: Cost", "Sustaining: Capacity"]);
-					modelelement.prop("Work Package Project Type",propWorkPackageProjectType,false);			
-				}
-				if (!modelelement.prop("Work Package Budget")) {
-					console.log(modelelement.name," - No Work Package Budget, adding Work Package Budget");	
-					var propWorkPackageBudget = window.prompt("Work Package Budget: ","");
-					modelelement.prop("Work Package Budget",propWorkPackageBudget,false);			
-				}
-				if (!modelelement.prop("Work Package Start Date")) {
-					console.log(modelelement.name," - No Work Package Start Date, adding Work Package Start Date");
-					var propWorkPackageStart = window.prompt("Work Package Start Date (YYYY-MM-DD): ","");
-					modelelement.prop("Work Package Start Date",propWorkPackageStart,false);
-							
-				}
-				if (!modelelement.prop("Work Package End Date")) {
-					console.log(modelelement.name," - No Work Package End Date, adding Work Package End Date");
-					var propWorkPackageEnd = window.prompt("Work Package End Date (YYYY-MM-DD): ","");
-					modelelement.prop("Work Package End Date",propWorkPackageEnd,false);
-						
-				}
-				if (!modelelement.prop("Work Package Requestor")) {
-					console.log(modelelement.name," - No Work Package Requestor, adding Work Package Requestor");
-					var propWorkPackageRequestor = window.prompt("Work Package Requestor: ","");
-					modelelement.prop("Work Package Requestor",propWorkPackageRequestor,false);
-								
-				}
-				if (!modelelement.prop("Work Package Sponsor")) {
-					console.log(modelelement.name," - No Work Package Sponsor, adding Work Package Sponsor");
-					var propWorkPackageSponsor = window.prompt("Work Package Sponsor: ","");
-					modelelement.prop("Work Package Sponsor",propWorkPackageSponsor,false);
-								
-				}
-				if (!modelelement.prop("Work Package Reference")) {
-					modelelement.prop("Work Package Reference","",false);
-					console.log(modelelement.name," - No Work Package Reference, adding Work Package Reference");			
-				}
-				// Work Package Investment Amount
-				if (!modelelement.prop("Work Package Investment Amount")) {
-					// Create field and set
-					console.log(modelelement.name," - No Work Package Investment Amount, adding Work Package Investment Amount");
-					var propWorkPackageInvestment = window.prompt("Work Package Investment Amount: ","");
-					modelelement.prop("Work Package Investment Amount",propWorkPackageInvestment,false);
-				}
-				// Work Package Function
-				if (!modelelement.prop("Work Package Function")) {
-					console.log(modelelement.name," - No Work Package Function, adding Work Package Function");
-					// Create field and set
-					var propWorkPackageFunction = window.promptSelection("Work Package Function: ", ["Unknown","Commercial","Technology", "Exploration","External Affairs","Finance", "Human Resources","HSE","Innovation", "Maintenance & Engineering", "Projects", "Supply", "Value Engineering"]);
-					//Technology, Finance, Human Resources, Maintenance, Projects, HSE, Supply, Corporate Services
-					modelelement.prop("Work Package Function",propWorkPackageFunction,false);
-					
-				}
-				// Work Package Asset
-				if (!modelelement.prop("Work Package Asset")) {
-					console.log(modelelement.name," - No Work Package Asset, adding Work Package Asset");
-					//Potash, Escondida, WAIO, NiW, CopperSA (CuSA), Coal (BMA + NSWEC), Legacy Assets, Technical
-					// Create field and set
-					var propWorkPackageAsset = window.promptSelection("Work Package Asset: ", ["Unknown","Coal","CopperSA","Escondida","Legacy Assets","Mt Arthur Coal","Pampa Norte","Potash","Technical","WAIO"]);
-					modelelement.prop("Work Package Asset",propWorkPackageAsset,false);
-					console.log(modelelement.name," - No Work Package Asset, adding Work Package Asset");
-				}
-				
-				// Work Package Asset
-				if (!modelelement.prop("Work Package Identifier")) {
-					// Create field and set
-					console.log(modelelement.name," - No Work Package Identifier, adding Work Package Identifier");
-					var propWorkPackageIdentifier = window.prompt("Work Package Identifier (Planview ID): ","");
-					modelelement.prop("Work Package Identifier",propWorkPackageIdentifier,false);
-				}
-			
-			break;
-		} // end of switch
-		}); // end of function/each
-		
+				addToFolder("Work Packages", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Work Package");
+				promptProp(modelelement, "Work Package State", "Work Package State: ", ["Unknown", "Active", "Inactive", "Halted", "Completed", "Proposed"]);
+				promptProp(modelelement, "Work Package Type", "Work Package Type: ", ["Unknown", "Non-Project", "Project", "Program of Work"]);
+				promptProp(modelelement, "Work Package Project Type", "Work Package Project Type: ", ["Unknown", "Compliance: External", "Compliance: Internal", "Improvement: Cost", "Improvement: Culture", "Improvement: Production", "Risk Reduction: Material", "Risk Reduction: Non-Material", "Sustaining: Asset Integrity", "Sustaining: Cost", "Sustaining: Capacity"]);
+				promptProp(modelelement, "Work Package Budget", "Work Package Budget: ");
+				promptProp(modelelement, "Work Package Start Date", "Work Package Start Date (YYYY-MM-DD): ");
+				promptProp(modelelement, "Work Package End Date", "Work Package End Date (YYYY-MM-DD): ");
+				promptProp(modelelement, "Work Package Requestor", "Work Package Requestor: ");
+				promptProp(modelelement, "Work Package Sponsor", "Work Package Sponsor: ");
+				setPropIfMissing(modelelement, "Work Package Reference", "");
+				promptProp(modelelement, "Work Package Investment Amount", "Work Package Investment Amount: ");
+				promptProp(modelelement, "Work Package Function", "Work Package Function: ", ["Unknown", "Commercial", "Technology", "Exploration", "External Affairs", "Finance", "Human Resources", "HSE", "Innovation", "Maintenance & Engineering", "Projects", "Supply", "Value Engineering"]);
+				promptProp(modelelement, "Work Package Asset", "Work Package Asset: ", ["Unknown", "Coal", "CopperSA", "Escondida", "Legacy Assets", "Mt Arthur Coal", "Pampa Norte", "Potash", "Technical", "WAIO"]);
+				promptProp(modelelement, "Work Package Identifier", "Work Package Identifier (Planview ID): ");
+				break;
+			case "technology":
+				// addToFolder("Technology", modelelement);
+				setPropIfMissing(modelelement, "Object Type", "Technology");	
+				setPropIfMissing(modelelement, "Vendor", "");
+				setPropIfMissing(modelelement, "Product", "");
+				promptProp(modelelement, "Environment", "Environment: ", ["Production", "Test", "Quality Assurance", "Development", "User Acceptance Testing"]);				
+				setPropIfMissing(modelelement, "Alias", "");
+				setPropIfMissing(modelelement, "IP Address", "");
+				promptProp(modelelement, "Lifecycle State", "Lifecycle State: ", ["Unknown", "Current", "Maintained", "Decomissioned"]);
+				break;
+		}
+	});
 } else {
 	window.alert("No View Selected");
 }
 
 console.log("> Add Object Properties - Complete");
-
