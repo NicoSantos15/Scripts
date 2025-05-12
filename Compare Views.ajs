@@ -1,45 +1,78 @@
 ﻿/*
- * Comparison of two views to see which Archimate elements and relationships are missing
+ * ----------------------------------------------------------------------------
+ * Script: Compare Elements and Relationships Between Two ArchiMate Views
+ * Tool: jArchi
+ * 
+ * Compares two selected ArchiMate diagram views and prints:
+ *  - Elements in one view but missing in the other
+ *  - Relationships (drawn) in one view but missing in the other
+ * 
+ * How to use:
+ *  - Select exactly two views in the model tree
+ *  - Run the script to see results in the console
+ * 
+ * Output is formatted with Unicode icons for readability:
+ *  📄 Views   🔍 Elements   🔗 Relationships
+ * 
+ * Ownership: Property of BHP. Do not distribute or modify without permission.
+ * ----------------------------------------------------------------------------
  */
+
 console.show();
 console.clear();
 
-console.log("> Compare Views Script");
+console.log("=== COMPARE VIEWS SCRIPT ===\n");
 
 function checkViews(v1, v2) {
-    var v2ElementConcepts = [];
+    var v2elements = [];
     $(v2).find('element').each(function(e) {
-        v2ElementConcepts.push(e.concept.id);
+        v2elements.push(e.concept.id);
     });
 
-    console.log('Elements present in "' + v1.name + '" but missing in "' + v2.name + '":');
-    var seenElementConcepts = new Set();
+    var lastconceptid = -1;
+    console.log('🔍 Elements in "' + v1.name + '" but missing in "' + v2.name + '":');
+    console.log('------------------------------------------------------------');
+
     $(v1).find('element').each(function(e) {
-        var conceptId = e.concept.id;
-        if (!seenElementConcepts.has(conceptId)) {
-            if (v2ElementConcepts.indexOf(conceptId) === -1) {
-                console.log(e.name + '   (' + e.type + ')');
+        if (e.concept.id !== lastconceptid) {
+            if (v2elements.indexOf(e.concept.id) === -1) {
+                console.log('• ' + e.name.padEnd(30) + ' (' + e.type + ')');
             }
-            seenElementConcepts.add(conceptId);
+            lastconceptid = e.concept.id;
         }
     });
 
-    console.log('\nRelationships present in "' + v1.name + '" but missing in "' + v2.name + '":');
-    var v2RelConcepts = [];
-    $(v2).find('connection').each(function(c) {
-        v2RelConcepts.push(c.relationship.id);
-    });
+    console.log('\n');
+}
 
-    var seenRelConcepts = new Set();
-    $(v1).find('connection').each(function(c) {
-        var rel = c.relationship;
-        if (!seenRelConcepts.has(rel.id)) {
-            if (v2RelConcepts.indexOf(rel.id) === -1) {
-                console.log(rel.source.name + ' --[' + rel.type + ']--> ' + rel.target.name);
-            }
-            seenRelConcepts.add(rel.id);
+function checkViewRelationships(v1, v2) {
+    var v2rels = [];
+
+    $(v2).find('relationship').each(function(c) {
+        if (c.prop.type !== 'legend') {
+            var sig = c.source.id + '->' + c.type + '->' + c.target.id;
+            v2rels.push(sig);
         }
     });
+
+    var lastSig = '';
+    console.log('🔗 Relationships in "' + v1.name + '" but missing in "' + v2.name + '":');
+    console.log('------------------------------------------------------------');
+
+    $(v1).find('relationship').each(function(c) {
+        var r = c;
+        if (r && r.source && r.target) {
+            var sig = r.source.id + '->' + r.type + '->' + r.target.id;
+            if (sig !== lastSig && v2rels.indexOf(sig) === -1) {
+                var src = (r.source.name || '[Unnamed]').padEnd(30);
+                var tgt = (r.target.name || '[Unnamed]').padEnd(30);
+                console.log('• ' + src + ' --[' + r.type + ']--> ' + tgt);
+            }
+            lastSig = sig;
+        }
+    });
+
+    console.log('\n');
 }
 
 if (
@@ -49,10 +82,16 @@ if (
 ) {
     var v1 = selection.get(0);
     var v2 = selection.get(1);
-    console.log('Compare views: "' + v1.name + '" and "' + v2.name + '"\n');
+
+    console.log('📄 COMPARE VIEWS: "' + v1.name + '" AND "' + v2.name + '"\n');
+
     checkViews(v1, v2);
-    console.log('\n');
     checkViews(v2, v1);
+
+    console.log('📄 COMPARE RELATIONSHIPS\n');
+
+    checkViewRelationships(v1, v2);
+    checkViewRelationships(v2, v1);
 } else {
     window.alert('Select 2 views to compare');
 }
