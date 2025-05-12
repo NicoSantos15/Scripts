@@ -1,17 +1,33 @@
-﻿//
-// Generate diagram legend
-//
-// For a selected view, create a group named 'Legend', in which will be nested for each concepts type found in view
-// - a concept, specifically sized to show the pictogram
-// - a note, to be used to name or explain the concept specifically in the view, hence preventing to rename the concept
-// That way,
-// - a model will be a bit polluted but with a specific set of concepts, for legend purpose, prefixed so easily identifiable
-// - the same set can be used in multiple views, multiples legends as the associated text is set in a side note
-//
-// Roadmap:
-// - ask to delete an existing group name 'Legend' before create a new group
-// - improve typesList cleaning (removing types not concerned by legend) to avoid adding an exception
-//
+﻿/*
+ * ----------------------------------------------------------------------------
+ * Script: Generate Diagram Legend for Selected View
+ * Tool: jArchi
+ *
+ * Description:
+ * This script scans a selected ArchiMate diagram view and creates a visual legend
+ * containing all unique concept types and relationships present in the view.
+ *
+ * For each concept type:
+ * - A standardized model element is created or reused with a 'legend-purpose-' prefix
+ * - A note is placed beside the element to provide context, without renaming the model element
+ * - The element is added to a group called "Legend" for layout and reusability
+ *
+ * For each relationship type:
+ * - Anchor groupings and visual links are created to represent the relationship
+ * - A note label is added to describe the relationship type
+ *
+ * Additional:
+ * - Elements are auto-classified into folders based on their ArchiMate layer
+ * - Legend-specific elements and relationships are tagged via "Object State" for cleanup
+ *
+ * Usage:
+ * - Select a single ArchiMate diagram model in the model tree
+ * - Run this script
+ *
+ * Ownership: Property of BHP
+ * ----------------------------------------------------------------------------
+ */
+
 
 var x = 10;
 var y = 10;

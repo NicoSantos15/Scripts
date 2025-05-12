@@ -1,5 +1,27 @@
 ﻿/*
- * New Archi Script
+ * ----------------------------------------------------------------------------
+ * Script: Create Title Block for Selected View
+ * Tool: jArchi
+ *
+ * Description:
+ * Adds a standardized title block to the selected ArchiMate diagram view. 
+ * The block includes:
+ *  - Title (prefixed with "BHP - [View Name]")
+ *  - Author name
+ *  - Date (formatted as DD/MM/YYYY)
+ *
+ * Behavior:
+ * - Prompts the user for Author and Date values.
+ * - If no date is provided, the current date is used.
+ * - Title block is only added if the view doesn't already have one 
+ *   (tracked via a "Has Title" property).
+ *
+ * Usage:
+ * - Select a single ArchiMate diagram view in the model tree.
+ * - Run the script and follow prompts.
+ *
+ * Ownership: Property of BHP
+ * ----------------------------------------------------------------------------
  */
 
 console.show();

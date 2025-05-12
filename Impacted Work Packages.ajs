@@ -1,6 +1,27 @@
 ﻿/*
- * New Archi Script
+ * ----------------------------------------------------------------------------
+ * Script: Impacted Work Packages Report
+ * Tool: jArchi
+ *
+ * Description:
+ * For a given ArchiMate diagram view, this script identifies all 
+ * Work Packages that realise capabilities, and lists other "Active" 
+ * Work Packages that also realise those same capabilities.
+ *
+ * Behaviour:
+ * - Prompts user for the view name.
+ * - Scans for Work Packages in the view with realization relationships.
+ * - For each realised capability, prints all other active Work Packages 
+ *   in the model that also impact that capability.
+ *
+ * Usage:
+ * - Run the script and enter the exact name of a diagram view when prompted.
+ * - Review the impacted Work Packages listed in the console output.
+ *
+ * Ownership: Property of BHP
+ * ----------------------------------------------------------------------------
  */
+
  
 console.show();
 console.clear();
