@@ -38,19 +38,48 @@ function selectDiagram(diagramName)
   return $("archimate-diagram-model").filter("."+diagramName).first() ;
 }
 
+function isValidDate(dateStr) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
+}
+
+function compareDates(start, end) {
+    return new Date(start) <= new Date(end);
+}
+
+
 var workpackagecount = 0;
 
 if (nameDiagram != "") {
 		diagram = selectDiagram(nameDiagram);
 		//var workpackages = $(diagram).find("work-package");
 		$(diagram).find("Work-Package").each(function(wp) {
-			console.log("\n",wp,"\n");
+			console.log("\nWork Package:", wp.name);
+
+			const startDate = wp.prop("Work Package Start Date");
+			const endDate = wp.prop("Work Package End Date");
+		
+			if (!startDate || !isValidDate(startDate)) {
+				console.log("⚠️  Invalid or missing Start Date:", startDate || "N/A");
+			}
+		
+			if (!endDate || !isValidDate(endDate)) {
+				console.log("⚠️  Invalid or missing End Date:", endDate || "N/A");
+			}
+		
+			if (isValidDate(startDate) && isValidDate(endDate)) {
+				if (!compareDates(startDate, endDate)) {
+					console.log("❌  Start Date is after End Date!");
+				}
+			}
+
 			if ($(wp).outRels("realization-relationship").size() > 0) {
 				console.log("Capabilities impacted: ",$(wp).outRels("realization-relationship").size(),"\n");
+				
 				// Step through each capability impacted
 				$(wp).outRels("realization-relationship").each(function(cap) {
 					console.log("\nCapability: ",cap.target.name);
 					console.log("  Active Impacting Work-Packages:");
+					
 					// Remember thus far the context was the view, need to change context of capabilities and relationships to whole model otherwise will not pickup other workpackages
 					if ($("."+cap.target.name).inRels("realization-relationship").size() >0) {
 						//console.log("Work packages: ",$("."+cap.target.name).inRels("realization-relationship").size(),"\n");
