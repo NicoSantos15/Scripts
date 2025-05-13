@@ -1,27 +1,25 @@
 ﻿/*
  * ----------------------------------------------------------------------------
- * Script: Compare Elements and Relationships Between Two ArchiMate Views
+ * Script: Compare Elements Between Two ArchiMate Views
  * Tool: jArchi
  * 
- * Compares two selected ArchiMate diagram views and prints:
- *  - Elements in one view but missing in the other
- *  - Relationships (drawn) in one view but missing in the other
+ * Compares two selected ArchiMate diagram views and:
+ *  - Prints elements in one view but missing in the other
+ *  - Optionally exports element differences to a CSV file
  * 
- * How to use:
+ * Usage:
  *  - Select exactly two views in the model tree
- *  - Run the script to see results in the console
+ *  - Run the script
  * 
- * Output is formatted with Unicode icons for readability:
- *  📄 Views   🔍 Elements   🔗 Relationships
- * 
- * Ownership: Property of BHP
+ * Ownership: Property of BHP. Unauthorized use or modification is prohibited.
  * ----------------------------------------------------------------------------
  */
 
 console.show();
 console.clear();
 
-console.log("=== COMPARE VIEWS SCRIPT ===\n");
+let csvRows = [];
+csvRows.push(["Element Name", "Element Type", "Missing From"]);
 
 function checkViews(v1, v2) {
     var v2elements = [];
@@ -30,49 +28,41 @@ function checkViews(v1, v2) {
     });
 
     var lastconceptid = -1;
-    console.log('🔍 Elements in "' + v1.name + '" but missing in "' + v2.name + '":');
-    console.log('------------------------------------------------------------');
+    console.log('Elements in "' + v1.name + '" but missing in "' + v2.name + '":');
 
     $(v1).find('element').each(function(e) {
         if (e.concept.id !== lastconceptid) {
             if (v2elements.indexOf(e.concept.id) === -1) {
-                console.log('• ' + e.name.padEnd(30) + ' (' + e.type + ')');
+                console.log('- ' + e.name + ' (' + e.type + ')');
+                csvRows.push([e.name, e.type, v2.name]);
             }
             lastconceptid = e.concept.id;
         }
     });
 
-    console.log('\n');
+    console.log('');
 }
 
-function checkViewRelationships(v1, v2) {
-    var v2rels = [];
+function exportCSVFile(csvRows) {
+    const Papa = require(__DIR__ + "lib/papaparse.min.js");
 
-    $(v2).find('relationship').each(function(c) {
-        if (c.prop.type !== 'legend') {
-            var sig = c.source.id + '->' + c.type + '->' + c.target.id;
-            v2rels.push(sig);
-        }
+    const exportFile = window.promptSaveFile({
+        title: "Export Element Differences to CSV",
+        filterExtensions: ["*.csv"],
+        fileName: "compare_elements.csv"
     });
 
-    var lastSig = '';
-    console.log('🔗 Relationships in "' + v1.name + '" but missing in "' + v2.name + '":');
-    console.log('------------------------------------------------------------');
+    if (exportFile != null) {
+        const csvContent = Papa.unparse({
+            fields: csvRows[0],
+            data: csvRows.slice(1)
+        });
 
-    $(v1).find('relationship').each(function(c) {
-        var r = c;
-        if (r && r.source && r.target) {
-            var sig = r.source.id + '->' + r.type + '->' + r.target.id;
-            if (sig !== lastSig && v2rels.indexOf(sig) === -1) {
-                var src = (r.source.name || '[Unnamed]').padEnd(30);
-                var tgt = (r.target.name || '[Unnamed]').padEnd(30);
-                console.log('• ' + src + ' --[' + r.type + ']--> ' + tgt);
-            }
-            lastSig = sig;
-        }
-    });
-
-    console.log('\n');
+        $.fs.writeFile(exportFile, "\ufeff" + csvContent);
+        console.log("✅ Exported to: " + exportFile);
+    } else {
+        console.log("❌ Export cancelled");
+    }
 }
 
 if (
@@ -83,15 +73,16 @@ if (
     var v1 = selection.get(0);
     var v2 = selection.get(1);
 
-    console.log('📄 COMPARE VIEWS: "' + v1.name + '" AND "' + v2.name + '"\n');
+    console.log('COMPARE VIEWS: "' + v1.name + '" AND "' + v2.name + '"\n');
 
     checkViews(v1, v2);
     checkViews(v2, v1);
 
-    console.log('📄 COMPARE RELATIONSHIPS\n');
-
-    checkViewRelationships(v1, v2);
-    checkViewRelationships(v2, v1);
+    if (window.confirm("Export element differences to CSV?")) {
+        exportCSVFile(csvRows);
+    } else {
+        console.log("CSV export skipped.");
+    }
 } else {
     window.alert('Select 2 views to compare');
 }

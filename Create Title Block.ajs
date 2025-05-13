@@ -4,7 +4,7 @@
  * Tool: jArchi
  *
  * Description:
- * Adds a standardized title block to the selected ArchiMate diagram view. 
+ * Adds a standardised title block to the selected ArchiMate diagram view. 
  * The block includes:
  *  - Title (prefixed with "BHP - [View Name]")
  *  - Author name
