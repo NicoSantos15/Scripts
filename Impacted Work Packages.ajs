@@ -90,11 +90,11 @@ if (nameDiagram != "") {
 						})
 					}
 
-					cap.target.outRels().each(function(rel) {
-						if (rel.target.type === "business-outcome") {
-							console.log("    ↳ Impacts Business Outcome: " + rel.target.name);
+					// $(cap.target).outRels().each(function(rel) {
+						if (cap.target.type === "outcome") {
+							console.log("    Impacts Business Outcome: " + cap.target.name);
 						}
-					});
+					// });
 				})
 			}
 		});

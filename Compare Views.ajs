@@ -21,7 +21,7 @@
 console.show();
 console.clear();
 let csvRows = [];
-csvRows.push(['NAME', 'TYPE', 'MISSING FROM VIEW', 'SOURCE']);
+csvRows.push(['NAME', 'TYPE', 'MISSING FROM VIEW', 'CHANGE TYPE', 'REL SOURCE', 'REL TARGET']);
 
 console.log("=== COMPARE VIEWS SCRIPT ===\n");
 
@@ -67,6 +67,8 @@ function checkViewRelationships(v1, v2) {
     $(v1).find('relationship').each(function(r) {
         if (r && r.source && r.target && r.prop("Object State") !== 'Legend') {
             var sig = r.concept.id;
+
+            // check the source, target, relationship name and type
             if (sig !== lastSig && v2rels.indexOf(sig) === -1) {
                 // var src = (r.source.name || '[Unnamed]').padEnd(30);
                 // var tgt = (r.target.name || '[Unnamed]').padEnd(30);
