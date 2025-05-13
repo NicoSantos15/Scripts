@@ -89,6 +89,12 @@ if (nameDiagram != "") {
 							}
 						})
 					}
+
+					cap.target.outRels().each(function(rel) {
+						if (rel.target.type === "business-outcome") {
+							console.log("    ↳ Impacts Business Outcome: " + rel.target.name);
+						}
+					});
 				})
 			}
 		});
