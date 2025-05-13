@@ -5,12 +5,11 @@
  *
  * Description:
  * For a given ArchiMate diagram view, this script identifies all 
- * Work Packages that realise capabilities, and lists other "Active" 
- * Work Packages that also realise those same capabilities.
+ * Work Packages that are impacted by realisation relationships.
  *
  * Behaviour:
  * - Prompts user for the view name.
- * - Scans for Work Packages in the view with realization relationships.
+ * - Scans for Work Packages in the view with realisation relationships.
  * - For each realised capability, prints all other active Work Packages 
  *   in the model that also impact that capability.
  *
@@ -59,16 +58,16 @@ if (nameDiagram != "") {
 			const endDate = wp.prop("Work Package End Date");
 		
 			if (!startDate || !isValidDate(startDate)) {
-				console.log("⚠️  Invalid or missing Start Date:", startDate || "N/A");
+				console.log("Invalid or missing Start Date:", startDate || "N/A");
 			}
 		
 			if (!endDate || !isValidDate(endDate)) {
-				console.log("⚠️  Invalid or missing End Date:", endDate || "N/A");
+				console.log("Invalid or missing End Date:", endDate || "N/A");
 			}
 		
 			if (isValidDate(startDate) && isValidDate(endDate)) {
 				if (!compareDates(startDate, endDate)) {
-					console.log("❌  Start Date is after End Date!");
+					console.log("Start Date is after End Date!");
 				}
 			}
 
