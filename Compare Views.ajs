@@ -20,6 +20,15 @@
 
 console.show();
 console.clear();
+const viewpointType = window.promptSelection(
+    "Select viewpoint type for this comparison:",
+    ["Business", "Application", "Deployment"]
+);
+
+if (!viewpointType) {
+    window.alert("No viewpoint selected. Script cancelled.");
+    return;
+}
 let csvRows = [];
 
 // Checking which fields to write on csv, adjust to HLD template
