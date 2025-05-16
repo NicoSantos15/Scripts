@@ -18,6 +18,9 @@
  * ----------------------------------------------------------------------------
  */
 
+let csvRows = [];
+const TYPE_COLUMN_WIDTH = 40;
+
 console.show();
 console.clear();
 const viewpointType = window.promptSelection(
@@ -25,13 +28,12 @@ const viewpointType = window.promptSelection(
     ["Business", "Application", "Deployment"]
 );
 
-console.log(viewpointType);
+// console.log(viewpointType);
 
 if (!viewpointType) {
     window.alert("No viewpoint selected. Script cancelled.");
 }
 
-let csvRows = [];
 
 // Checking which fields to write on csv, adjust to HLD template
 if (viewpointType === "Business") {
@@ -81,7 +83,12 @@ function checkViewRelationships(v1, v2) {
     var lastSig = '';
     console.log('🔗 Relationships in "' + v1.name + '" but missing in "' + v2.name + '":');
     console.log('------------------------------------------------------------------------------------------------------------------------');
-    console.log('RELATIONSHIP NAME'.padEnd(33) + 'RELATIONSHIP TYPE'.padEnd(33) + 'RELATIONSHIP SOURCE'.padEnd(33) + 'RELATIONSHIP TARGET');
+    console.log(
+        'RELATIONSHIP NAME'.padEnd(33) +
+        'RELATIONSHIP TYPE'.padEnd(TYPE_COLUMN_WIDTH) +
+        'RELATIONSHIP SOURCE'.padEnd(33) +
+        'RELATIONSHIP TARGET'
+    );
     console.log('------------------------------------------------------------------------------------------------------------------------');
 
     // Export to CSV
@@ -94,7 +101,14 @@ function checkViewRelationships(v1, v2) {
                 // var src = (r.source.name || '[Unnamed]').padEnd(30);
                 // var tgt = (r.target.name || '[Unnamed]').padEnd(30);
                 // console.log('• ' + r.type);
-                console.log('• ' + r.name.padEnd(30) + ' (' + r.type + ')'.padEnd(30) + ' ' + r.source.name.padEnd(30) + ' ' + r.target.name);
+                // console.log('• ' + r.name.padEnd(30) + ' (' + r.type + ')'.padEnd(30) + ' ' + r.source.name.padEnd(30) + ' ' + r.target.name);
+                const rName = (r.name || '[Unnamed]').padEnd(33);
+                const rType = (r.type || '[No Type]').padEnd(TYPE_COLUMN_WIDTH);
+                const rSrc  = (r.source.name || '[Unnamed]').padEnd(33);
+                const rTgt  = r.target.name || '[Unnamed]';
+
+                console.log(rName + rType + rSrc + rTgt);
+
                 csvRows.push([
                     r.name, 
                     r.type, 
