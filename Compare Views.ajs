@@ -61,7 +61,7 @@ function checkViews(v1, v2) {
     $(v1).find('element').each(function(e) {
         if (e.concept.id !== lastconceptid) {
             if (v2elements.indexOf(e.concept.id) === -1 && e.prop("Object State") !== 'Legend') {
-                console.log('• ' + e.name.padEnd(40) + ' (' + e.type + ')');
+                console.log(e.name.padEnd(40) + e.type);
                 csvRows.push([e.name, e.type, v2.name, 'Element Object']); // Add to CSV rows
             }
             lastconceptid = e.concept.id;
@@ -82,14 +82,14 @@ function checkViewRelationships(v1, v2) {
 
     var lastSig = '';
     console.log('🔗 Relationships in "' + v1.name + '" but missing in "' + v2.name + '":');
-    console.log('------------------------------------------------------------------------------------------------------------------------');
+    console.log('-------------------------------------------------------------------------------------------------------------------------------');
     console.log(
         'RELATIONSHIP NAME'.padEnd(33) +
         'RELATIONSHIP TYPE'.padEnd(TYPE_COLUMN_WIDTH) +
         'RELATIONSHIP SOURCE'.padEnd(33) +
         'RELATIONSHIP TARGET'
     );
-    console.log('------------------------------------------------------------------------------------------------------------------------');
+    console.log('-------------------------------------------------------------------------------------------------------------------------------');
 
     // Export to CSV
     $(v1).find('relationship').each(function(r) {
