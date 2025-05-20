@@ -1,7 +1,29 @@
-﻿console.show();
+﻿/*
+ * ----------------------------------------------------------------------------
+ * Script: Impacted Work Packages Report
+ * Tool: jArchi
+ *
+ * Description:
+ * For a given ArchiMate diagram view, this script identifies all 
+ * Work Packages that are impacted by realization relationships.
+ *
+ * It performs:
+ * - Validation of Start and End Dates on each Work Package
+ * - Reporting of Capabilities realized by each Work Package
+ * - Detection of other active Work Packages also realizing the same Capability
+ *
+ * Usage:
+ * - Run the script and enter the exact name of a diagram view when prompted.
+ * - Review the impacted Work Packages listed in the console output.
+ *
+ * Ownership: Property of BHP
+ * ----------------------------------------------------------------------------
+ */
+
+console.show();
 console.clear();
 
-console.log("Impacted Work Packages Report");
+console.log("=== IMPACTED WORK PACKAGES ===\n");
 
 var nameDiagram = window.prompt("Enter the diagram name (leave empty to cancel):", "");
 
@@ -26,10 +48,10 @@ if (nameDiagram) {
     var endDate   = wp.prop("Work Package End Date");
     var hasIssue  = false;
 
-    // ——— Section Header ———
+    // Section Header
     console.log("\n=== Work Package:", name, "===");
 
-    // ——— Date validation ———
+    // Date validation
     if (!startDate || !isValidDate(startDate)) {
       console.log("  • Invalid or missing Start Date:", startDate || "N/A");
       hasIssue = true;
@@ -43,10 +65,7 @@ if (nameDiagram) {
       hasIssue = true;
     }
 
-    // if you want to skip any WP with date issues, uncomment the next line:
-    // if (hasIssue) return;
-
-    // ——— Capabilities & impactors ———
+    // Capabilities & impactors
     var rels = $(wp).outRels("realization-relationship");
     if (rels.size() > 0) {
       console.log("  Capabilities impacted:", rels.size());
