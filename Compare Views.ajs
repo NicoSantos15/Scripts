@@ -11,6 +11,7 @@
  * Ownership: Property of BHP
  * ----------------------------------------------------------------------------
  */
+console.log("=== COMPARE VIEWS SCRIPT ===\n");
 
 let csvRows = [];
 const TYPE_COLUMN_WIDTH = 40;
@@ -25,17 +26,14 @@ const viewpointType = window.promptSelection(
 
 if (!viewpointType) {
     window.alert("No viewpoint selected. Script cancelled.");
-    return;
 }
 
 // Set up CSV headers based on viewpoint type
-if (viewpointType === "Application") {
+if (viewpointType == "Application") {
     csvRows.push(['NAME', 'TYPE', 'MISSING FROM VIEW', 'CHANGE TYPE', 'REL SOURCE', 'REL TARGET']);
 } else {
     csvRows.push(['NAME', 'TYPE', 'MISSING FROM VIEW', 'CHANGE TYPE']);
 }
-
-console.log("=== COMPARE VIEWS SCRIPT ===\n");
 
 function checkViews(v1, v2) {
     var v2elements = [];
@@ -53,11 +51,8 @@ function checkViews(v1, v2) {
         if (e.concept.id !== lastconceptid) {
             if (v2elements.indexOf(e.concept.id) === -1 && e.prop("Object State") !== 'Legend') {
                 console.log('• ' + e.name.padEnd(40) + ' (' + e.type + ')');
-                if (viewpointType === "Application") {
-                    csvRows.push([e.name, e.type, v2.name, 'Element Object', '', '']);
-                } else {
-                    csvRows.push([e.name, e.type, v2.name, 'Element Object']);
-                }
+                csvRows.push([e.name, e.type, v2.name, 'Element Object']);
+
             }
             lastconceptid = e.concept.id;
         }
@@ -90,10 +85,11 @@ function checkViewRelationships(v1, v2) {
         if (r && r.source && r.target && r.prop("Object State") !== 'Legend') {
             var sig = r.concept.id;
 
+            // console.log("RTYPE HERE " +r.type)
             if (
                 sig !== lastSig &&
                 v2rels.indexOf(sig) === -1 &&
-                (r.type === "Flow" || r.type === "Access")
+                (r.type === "flow-relationship" || r.type === "access-relationship")
             ) {
                 const rName = (r.name || '[Unnamed]').padEnd(33);
                 const rType = (r.type || '[No Type]').padEnd(TYPE_COLUMN_WIDTH);
@@ -151,7 +147,7 @@ if (
     checkViews(v1, v2);
     checkViews(v2, v1);
 
-    if (viewpointType === "Application") {
+    if (viewpointType == "Application") {
         console.log('📄 COMPARE RELATIONSHIPS: "' + v1.name + '" AND "' + v2.name + '"\n');
         checkViewRelationships(v1, v2);
         checkViewRelationships(v2, v1);
