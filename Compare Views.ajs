@@ -77,14 +77,14 @@ function checkViewRelationships(v1, v2) {
 
     var lastSig = '';
     console.log('🔗 Relationships in "' + v1.name + '" but missing in "' + v2.name + '":');
-    console.log('------------------------------------------------------------------------------------------------------------------------');
+    console.log('-------------------------------------------------------------------------------------------------------------------------------');
     console.log(
         'RELATIONSHIP NAME'.padEnd(33) +
         'RELATIONSHIP TYPE'.padEnd(TYPE_COLUMN_WIDTH) +
         'RELATIONSHIP SOURCE'.padEnd(33) +
         'RELATIONSHIP TARGET'
     );
-    console.log('------------------------------------------------------------------------------------------------------------------------');
+    console.log('-------------------------------------------------------------------------------------------------------------------------------');
 
     $(v1).find('relationship').each(function(r) {
         if (r && r.source && r.target && r.prop("Object State") !== 'Legend') {
