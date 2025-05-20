@@ -1,9 +1,9 @@
 ﻿console.show();
 console.clear();
 
-console.log("> Impacted Work Packages Script");
+console.log("Impacted Work Packages Report");
 
-var nameDiagram = window.prompt("View Name (leave empty to cancel)?", "");
+var nameDiagram = window.prompt("Enter the diagram name (leave empty to cancel):", "");
 
 function selectDiagram(diagramName) {
   return $("archimate-diagram-model").filter("." + diagramName).first();
@@ -17,44 +17,61 @@ function compareDates(start, end) {
   return new Date(start) <= new Date(end);
 }
 
-if (nameDiagram != "") {
+if (nameDiagram) {
   var diagram = selectDiagram(nameDiagram);
 
   $(diagram).find("Work-Package").each(function(wp) {
-    const startDate = wp.prop("Work Package Start Date");
-    const endDate = wp.prop("Work Package End Date");
+    var name      = wp.name;
+    var startDate = wp.prop("Work Package Start Date");
+    var endDate   = wp.prop("Work Package End Date");
+    var hasIssue  = false;
 
+    // ——— Section Header ———
+    console.log("\n=== Work Package:", name, "===");
+
+    // ——— Date validation ———
     if (!startDate || !isValidDate(startDate)) {
-      console.log("Invalid or missing Start Date for:", wp.name);
+      console.log("  • Invalid or missing Start Date:", startDate || "N/A");
+      hasIssue = true;
     }
-
     if (!endDate || !isValidDate(endDate)) {
-      console.log("Invalid or missing End Date for:", wp.name);
+      console.log("  • Invalid or missing End Date:", endDate || "N/A");
+      hasIssue = true;
+    }
+    if (!hasIssue && !compareDates(startDate, endDate)) {
+      console.log("  • Start Date is after End Date:", startDate, ">", endDate);
+      hasIssue = true;
     }
 
-    if (isValidDate(startDate) && isValidDate(endDate)) {
-      if (!compareDates(startDate, endDate)) {
-        console.log("Start Date is after End Date for:", wp.name);
-      }
-    }
+    // if you want to skip any WP with date issues, uncomment the next line:
+    // if (hasIssue) return;
 
-    if ($(wp).outRels("realization-relationship").size() > 0) {
-      console.log("\n", wp, "\n");
-      $(wp).outRels("realization-relationship").each(function(cap) {
-        console.log("\nCapability:", cap.target.name);
-        console.log("  Active Impacting Work-Packages:");
-        $("." + cap.target.name).inRels("realization-relationship").each(function(relwp) {
-          if (
-            relwp.source.type === "work-package" &&
-            relwp.source.prop("Work Package State") === "Active" &&
-            wp.name !== relwp.source.name
-          ) {
-            console.log("\t -", relwp.source.name);
-          }
-        });
+    // ——— Capabilities & impactors ———
+    var rels = $(wp).outRels("realization-relationship");
+    if (rels.size() > 0) {
+      console.log("  Capabilities impacted:", rels.size());
+      rels.each(function(cap) {
+        console.log("    -", cap.target.name);
+		console.log("  	- Active Impacting Work-Packages:");
+		$("." + cap.target.name)
+          .inRels("realization-relationship")
+          .each(function(r) {
+            var src = r.source;
+			// console.log(src.type)
+			// console.log(src.prop("Work Package State"))
+			// console.log(src.name)
+			// console.log(name)
+            if (
+              src.type === "work-package" &&
+              src.prop("Work Package State") === "Active" &&
+              src.name !== name
+            ) {
+              console.log("         •", src.name);
+            }
+          });
       });
     }
   });
 }
 
-console.log("\n > Impacted Work Packages Script Script");
+console.log("\nEnd of Impacted Work Packages Report");
