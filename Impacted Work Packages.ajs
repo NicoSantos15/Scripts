@@ -1,103 +1,60 @@
-﻿/*
- * ----------------------------------------------------------------------------
- * Script: Impacted Work Packages Report
- * Tool: jArchi
- *
- * Description:
- * For a given ArchiMate diagram view, this script identifies all 
- * Work Packages that are impacted by realisation relationships.
- *
- * Behaviour:
- * - Prompts user for the view name.
- * - Scans for Work Packages in the view with realisation relationships.
- * - For each realised capability, prints all other active Work Packages 
- *   in the model that also impact that capability.
- *
- * Usage:
- * - Run the script and enter the exact name of a diagram view when prompted.
- * - Review the impacted Work Packages listed in the console output.
- *
- * Ownership: Property of BHP
- * ----------------------------------------------------------------------------
- */
-
- 
-console.show();
+﻿console.show();
 console.clear();
 
 console.log("> Impacted Work Packages Script");
 
 var nameDiagram = window.prompt("View Name (leave empty to cancel)?", "");
 
-
-//-------------------------
-// get a diagram by name
-function selectDiagram(diagramName)
-{
-  return $("archimate-diagram-model").filter("."+diagramName).first() ;
+function selectDiagram(diagramName) {
+  return $("archimate-diagram-model").filter("." + diagramName).first();
 }
 
 function isValidDate(dateStr) {
-    return /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
 }
 
 function compareDates(start, end) {
-    return new Date(start) <= new Date(end);
+  return new Date(start) <= new Date(end);
 }
 
-
-var workpackagecount = 0;
-
 if (nameDiagram != "") {
-		diagram = selectDiagram(nameDiagram);
-		//var workpackages = $(diagram).find("work-package");
-		$(diagram).find("Work-Package").each(function(wp) {
-			console.log("\nWork Package:", wp.name);
+  var diagram = selectDiagram(nameDiagram);
 
-			const startDate = wp.prop("Work Package Start Date");
-			const endDate = wp.prop("Work Package End Date");
-		
-			if (!startDate || !isValidDate(startDate)) {
-				console.log("Invalid or missing Start Date:", startDate || "N/A");
-			}
-		
-			if (!endDate || !isValidDate(endDate)) {
-				console.log("Invalid or missing End Date:", endDate || "N/A");
-			}
-		
-			if (isValidDate(startDate) && isValidDate(endDate)) {
-				if (!compareDates(startDate, endDate)) {
-					console.log("Start Date is after End Date!");
-				}
-			}
+  $(diagram).find("Work-Package").each(function(wp) {
+    const startDate = wp.prop("Work Package Start Date");
+    const endDate = wp.prop("Work Package End Date");
 
-			if ($(wp).outRels("realization-relationship").size() > 0) {
-				console.log("Capabilities impacted: ",$(wp).outRels("realization-relationship").size(),"\n");
-				
-				// Step through each capability impacted
-				$(wp).outRels("realization-relationship").each(function(cap) {
-					console.log("\nCapability: ",cap.target.name);
-					console.log("  Active Impacting Work-Packages:");
-					
-					// Remember thus far the context was the view, need to change context of capabilities and relationships to whole model otherwise will not pickup other workpackages
-					if ($("."+cap.target.name).inRels("realization-relationship").size() >0) {
-						//console.log("Work packages: ",$("."+cap.target.name).inRels("realization-relationship").size(),"\n");
-						$("."+cap.target.name).inRels("realization-relationship").each(function(relwp) {
-							//console.log("Source: ",relwp.source.name,"\n");
-							if ((relwp.source.type === "work-package") && (relwp.source.prop("Work Package State") === "Active") && (wp.name != relwp.source.name)) {
-								console.log("\t - ",relwp.source.name);
-							}
-						})
-					}
+    if (!startDate || !isValidDate(startDate)) {
+      console.log("Invalid or missing Start Date for:", wp.name);
+    }
 
-					// $(cap.target).outRels().each(function(rel) {
-						if (cap.target.type === "outcome") {
-							console.log("    Impacts Business Outcome: " + cap.target.name);
-						}
-					// });
-				})
-			}
-		});
-	}
+    if (!endDate || !isValidDate(endDate)) {
+      console.log("Invalid or missing End Date for:", wp.name);
+    }
+
+    if (isValidDate(startDate) && isValidDate(endDate)) {
+      if (!compareDates(startDate, endDate)) {
+        console.log("Start Date is after End Date for:", wp.name);
+      }
+    }
+
+    if ($(wp).outRels("realization-relationship").size() > 0) {
+      console.log("\n", wp, "\n");
+      $(wp).outRels("realization-relationship").each(function(cap) {
+        console.log("\nCapability:", cap.target.name);
+        console.log("  Active Impacting Work-Packages:");
+        $("." + cap.target.name).inRels("realization-relationship").each(function(relwp) {
+          if (
+            relwp.source.type === "work-package" &&
+            relwp.source.prop("Work Package State") === "Active" &&
+            wp.name !== relwp.source.name
+          ) {
+            console.log("\t -", relwp.source.name);
+          }
+        });
+      });
+    }
+  });
+}
 
 console.log("\n > Impacted Work Packages Script Script");
