@@ -1,18 +1,12 @@
-﻿/*
+﻿/* 
  * ----------------------------------------------------------------------------
  * Script: Compare Elements and Relationships Between Two ArchiMate Views
  * Tool: jArchi
  * 
  * Compares two selected ArchiMate diagram views and prints:
  *  - Elements in one view but missing in the other
- *  - Relationships (drawn) in one view but missing in the other
- * 
- * How to use:
- *  - Select exactly two views in the model tree
- *  - Run the script to see results in the console
- * 
- * Output is formatted with Unicode icons for readability:
- *  📄 Views   🔍 Elements   🔗 Relationships
+ *  - Relationships in one view but missing in the other (with filters)
+ *  - CSV export adjusted to viewpoint type
  * 
  * Ownership: Property of BHP
  * ----------------------------------------------------------------------------
@@ -23,25 +17,22 @@ const TYPE_COLUMN_WIDTH = 40;
 
 console.show();
 console.clear();
+
 const viewpointType = window.promptSelection(
     "Select viewpoint type:",
     ["Business", "Application", "Deployment"]
 );
 
-// console.log(viewpointType);
-
 if (!viewpointType) {
     window.alert("No viewpoint selected. Script cancelled.");
+    return;
 }
 
-
-// Checking which fields to write on csv, adjust to HLD template
-if (viewpointType === "Business") {
+// Set up CSV headers based on viewpoint type
+if (viewpointType === "Application") {
     csvRows.push(['NAME', 'TYPE', 'MISSING FROM VIEW', 'CHANGE TYPE', 'REL SOURCE', 'REL TARGET']);
-} else if (viewpointType === "Application") {
-    csvRows.push(['NAME', 'TYPE', 'MISSING FROM VIEW', 'CHANGE TYPE', 'REL SOURCE', 'REL TARGET']);
-} else if (viewpointType === "Deployment") {
-    csvRows.push(['NAME', 'TYPE', 'MISSING FROM VIEW', 'CHANGE TYPE', 'REL SOURCE', 'REL TARGET']);
+} else {
+    csvRows.push(['NAME', 'TYPE', 'MISSING FROM VIEW', 'CHANGE TYPE']);
 }
 
 console.log("=== COMPARE VIEWS SCRIPT ===\n");
@@ -62,7 +53,11 @@ function checkViews(v1, v2) {
         if (e.concept.id !== lastconceptid) {
             if (v2elements.indexOf(e.concept.id) === -1 && e.prop("Object State") !== 'Legend') {
                 console.log('• ' + e.name.padEnd(40) + ' (' + e.type + ')');
-                csvRows.push([e.name, e.type, v2.name, 'Element Object']); // Add to CSV rows
+                if (viewpointType === "Application") {
+                    csvRows.push([e.name, e.type, v2.name, 'Element Object', '', '']);
+                } else {
+                    csvRows.push([e.name, e.type, v2.name, 'Element Object']);
+                }
             }
             lastconceptid = e.concept.id;
         }
@@ -91,17 +86,15 @@ function checkViewRelationships(v1, v2) {
     );
     console.log('------------------------------------------------------------------------------------------------------------------------');
 
-    // Export to CSV
     $(v1).find('relationship').each(function(r) {
         if (r && r.source && r.target && r.prop("Object State") !== 'Legend') {
             var sig = r.concept.id;
 
-            // check the source, target, relationship name and type
-            if (sig !== lastSig && v2rels.indexOf(sig) === -1) {
-                // var src = (r.source.name || '[Unnamed]').padEnd(30);
-                // var tgt = (r.target.name || '[Unnamed]').padEnd(30);
-                // console.log('• ' + r.type);
-                // console.log('• ' + r.name.padEnd(30) + ' (' + r.type + ')'.padEnd(30) + ' ' + r.source.name.padEnd(30) + ' ' + r.target.name);
+            if (
+                sig !== lastSig &&
+                v2rels.indexOf(sig) === -1 &&
+                (r.type === "Flow" || r.type === "Access")
+            ) {
                 const rName = (r.name || '[Unnamed]').padEnd(33);
                 const rType = (r.type || '[No Type]').padEnd(TYPE_COLUMN_WIDTH);
                 const rSrc  = (r.source.name || '[Unnamed]').padEnd(33);
@@ -116,8 +109,7 @@ function checkViewRelationships(v1, v2) {
                     'Relationship Object',
                     r.source.name || '[Unnamed]',
                     r.target.name || '[Unnamed]'
-                ]); // Add to CSV rows
-
+                ]);
             }
             lastSig = sig;
         }
@@ -134,10 +126,9 @@ function exportCSVFile(csvRows) {
     });
 
     if (exportFile != null) {
-        // Convert rows to CSV string manually
         const csvContent = csvRows.map(row => row.map(cell => {
-            const escaped = String(cell).replace(/"/g, '""'); //escape quotes
-            return `"${escaped}"`; // wrap in quotes
+            const escaped = String(cell).replace(/"/g, '""');
+            return `"${escaped}"`;
         }).join(',')).join('\n');
 
         $.fs.writeFile(exportFile, "\ufeff" + csvContent);
@@ -160,10 +151,11 @@ if (
     checkViews(v1, v2);
     checkViews(v2, v1);
 
-    console.log('📄 COMPARE RELATIONSHIPS: "' + v1.name + '" AND "' + v2.name + '"\n');
-
-    checkViewRelationships(v1, v2);
-    checkViewRelationships(v2, v1);
+    if (viewpointType === "Application") {
+        console.log('📄 COMPARE RELATIONSHIPS: "' + v1.name + '" AND "' + v2.name + '"\n');
+        checkViewRelationships(v1, v2);
+        checkViewRelationships(v2, v1);
+    }
 
     if (window.confirm('Export differences to CSV file?')) {
         exportCSVFile(csvRows);
