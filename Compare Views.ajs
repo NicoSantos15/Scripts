@@ -20,8 +20,10 @@ console.show();
 console.clear();
 
 const viewpointType = window.promptSelection(
-    "Select viewpoint type:",
-    ["Business", "Application", "Deployment"]
+    //"Select viewpoint type:",
+    //["Business", "Application", "Deployment"]
+    "Do you want to include relationships in the comparison? (Yes/No)",
+    ["Yes", "No"]
 );
 
 if (!viewpointType) {
@@ -29,7 +31,7 @@ if (!viewpointType) {
 }
 
 // Set up CSV headers based on viewpoint type
-if (viewpointType == "Application") {
+if (viewpointType == "Yes") {
     csvRows.push(['NAME', 'TYPE', 'MISSING FROM VIEW', 'CHANGE TYPE', 'REL SOURCE', 'REL TARGET']);
 } else {
     csvRows.push(['NAME', 'TYPE', 'MISSING FROM VIEW', 'CHANGE TYPE']);
@@ -88,8 +90,7 @@ function checkViewRelationships(v1, v2) {
             // console.log("RTYPE HERE " +r.type)
             if (
                 sig !== lastSig &&
-                v2rels.indexOf(sig) === -1 &&
-                (r.type === "flow-relationship" || r.type === "access-relationship")
+                v2rels.indexOf(sig) === -1 //&& (r.type === "flow-relationship" || r.type === "access-relationship")
             ) {
                 const rName = (r.name || '[Unnamed]').padEnd(33);
                 const rType = (r.type || '[No Type]').padEnd(TYPE_COLUMN_WIDTH);
@@ -147,7 +148,7 @@ if (
     checkViews(v1, v2);
     checkViews(v2, v1);
 
-    if (viewpointType == "Application") {
+    if (viewpointType == "Yes") {
         console.log('📄 COMPARE RELATIONSHIPS: "' + v1.name + '" AND "' + v2.name + '"\n');
         checkViewRelationships(v1, v2);
         checkViewRelationships(v2, v1);
