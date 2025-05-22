@@ -110,7 +110,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
 				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
 			case "business-information":
-				// addToFolder("Business Information", modelelement);
+				addToFolder("Business Information", modelelement);
 				// setPropIfMissing(modelelement, "Object Type", "Business Information");
 				promptProp(modelelement, "Information Class", "Information Class: ", ["Course of Action", "Ledger", "Profile", "Record", "Measure"]);
 				promptProp(modelelement, "Information Data Domain", "Information Data Domain: ", [
@@ -138,13 +138,13 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				addToFolder("Business Services", modelelement);
 				setPropIfMissing(modelelement, "Service Owner", "");
 			case "business-event":
-				// addToFolder("Business Events", modelelement);
+				addToFolder("Business Events", modelelement);
 				setPropIfMissing(modelelement, "Event Frequency", "");
 				promptProp(modelelement, "Event Periodicity", "Event Period: ", ["msec", "sec", "min", "hour", "day", "month", "year"]);
 				promptProp(modelelement, "Event Asset/Function", "Event Type: ", ["All BHP Asset and Function", "None"]); // check note
 				break;
 			case "business-process":
-				// addToFolder("Business Processes", modelelement);
+				addToFolder("Business Processes", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Business Process");
 				promptProp(modelelement, "Process Level", "");
 				promptProp(modelelement, "Process State", "");
@@ -166,19 +166,19 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				promptProp(modelelement, "Role Employment Status", "Role Employment Status selected from list: ", ["Permanent Fulltime", "Permanent Partime", "Casual", "Fix Term Fulltime", "Fixed Term Parttime"]);
 				break;
 			case "data-object":
-				// addToFolder("Data Objects", modelelement);
+				addToFolder("Data Objects", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Data Object");
 				setPropIfMissing(modelelement, "System of Record", "");
 				setPropIfMissing(modelelement, "Data Domain", "");
 				setPropIfMissing(modelelement, "Data Steward", "");
 				break;
 			case "application-interface":
-				// addToFolder("Application Interfaces", modelelement);
+				addToFolder("Application Interfaces", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Application Interface");
 				setPropIfMissing(modelelement, "Port", "");
 				break;
 			case "application":
-				// addToFolder("Applications", modelelement);
+				addToFolder("Applications", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Application");
 				setPropIfMissing(modelelement, "Vendor", "");
 				setPropIfMissing(modelelement, "Product", "");				
@@ -203,12 +203,12 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				promptProp(modelelement, "Application Valid Start End", "Application Valid Start End (Format: YYYY-MM-DD):");
 				break;
 			case "technology-interface":
-				// addToFolder("Technology Interfaces", modelelement);
+				addToFolder("Technology Interfaces", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Technology Interface");
 				setPropIfMissing(modelelement, "Port", "");
 				break;
 			case "node":
-				// addToFolder("Technology Nodes", modelelement);
+				addToFolder("Technology Nodes", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Logical Technology");
 				break;
 			case "location":
@@ -217,13 +217,13 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				setPropIfMissing(modelelement, "Location Identifier", "");
 				break;
 			case "business-actor":
-				// addToFolder("Business Actors", modelelement);
+				addToFolder("Business Actors", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Business Actor");
 				promptProp(modelelement, "Actor Type", "Actor Type: ", ["Asset", "Department", "Person"]);
 				setPropIfMissing(modelelement, "Position Identifier", "");
 				break;
 			case "system-software":
-				// addToFolder("System Software", modelelement);
+				addToFolder("System Software", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "System Software");
 				promptProp(modelelement, "System Software Vendor", "System Software Vendor: ");
 				promptProp(modelelement, "System Software Product", "System Software Product: ");
@@ -267,7 +267,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				promptProp(modelelement, "Work Package Identifier", "Work Package Identifier (Planview ID): ");
 				break;
 			case "technology":
-				// addToFolder("Technology", modelelement);
+				addToFolder("Technology", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Technology");	
 				setPropIfMissing(modelelement, "Vendor", "");
 				setPropIfMissing(modelelement, "Product", "");
