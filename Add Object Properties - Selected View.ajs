@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ----------------------------------------------------------------------------
  * Script: Add Element Properties to Selected View
  * Tool: jArchi
@@ -21,8 +21,18 @@
  * Ownership: Property of BHP
  * ----------------------------------------------------------------------------
  */
+console.log("=== ADD OBJECT PROPERTIES SCRIPT ===\n");
 
 var debug = true;
+// Add the names of the folders
+var businessFolder = $("folder.Business").first();
+var strategyFolder = $("folder.Strategy").first();
+var applicationFolder = $("folder.Application").first();
+var technologyFolder = $("folder.Technology & Physical").first();
+var motivationFolder = $("folder.Motivation").first();
+var implementationFolder = $("folder.Implementation & Migration").first();
+var otherFolder = $("folder.Other").first();
+var relationsFolder = $("folder.Relations").first();
 
 console.show();
 console.clear();
@@ -31,7 +41,7 @@ console.log("> Add element Properties - Selected View");
 
 var propAuthor = window.prompt("Value for element Author (leave empty to cancel)?", "");
 var propDate = window.prompt("Value for element Date (leave empty to set to current date) (Format: YYYY-MM-DD)?", "");
-
+var promptSwitch = window.promptSelection("Prompt property values?", ["Yes", "No"]);
 // original date fallback logic preserved
 if (!propDate) {
 	var date = new Date();
@@ -52,21 +62,26 @@ function setPropIfMissing(el, key, val) {
 }
 
 function promptProp(el, key, message, options = null) {
+	var value;
 	if (!el.prop(key)) {
-		var value = options ? window.promptSelection(message, options) : window.prompt(message, "");
+		if (promptSwitch === "No") {
+			value = "";
+		} else {
+			value = options ? window.promptSelection(message, options) : window.prompt(message, "");
+		}
 		el.prop(key, value, false);
 	}
 }
 
-function addToFolder(folderName, el) {
+function addToFolder(folderName, el, parentFolder) {
 	var folder = $("folder." + folderName).first();
 
 	// If folder doesn't exist, create it under the model root
 	if (!folder) {
-		var model = el.model;
-		console.log("FOLDER MNAME " + folderName.parentFolder)
-		folder = model.createFolder(folderName);
-		console.log("Created folder:", folderName);
+		// var model = el.model;
+		// console.log("FOLDER NAME " + folderName.parentFolder)
+		folder = parentFolder.createFolder(folderName);
+		// console.log("Created folder:", folderName);
 	}
 
 	folder.add(el);
@@ -101,17 +116,17 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 
 		switch (modelelement.type) {
 			case "requirement":
-				addToFolder("Requirements", modelelement);
+				addToFolder("Requirements", modelelement, motivationFolder);
 				promptProp(modelelement, "Requirement Type", "Requirement Type: ", ["Functional", "Non-Functional", "Business", "Undefined"]);
 				break;
 			case "driver":
-				addToFolder("Drivers", modelelement);
+				addToFolder("Drivers", modelelement, motivationFolder);
 				break;
 			case "goal":
-				addToFolder("Goals", modelelement);
+				addToFolder("Goals", modelelement, motivationFolder);
 				break;
 			case "capability":
-				addToFolder("Capabilities", modelelement);
+				addToFolder("Capabilities", modelelement, strategyFolder);
 				promptProp(modelelement, "Current Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
 				promptProp(modelelement, "Current Maturity Assessment - Process", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
 				promptProp(modelelement, "Current Maturity Assessment - Technology", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
@@ -119,7 +134,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
 				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
 			case "business-information":
-				addToFolder("Business Information", modelelement);
+				addToFolder("Business Information", modelelement, businessFolder);
 				// setPropIfMissing(modelelement, "Object Type", "Business Information");
 				promptProp(modelelement, "Information Class", "Information Class: ", ["Course of Action", "Ledger", "Profile", "Record", "Measure"]);
 				promptProp(modelelement, "Information Data Domain", "Information Data Domain: ", [
@@ -144,16 +159,16 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 					"Warehousing and Distribution",
 				]);
 			case "business-service":
-				addToFolder("Business Services", modelelement);
+				addToFolder("Business Services", modelelement, businessFolder);
 				setPropIfMissing(modelelement, "Service Owner", "");
 			case "business-event":
-				addToFolder("Business Events", modelelement);
+				addToFolder("Business Events", modelelement, businessFolder);
 				setPropIfMissing(modelelement, "Event Frequency", "");
 				promptProp(modelelement, "Event Periodicity", "Event Period: ", ["msec", "sec", "min", "hour", "day", "month", "year"]);
 				promptProp(modelelement, "Event Asset/Function", "Event Type: ", ["All BHP Asset and Function", "None"]); // check note
 				break;
 			case "business-process":
-				addToFolder("Business Processes", modelelement);
+				addToFolder("Business Processes", modelelement, businessFolder);
 				setPropIfMissing(modelelement, "Object Type", "Business Process");
 				promptProp(modelelement, "Process Level", "");
 				promptProp(modelelement, "Process State", "");
@@ -168,26 +183,26 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				promptProp(modelelement, "Process Function", "Process Function: ", ["All BHP Asset and Functions", "None"]); // check note
 				break;
 			case "business-role":
-				addToFolder("Business Roles", modelelement);
+				addToFolder("Business Roles", modelelement, businessFolder);
 				setPropIfMissing(modelelement, "Object Type", "Business Role");
 				setPropIfMissing(modelelement, "Position Code", "");
 				promptProp(modelelement, "Role Type", "Role Type selected from list: ", ["Employee", "Fixed Term Position", "Contractor", "Apprentice", "Work Experience", "Agency Temp"]);
 				promptProp(modelelement, "Role Employment Status", "Role Employment Status selected from list: ", ["Permanent Fulltime", "Permanent Partime", "Casual", "Fix Term Fulltime", "Fixed Term Parttime"]);
 				break;
 			case "data-object":
-				addToFolder("Data Objects", modelelement);
+				addToFolder("Data Objects", modelelement, applicationFolder);
 				setPropIfMissing(modelelement, "Object Type", "Data Object");
 				setPropIfMissing(modelelement, "System of Record", "");
 				setPropIfMissing(modelelement, "Data Domain", "");
 				setPropIfMissing(modelelement, "Data Steward", "");
 				break;
 			case "application-interface":
-				addToFolder("Application Interfaces", modelelement);
+				addToFolder("Application Interfaces", modelelement, applicationFolder);
 				setPropIfMissing(modelelement, "Object Type", "Application Interface");
 				setPropIfMissing(modelelement, "Port", "");
 				break;
-			case "application":
-				addToFolder("Applications", modelelement);
+			case "application-component":
+				addToFolder("Applications", modelelement, applicationFolder);
 				setPropIfMissing(modelelement, "Object Type", "Application");
 				setPropIfMissing(modelelement, "Vendor", "");
 				setPropIfMissing(modelelement, "Product", "");
@@ -212,27 +227,28 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				promptProp(modelelement, "Application Valid Start End", "Application Valid Start End (Format: YYYY-MM-DD):");
 				break;
 			case "technology-interface":
-				addToFolder("Technology Interfaces", modelelement);
+				addToFolder("Technology Interfaces", modelelement, technologyFolder);
 				setPropIfMissing(modelelement, "Object Type", "Technology Interface");
 				setPropIfMissing(modelelement, "Port", "");
 				break;
 			case "node":
-				addToFolder("Technology Nodes", modelelement);
+				addToFolder("Technology Nodes", modelelement, technologyFolder);
 				setPropIfMissing(modelelement, "Object Type", "Logical Technology");
 				break;
 			case "location":
 				// setPropIfMissing(modelelement, "Location Type", "Logical");
+				addToFolder("Locations", modelelement, otherFolder)
 				setPropIfMissing(modelelement, "Location Address", "");
 				setPropIfMissing(modelelement, "Location Identifier", "");
 				break;
 			case "business-actor":
-				addToFolder("Business Actors", modelelement);
+				addToFolder("Business Actors", modelelement, businessFolder);
 				setPropIfMissing(modelelement, "Object Type", "Business Actor");
 				promptProp(modelelement, "Actor Type", "Actor Type: ", ["Asset", "Department", "Person"]);
 				setPropIfMissing(modelelement, "Position Identifier", "");
 				break;
 			case "system-software":
-				addToFolder("System Software", modelelement);
+				addToFolder("System Software", modelelement, technologyFolder);
 				setPropIfMissing(modelelement, "Object Type", "System Software");
 				promptProp(modelelement, "System Software Vendor", "System Software Vendor: ");
 				promptProp(modelelement, "System Software Product", "System Software Product: ");
@@ -242,24 +258,24 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				promptProp(modelelement, "System Software License Type", "System Software License Type: ", ["Unknown", "COTS", "Bespoke (Internal)", "Bespoke (External)", "Open Source (GPLv2)", "Open Source (GPLv3)", "Open Source (MIT)", "Open Source (GNU)"]);
 				break;
 			case "technology-service":
-				addToFolder("Technology Services", modelelement);
+				addToFolder("Technology Services", modelelement, technologyFolder);
 				setPropIfMissing(modelelement, "Object Type", "Technology Service");
 				break;
 			case "equipment":
-				addToFolder("Technology Equipment", modelelement);
+				addToFolder("Technology Equipment", modelelement, technologyFolder);
 				setPropIfMissing(modelelement, "Object Type", "Equipment");
 				break;
 			case "gap":
-				addToFolder("Gaps", modelelement);
+				addToFolder("Gaps", modelelement, implementationFolder);
 				setPropIfMissing(modelelement, "Object Type", "Gap");
 				break;
 			case "business-object":
-				addToFolder("Business Information", modelelement);
+				addToFolder("Business Information", modelelement, businessFolder);
 				setPropIfMissing(modelelement, "Entity Class", "");
 				setPropIfMissing(modelelement, "Entity Data Domain", "");
 				break;
 			case "work-package":
-				addToFolder("Work Packages", modelelement);
+				addToFolder("Work Packages", modelelement, implementationFolder);
 				setPropIfMissing(modelelement, "Object Type", "Work Package");
 				promptProp(modelelement, "Work Package State", "Work Package State: ", ["Unknown", "Active", "Inactive", "Halted", "Completed", "Proposed"]);
 				promptProp(modelelement, "Work Package Type", "Work Package Type: ", ["Unknown", "Non-Project", "Project", "Program of Work"]);
@@ -275,8 +291,8 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				promptProp(modelelement, "Work Package Asset", "Work Package Asset: ", ["Unknown", "Coal", "CopperSA", "Escondida", "Legacy Assets", "Mt Arthur Coal", "Pampa Norte", "Potash", "Technical", "WAIO"]);
 				promptProp(modelelement, "Work Package Identifier", "Work Package Identifier (Planview ID): ");
 				break;
-			case "technology":
-				addToFolder("Technology", modelelement);
+			case "technology": //What is technology
+				addToFolder("Technology", modelelement, technologyFolder);
 				setPropIfMissing(modelelement, "Object Type", "Technology");
 				setPropIfMissing(modelelement, "Vendor", "");
 				setPropIfMissing(modelelement, "Product", "");
@@ -284,6 +300,9 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				setPropIfMissing(modelelement, "Alias", "");
 				setPropIfMissing(modelelement, "IP Address", "");
 				promptProp(modelelement, "Lifecycle State", "Lifecycle State: ", ["Unknown", "Current", "Maintained", "Decomissioned"]);
+				break;
+			case "device":
+				addToFolder("Devices", modelelement, technologyFolder);
 				break;
 		}
 	});
