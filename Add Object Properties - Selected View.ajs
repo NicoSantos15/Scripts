@@ -64,7 +64,8 @@ function addToFolder(folderName, el) {
 	// If folder doesn't exist, create it under the model root
 	if (!folder) {
 		var model = el.model;
-		folder = model.createFolder(folderName, "element");
+		console.log("FOLDER MNAME " + folderName.parentFolder)
+		folder = model.createFolder(folderName);
 		console.log("Created folder:", folderName);
 	}
 
@@ -122,12 +123,12 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				// setPropIfMissing(modelelement, "Object Type", "Business Information");
 				promptProp(modelelement, "Information Class", "Information Class: ", ["Course of Action", "Ledger", "Profile", "Record", "Measure"]);
 				promptProp(modelelement, "Information Data Domain", "Information Data Domain: ", [
-					"Asset Maintenance", 
-					"Business Development", 
-					"Communications", 
-					"Engineering", 
-					"Exploration", 
-					"Finance", 
+					"Asset Maintenance",
+					"Business Development",
+					"Communications",
+					"Engineering",
+					"Exploration",
+					"Finance",
 					"Health",
 					"Safety and Environment",
 					"Legal and Regulatory Requirements",
@@ -189,7 +190,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				addToFolder("Applications", modelelement);
 				setPropIfMissing(modelelement, "Object Type", "Application");
 				setPropIfMissing(modelelement, "Vendor", "");
-				setPropIfMissing(modelelement, "Product", "");				
+				setPropIfMissing(modelelement, "Product", "");
 				promptProp(modelelement, "Application Is Licensed", "Application Is Licensed: ", ["Yes", "No"]);
 				promptProp(modelelement, "Application License Type", "Application License Type: ", ["COTS", "Bespoke (In-House Developed)", "Bespoke (Externally Developed)", "Open Source (GPLv2)", "Open Source (GPLv3)"]);
 				promptProp(modelelement, "Application License Duration", "Application License Duration: ", ["Perpetual", "Annual", "Monthly", "Unknown"]);
@@ -276,10 +277,10 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				break;
 			case "technology":
 				addToFolder("Technology", modelelement);
-				setPropIfMissing(modelelement, "Object Type", "Technology");	
+				setPropIfMissing(modelelement, "Object Type", "Technology");
 				setPropIfMissing(modelelement, "Vendor", "");
 				setPropIfMissing(modelelement, "Product", "");
-				promptProp(modelelement, "Environment", "Environment: ", ["Production", "Test", "Quality Assurance", "Development", "User Acceptance Testing"]);				
+				promptProp(modelelement, "Environment", "Environment: ", ["Production", "Test", "Quality Assurance", "Development", "User Acceptance Testing"]);
 				setPropIfMissing(modelelement, "Alias", "");
 				setPropIfMissing(modelelement, "IP Address", "");
 				promptProp(modelelement, "Lifecycle State", "Lifecycle State: ", ["Unknown", "Current", "Maintained", "Decomissioned"]);

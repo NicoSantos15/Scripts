@@ -365,7 +365,7 @@ function createRelAndAnchors(rel) {
     leftElement,
     rightElement
   );
-  
+
 }
 
 function addAnchors(rel, anchorGroupingLeft, anchorGroupingRight) {
@@ -481,7 +481,7 @@ function deleteOldLegend() {
 }
 
 function replaceExistingLegend() {
-  
+
 }
 
 listRelationshipToCreate();
