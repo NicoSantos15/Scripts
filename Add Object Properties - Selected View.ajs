@@ -84,7 +84,9 @@ function addToFolder(folderName, el, parentFolder) {
 		// console.log("Created folder:", folderName);
 	}
 
-	folder.add(el);
+	if (el.prop("Object State") !== "Legend") {
+		folder.add(el);
+	}
 }
 
 if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model'))) {
@@ -110,8 +112,8 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 			// Common properties
 			setPropIfMissing(modelelement, "Object Author", propAuthor || "");
 			setPropIfMissing(modelelement, "Object Date", propDate);
-			setPropIfMissing(modelelement, "Object Status", "Draft");  //, For Review, Published, Retired, Imported");
-			setPropIfMissing(modelelement, "Object State", "Current"); //, Transition, Target, Reference, Work Package, Unknown, Decomissioned");
+			promptProp(modelelement, "Object Status", "Object Status: ", ["Draft", "For Review", "Imported Data", "Published", "Approved"]);  //, For Review, Published, Retired, Imported");
+			promptProp(modelelement, "Object State", "Object State: ", ["Current", "Transition", "Reference", "Reference Placeholder", "Work Package", "Unknown", "Decomissioned"]); //, Transition, Target, Reference, Work Package, Unknown, Decomissioned");
 			setPropIfMissing(modelelement, "Object Type", ""); // check note
 			setPropIfMissing(modelelement, "Object Version", "1.0");
 
@@ -220,7 +222,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 					promptProp(modelelement, "Application Asset", "Application Asset: ", ["All BHP Assets", "None", "Unknown"]);
 					promptProp(modelelement, "Application Lifecycle Assessment", "Application Lifecycle Assessment: ", ["Unknown", "Evaluate", "Tolerate", "Invest", "Migrate", "Eliminate"]);
 					promptProp(modelelement, "Application Function", "Application Function: ", ["All BHP Functions", "None", "Unknown"]);
-					promptProp(modelelement, "Application Portfolio", "Application Portfolio: ", ["List of Application Portfolios"]);
+					setPropIfMissing(modelelement, "Application Portfolio", "Application Portfolio: ");
 					promptProp(modelelement, "Application Installation Type", "Application Installation Type: ", ["On-Premise", "Desktop", "PaaS", "Saas", "Hybrid", "Unknown"]);
 					setPropIfMissing(modelelement, "Application GEAR ID", "");
 					setPropIfMissing(modelelement, "Application Identifier", "");
@@ -234,7 +236,24 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 					break;
 				case "node":
 					addToFolder("Technology Nodes", modelelement, technologyFolder);
-					setPropIfMissing(modelelement, "Object Type", "Logical Technology");
+					setPropIfMissing(modelelement, "Object Type", "Technology");
+					setPropIfMissing(modelelement, "Vendor", "");
+					setPropIfMissing(modelelement, "Product", "");
+					promptProp(modelelement, "Is Licensed", "Is Licensed: ", ["Yes", "No"]);
+					promptProp(modelelement, "License Type", "License Type: ", ["COTS", "Bespoke (In-House Developed)", "Bespoke (Externally Developed)", "Open Source (GPLv2)", "Open Source (GPLv3)"]);
+					promptProp(modelelement, "Licensing", "Licensing: ", ["Perpetual", "Annual", "Monthly"]);
+					setPropIfMissing(modelelement, "License Cost", "License Cost: ");
+					setPropIfMissing(modelelement, "Number of Licenses", "Number of Licenses: ");
+					promptProp(modelelement, "Vendor Support", "Vendor Support: ", ["Yes", "No"]);
+					setPropIfMissing(modelelement, "Vendor Support Costs", "Vendor Support Costs: ");
+					setPropIfMissing(modelelement, "Business Owner", "Business Owner: ");
+					promptProp(modelelement, "Environment", "Environment: ", ["Production", "Test", "Quality Assurance", "Development", "User Acceptance Testing"]);
+					setPropIfMissing(modelelement, "Alias", "");
+					setPropIfMissing(modelelement, "IP Address", "");
+					promptProp(modelelement, "Lifecycle State", "Lifecycle State: ", ["Unknown", "Current", "Maintained", "Decomissioned"]);
+					setPropIfMissing(modelelement, "Version", "Version: ");
+					promptProp(modelelement, "Technology eTIME", "Technology eTIME: ", ["Unknown", "Evaluate", "Tolerate", "Invest", "Migrate", "Eliminate"]);
+					setPropIfMissing(modelelement, "Technology Portfolio", "Technology Portfolio: ");
 					break;
 				case "location":
 					// setPropIfMissing(modelelement, "Location Type", "Logical");
@@ -299,16 +318,6 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 					promptProp(modelelement, "Work Package Actual (OPEX)", "Work Package Actual (OPEX): ");
 					promptProp(modelelement, "Work Package ROI (Estimated)", "Work Package ROI (Estimated): ");
 					promptProp(modelelement, "Work Package NPV (Estimated)", "Work Package NPV (Estimated): ");
-					break;
-				case "technology": //What is technology
-					addToFolder("Technology", modelelement, technologyFolder);
-					setPropIfMissing(modelelement, "Object Type", "Technology");
-					setPropIfMissing(modelelement, "Vendor", "");
-					setPropIfMissing(modelelement, "Product", "");
-					promptProp(modelelement, "Environment", "Environment: ", ["Production", "Test", "Quality Assurance", "Development", "User Acceptance Testing"]);
-					setPropIfMissing(modelelement, "Alias", "");
-					setPropIfMissing(modelelement, "IP Address", "");
-					promptProp(modelelement, "Lifecycle State", "Lifecycle State: ", ["Unknown", "Current", "Maintained", "Decomissioned"]);
 					break;
 				case "stakeholder":
 					addToFolder("Stakeholder", modelelement, motivationFolder);
@@ -378,9 +387,15 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 					break;
 				case "grouping":
 					addToFolder("Grouping", modelelement, otherFolder);
+					promptProp(modelelement, "Group Class", "Group Class: ", ["Standard (Default)", "Capability Group", "Portfolio", "Azure Subscription"]);
 					break;
 				case "deliverable":
 					addToFolder("Deliverable", modelelement, implementationFolder);
+					setPropIfMissing(modelelement, "Version", "");
+					promptProp(modelelement, "Deliverable State", "Deliverable State: ", ["Draft", "Approved"]);
+					setPropIfMissing(modelelement, "Approved By", "");
+					promptProp(modelelement, "Approved Date", "Approved Date (YYYY-MM-DD): ");
+					setPropIfMissing(modelelement, "Reference", "");
 					break;
 				case "implementation-event":
 					addToFolder("Implementation Event", modelelement, implementationFolder);
@@ -399,6 +414,8 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				// 	break;
 				// case "":
 				// 	addToFolder("", modelelement,);
+				// 	break;
+				// case "technology": //THIS IS A NODE
 				// 	break;
 			}
 		});
