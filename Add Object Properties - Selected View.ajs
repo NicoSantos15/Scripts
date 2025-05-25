@@ -99,6 +99,11 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 
 	console.log("Elements in View: ", elements.length);
 
+	var flowRelationships = $("relationship[type='flow-relationship']");
+	flowRelationships.each(function(rel) {
+		console.log("RELATION---->>>>> "+rel)
+	});
+
 	elements.forEach(function (element) {
 		var matchingModelElements = $("." + element.name);
 		if (!matchingModelElements || matchingModelElements === 0) {
@@ -242,18 +247,18 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 					promptProp(modelelement, "Is Licensed", "Is Licensed: ", ["Yes", "No"]);
 					promptProp(modelelement, "License Type", "License Type: ", ["COTS", "Bespoke (In-House Developed)", "Bespoke (Externally Developed)", "Open Source (GPLv2)", "Open Source (GPLv3)"]);
 					promptProp(modelelement, "Licensing", "Licensing: ", ["Perpetual", "Annual", "Monthly"]);
-					setPropIfMissing(modelelement, "License Cost", "License Cost: ");
-					setPropIfMissing(modelelement, "Number of Licenses", "Number of Licenses: ");
+					setPropIfMissing(modelelement, "License Cost", "");
+					setPropIfMissing(modelelement, "Number of Licenses", "");
 					promptProp(modelelement, "Vendor Support", "Vendor Support: ", ["Yes", "No"]);
-					setPropIfMissing(modelelement, "Vendor Support Costs", "Vendor Support Costs: ");
-					setPropIfMissing(modelelement, "Business Owner", "Business Owner: ");
+					setPropIfMissing(modelelement, "Vendor Support Costs", "");
+					setPropIfMissing(modelelement, "Business Owner", "");
 					promptProp(modelelement, "Environment", "Environment: ", ["Production", "Test", "Quality Assurance", "Development", "User Acceptance Testing"]);
 					setPropIfMissing(modelelement, "Alias", "");
 					setPropIfMissing(modelelement, "IP Address", "");
 					promptProp(modelelement, "Lifecycle State", "Lifecycle State: ", ["Unknown", "Current", "Maintained", "Decomissioned"]);
-					setPropIfMissing(modelelement, "Version", "Version: ");
+					setPropIfMissing(modelelement, "Version", "");
 					promptProp(modelelement, "Technology eTIME", "Technology eTIME: ", ["Unknown", "Evaluate", "Tolerate", "Invest", "Migrate", "Eliminate"]);
-					setPropIfMissing(modelelement, "Technology Portfolio", "Technology Portfolio: ");
+					setPropIfMissing(modelelement, "Technology Portfolio", "");
 					break;
 				case "location":
 					// setPropIfMissing(modelelement, "Location Type", "Logical");
