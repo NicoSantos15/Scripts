@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ----------------------------------------------------------------------------
  * Script: Add Element Properties to Selected View
  * Tool: jArchi
@@ -41,6 +41,8 @@ console.log("> Add element Properties - Selected View");
 
 var propAuthor = window.prompt("Value for element Author (leave empty to cancel)?", "");
 var propDate = window.prompt("Value for element Date (leave empty to set to current date) (Format: YYYY-MM-DD)?", "");
+var propAuthor = window.promptSelection("Select Author:", ["Alice", "Bob", "Charlie", "Unassigned"]);
+var propAuthor = window.promptSelection("Select Author:", ["Alice", "Bob", "Charlie", "Unassigned"]);
 var promptSwitch = window.promptSelection("Prompt property values?", ["Yes", "No"]);
 // original date fallback logic preserved
 if (!propDate) {
@@ -99,19 +101,27 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 
 	console.log("Elements in View: ", elements.length);
 
-	var flowRelationships = $("relationship[type='flow-relationship']");
+	var flowRelationships = $(diagram).find("flow-relationship");
+
+	// console.log("Flow relationships in view: " + flowRelationships.size());
+
 	flowRelationships.each(function(rel) {
-		console.log("RELATION---->>>>> "+rel)
+		var modelRel = rel.concept;
+
+		setPropIfMissing(modelRel, "Object Author", propAuthor || "");
+		setPropIfMissing(modelRel, "Object Date", propAuthor || "");
+		setPropIfMissing(modelRel, "Object Etc", propAuthor || "");
+
 	});
 
 	elements.forEach(function (element) {
-		var matchingModelElements = $("." + element.name);
-		if (!matchingModelElements || matchingModelElements === 0) {
+		var modelelement = element.concept; //$("." + element.name);
+		if (!modelelement) {
 			console.warn("Skipping missing model element for:", element.name);
 			// return;
 		}
 
-		matchingModelElements.each(function (modelelement) {
+		// matchingModelElements.each(function (modelelement) { <- This was the original loop this will apply to all model elements
 			console.log("Model element:", modelelement.name, " View Element :", element.name);
 
 			// Common properties
@@ -423,7 +433,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 				// case "technology": //THIS IS A NODE
 				// 	break;
 			}
-		});
+		// });
 	});
 } else {
 	window.alert("No View Selected");
