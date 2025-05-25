@@ -1,0 +1,6 @@
+scripts/.vscode
+scripts/examples/*
+*.json
+*.csv
+test*.ajs
+scripts/ZZ. Examples/*
