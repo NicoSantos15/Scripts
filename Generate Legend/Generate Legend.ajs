@@ -37,7 +37,7 @@ var typesList = [];
 var viewRelationshipList = [];
 var pictogram_x = x + 10;
 var label_x = x + pictogram_x + 30;
-var label_width = default_width + 80;
+var label_width = default_width + 100;
 var groupWidth = 10 + default_width + 10 + label_width + 10;
 var groupHeight = default_height + y;
 var prefix = "legend-purpose-";
@@ -286,7 +286,7 @@ for (var i = 0; i < typesList.length; i++) {
     true
   );
 
-  object.labelExpression = ""; // Hide the label of the object
+  object.labelExpression = " "; // Hide the label of the object
   currentNote.setFigureType(noteFigureType);
   currentNote.opacity = noteOpacity;
   currentNote.outlineOpacity = noteOutlineOpacity;
