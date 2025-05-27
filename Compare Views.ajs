@@ -9,6 +9,7 @@
  *  - CSV export adjusted to viewpoint type
  * 
  * Ownership: Property of BHP
+ * Version: 1.0
  * ----------------------------------------------------------------------------
  */
 console.log("=== COMPARE VIEWS SCRIPT ===\n");

@@ -19,6 +19,7 @@
  * - Outputs progress to the jArchi console.
  *
  * Ownership: Property of BHP
+ * Version: 1.0
  * ----------------------------------------------------------------------------
  */
 console.log("=== ADD OBJECT PROPERTIES SCRIPT ===\n");
@@ -26,6 +27,7 @@ console.log("=== ADD OBJECT PROPERTIES SCRIPT ===\n");
 var debug = true;
 // Add the names of the folders
 var businessFolder = $("folder.Business").first();
+console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" + businessFolder);
 var strategyFolder = $("folder.Strategy").first();
 var applicationFolder = $("folder.Application").first();
 var technologyFolder = $("folder.Technology & Physical").first();
@@ -39,10 +41,6 @@ console.clear();
 
 console.log("> Add element Properties - Selected View");
 
-var propAuthor = window.prompt("Value for element Author (leave empty to cancel)?", "");
-var propDate = window.prompt("Value for element Date (leave empty to set to current date) (Format: YYYY-MM-DD)?", "");
-var propStatus = window.promptSelection("Select Status:", ["Draft", "For Review", "Imported Data", "Published", "Approved"]);
-var propState = window.promptSelection("Select State:", ["Current", "Transition", "Reference", "Reference Placeholder", "Work Package", "Unknown", "Decomissioned"]);
 // var promptSwitch = window.promptSelection("Prompt property values?", ["Yes", "No"]);
 // original date fallback logic preserved
 if (!propDate) {
@@ -76,9 +74,9 @@ function promptProp(el, key, message, options = null) {
 }
 
 function addToFolder(folderName, el, parentFolder) {
+  if (el.prop("Object State") != "Legend") return;
 	var folder = $("folder." + folderName).first();
 
-	if (el.prop("Object State") != "Legend") {
 	  // If folder doesn't exist, create it under the model root
     if (!folder) {
       // var model = el.model;
@@ -86,12 +84,23 @@ function addToFolder(folderName, el, parentFolder) {
       folder = parentFolder.createFolder(folderName);
       // console.log("Created folder:", folderName);
     }
-      folder.add(el);
-	}
+
+    if (folder) {
+      try {
+        folder.add(el);
+      } catch (error) {
+        console.error("Error adding element to folder:", error);
+      }
+    }  else { 
+      console.warn("Folder not found or could not be created:", folderName);
+    }
 }
 
 if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model'))) {
-
+  var propAuthor = window.prompt("Value for element Author (leave empty to cancel)?", "");
+  var propDate = window.prompt("Value for element Date (leave empty to set to current date) (Format: YYYY-MM-DD)?", "");
+  var propStatus = window.promptSelection("Select Status:", ["Draft", "For Review", "Imported Data", "Published", "Approved"]);
+  var propState = window.promptSelection("Select State:", ["Current", "Transition", "Reference", "Reference Placeholder", "Work Package", "Unknown", "Decomissioned"]);
 	// Select diagram and its elements
 	var diagram = $("archimate-diagram-model").filter("." + selection.get(0).name).first();
 	console.log("Diagram: ", diagram.name);
@@ -159,31 +168,6 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 					promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
 					promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
 					promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
-				case "business-object":
-					addToFolder("Business Object", modelelement, businessFolder);
-					// setPropIfMissing(modelelement, "Object Type", "Business Information");
-					promptProp(modelelement, "Information Class", "Information Class: ", ["Course of Action", "Ledger", "Profile", "Record", "Measure"]);
-					promptProp(modelelement, "Information Data Domain", "Information Data Domain: ", [
-						"Asset Maintenance",
-						"Business Development",
-						"Communications",
-						"Engineering",
-						"Exploration",
-						"Finance",
-						"Health",
-						"Safety and Environment",
-						"Legal and Regulatory Requirements",
-						"Marketing and Sales",
-						"People",
-						"Procurement",
-						"Production - Minerals",
-						"Projects",
-						"Resource Governance and Assurance",
-						"Resource Planning - Minerals",
-						"Risk and Assurance",
-						"Technology",
-						"Warehousing and Distribution",
-					]);
 				case "business-service":
 					addToFolder("Business Services", modelelement, businessFolder);
 					setPropIfMissing(modelelement, "Service Owner", "");
@@ -334,7 +318,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 					setPropIfMissing(modelelement, "Object Type", "Gap");
 					break;
 				case "business-object":
-					addToFolder("Business Information", modelelement, businessFolder);
+					addToFolder("Business Objects", modelelement, businessFolder);
 					setPropIfMissing(modelelement, "Entity Class", "");
 					setPropIfMissing(modelelement, "Entity Data Domain", "");
 					break;
