@@ -78,16 +78,15 @@ function promptProp(el, key, message, options = null) {
 function addToFolder(folderName, el, parentFolder) {
 	var folder = $("folder." + folderName).first();
 
-	// If folder doesn't exist, create it under the model root
-	if (!folder) {
-		// var model = el.model;
-		// console.log("FOLDER NAME " + folderName.parentFolder)
-		folder = parentFolder.createFolder(folderName);
-		// console.log("Created folder:", folderName);
-	}
-
-	if (el.prop("Object State") !== "Legend") {
-		folder.add(el);
+	if (el.prop("Object State") != "Legend") {
+	  // If folder doesn't exist, create it under the model root
+    if (!folder) {
+      // var model = el.model;
+      // console.log("FOLDER NAME " + folderName.parentFolder)
+      folder = parentFolder.createFolder(folderName);
+      // console.log("Created folder:", folderName);
+    }
+      folder.add(el);
 	}
 }
 
@@ -116,7 +115,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 		setPropIfMissing(modelRel, "Object Version", "1.0");
 
 		setPropIfMissing(modelRel, "Flow Data Entity", "");
-		promptProp(modelRel, "Flow Integration Type", ["API", "Data Replication", "Publish-Subscribe"]);
+		promptProp(modelRel, "Flow Integration Type", "Flow Integration Type: ",["API", "Data Replication", "Publish-Subscribe"]);
 		setPropIfMissing(modelRel, "Flow Identifier Etc", "");
 
 	});
