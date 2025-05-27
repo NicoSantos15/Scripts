@@ -286,6 +286,7 @@ for (var i = 0; i < typesList.length; i++) {
     true
   );
 
+  object.labelExpression = ""; // Hide the label of the object
   currentNote.setFigureType(noteFigureType);
   currentNote.opacity = noteOpacity;
   currentNote.outlineOpacity = noteOutlineOpacity;
@@ -474,14 +475,6 @@ function processView() {
     }
   }
   removeRelationshipNames();
-}
-//DONT FORGET TO ADD LEGEND OBJECT STATE ON THE BIG LEGEND FOLDER
-function deleteOldLegend() {
-  // delete the old legend from view when creating a new one
-}
-
-function replaceExistingLegend() {
-  
 }
 
 listRelationshipToCreate();
