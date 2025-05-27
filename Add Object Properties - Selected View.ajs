@@ -41,9 +41,9 @@ console.log("> Add element Properties - Selected View");
 
 var propAuthor = window.prompt("Value for element Author (leave empty to cancel)?", "");
 var propDate = window.prompt("Value for element Date (leave empty to set to current date) (Format: YYYY-MM-DD)?", "");
-var propStatus = window.promptSelection("Select Author:", ["Draft", "For Review", "Imported Data", "Published", "Approved"]);
-var propState = window.promptSelection("Select Author:", ["Current", "Transition", "Reference", "Reference Placeholder", "Work Package", "Unknown", "Decomissioned"]);
-var promptSwitch = window.promptSelection("Prompt property values?", ["Yes", "No"]);
+var propStatus = window.promptSelection("Select Status:", ["Draft", "For Review", "Imported Data", "Published", "Approved"]);
+var propState = window.promptSelection("Select State:", ["Current", "Transition", "Reference", "Reference Placeholder", "Work Package", "Unknown", "Decomissioned"]);
+// var promptSwitch = window.promptSelection("Prompt property values?", ["Yes", "No"]);
 // original date fallback logic preserved
 if (!propDate) {
 	var date = new Date();
@@ -66,11 +66,11 @@ function setPropIfMissing(el, key, val) {
 function promptProp(el, key, message, options = null) {
 	var value;
 	if (!el.prop(key)) {
-		if (promptSwitch == "No") {
-			value = "";
-		} else {
-			value = options ? window.promptSelection(message, options) : window.prompt(message, "");
-		}
+		// if (promptSwitch == "No") {
+		// 	value = "";
+		// } else {
+		value = options ? window.promptSelection(message, options) : window.prompt(message, "");
+		// }
 		el.prop(key, value, false);
 	}
 }
@@ -160,8 +160,8 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 					promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
 					promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
 					promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
-				case "business-information":
-					addToFolder("Business Information", modelelement, businessFolder);
+				case "business-object":
+					addToFolder("Business Object", modelelement, businessFolder);
 					// setPropIfMissing(modelelement, "Object Type", "Business Information");
 					promptProp(modelelement, "Information Class", "Information Class: ", ["Course of Action", "Ledger", "Profile", "Record", "Measure"]);
 					promptProp(modelelement, "Information Data Domain", "Information Data Domain: ", [
@@ -220,7 +220,28 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 					addToFolder("Data Objects", modelelement, applicationFolder);
 					setPropIfMissing(modelelement, "Object Type", "Data Object");
 					setPropIfMissing(modelelement, "System of Record", "");
-					setPropIfMissing(modelelement, "Data Domain", "");
+					// setPropIfMissing(modelelement, "Data Domain", "");
+					promptProp(modelelement, "Data Domain", "Data Domain: ", [
+						"Asset Maintenance",
+						"Business Development",
+						"Communications",
+						"Engineering",
+						"Exploration",
+						"Finance",
+						"Health",
+						"Safety and Environment",
+						"Legal and Regulatory Requirements",
+						"Marketing and Sales",
+						"People",
+						"Procurement",
+						"Production - Minerals",
+						"Projects",
+						"Resource Governance and Assurance",
+						"Resource Planning - Minerals",
+						"Risk and Assurance",
+						"Technology",
+						"Warehousing and Distribution",
+					]);
 					setPropIfMissing(modelelement, "Data Steward", "");
 					break;
 				case "application-interface":
@@ -332,7 +353,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 					setPropIfMissing(modelelement, "Work Package Reference", "");
 					promptProp(modelelement, "Work Package Investment Amount", "Work Package Investment Amount: ");
 					promptProp(modelelement, "Work Package Function", "Work Package Function: ", ["Unknown", "Technology", "Finance", "Human Resources", "Maintenance", "Projects", "Human Resources", "HSE", "Supply", "Corporate Services"]);
-					promptProp(modelelement, "Work Package Asset", "Work Package Asset: ", ["Unknown", "Potash", "Escondida", "WAIO", "NiW", "CopperSA (CuSA)", "Coal(BMA + NSWEC)", "Legacy Assets", "Technical"]);
+					promptProp(modelelement, "Work Package Asset", "Work Package Asset: ", ["Coal", "CopperSA", "NiW", "WAIO", "Escondida", "Pampa Norte", "Potash", "Legacy Assets"]);
 					promptProp(modelelement, "Work Package Phase", "Work Package Phase: ", ["Initiation", "Identification", "Selection", "Definition", "Selection & Definition", "Execution", "Close", "Execution & Close"]);
 					promptProp(modelelement, "Work Package Investment Size", "Work Package Investment Size: ");
 					promptProp(modelelement, "Work Package Priority", "Work Package Priority: ", ["Low", "Medium", "High", "Essential", "Growth"]);
