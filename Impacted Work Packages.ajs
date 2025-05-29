@@ -26,10 +26,10 @@ console.clear();
 
 console.log("=== IMPACTED WORK PACKAGES ===\n");
 
-var nameDiagram = window.prompt("Enter the diagram name (leave empty to cancel):", "");
-
-function selectDiagram(diagramName) {
-	return $("archimate-diagram-model").filter("." + diagramName).first();
+var diagram = $(selection).filter("archimate-diagram-model").first();
+if (!diagram) {
+  console.log("> No view identified: exiting.");
+  exit();
 }
 
 function isValidDate(dateStr) {
@@ -40,9 +40,7 @@ function compareDates(start, end) {
 	return new Date(start) <= new Date(end);
 }
 
-if (nameDiagram) {
-	var diagram = selectDiagram(nameDiagram);
-
+if (diagram) {
 	$(diagram).find("Work-Package").each(function (wp) {
 		var name = wp.name;
 		var startDate = wp.prop("Work Package Start Date");
@@ -54,15 +52,11 @@ if (nameDiagram) {
 
 		// Date validation
 		if (!startDate || !isValidDate(startDate)) {
-			console.log("  • Invalid or missing Start Date:", startDate || "N/A");
+			console.log("  Start Date:", startDate || "N/A");
 			hasIssue = true;
 		}
 		if (!endDate || !isValidDate(endDate)) {
-			console.log("  • Invalid or missing End Date:", endDate || "N/A");
-			hasIssue = true;
-		}
-		if (!hasIssue && !compareDates(startDate, endDate)) {
-			console.log("  • Start Date is after End Date:", startDate, ">", endDate);
+			console.log("  End Date:", endDate || "N/A");
 			hasIssue = true;
 		}
 
