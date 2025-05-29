@@ -23,7 +23,7 @@ console.clear();
 const viewpointType = window.promptSelection(
 	//"Select viewpoint type:",
 	//["Business", "Application", "Deployment"]
-	"Do you want to include relationships in the comparison? (Yes/No)",
+	"Include relationships in comparison?",
 	["Yes", "No"]
 );
 

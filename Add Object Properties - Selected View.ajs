@@ -27,7 +27,6 @@ console.log("=== ADD OBJECT PROPERTIES SCRIPT ===\n");
 var debug = true;
 // Add the names of the folders
 var businessFolder = $("folder.Business").first();
-console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" + businessFolder);
 var strategyFolder = $("folder.Strategy").first();
 var applicationFolder = $("folder.Application").first();
 var technologyFolder = $("folder.Technology & Physical").first();
@@ -41,7 +40,6 @@ console.clear();
 
 console.log("> Add element Properties - Selected View");
 
-// var promptSwitch = window.promptSelection("Prompt property values?", ["Yes", "No"]);
 // original date fallback logic preserved
 if (!propDate) {
 	var date = new Date();
@@ -74,33 +72,31 @@ function promptProp(el, key, message, options = null) {
 }
 
 function addToFolder(folderName, el, parentFolder) {
-  if (el.prop("Object State") != "Legend") return;
+	if (el.prop("Object State") == "Legend") return;
 	var folder = $("folder." + folderName).first();
+	// If folder doesn't exist, create it under the model root
+	if (!folder) {
+		folder = parentFolder.createFolder(folderName);
+	}
 
-	  // If folder doesn't exist, create it under the model root
-    if (!folder) {
-      // var model = el.model;
-      // console.log("FOLDER NAME " + folderName.parentFolder)
-      folder = parentFolder.createFolder(folderName);
-      // console.log("Created folder:", folderName);
-    }
-
-    if (folder) {
-      try {
-        folder.add(el);
-      } catch (error) {
-        console.error("Error adding element to folder:", error);
-      }
-    }  else { 
-      console.warn("Folder not found or could not be created:", folderName);
-    }
+	if (folder) {
+		try {
+			folder.add(el);
+		} catch (error) {
+			console.error("Error adding element to folder:", error);
+		}
+	} else {
+		console.warn("Folder not found or could not be created:", folderName);
+	}
 }
 
 if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model'))) {
-  var propAuthor = window.prompt("Value for element Author (leave empty to cancel)?", "");
-  var propDate = window.prompt("Value for element Date (leave empty to set to current date) (Format: YYYY-MM-DD)?", "");
-  var propStatus = window.promptSelection("Select Status:", ["Draft", "For Review", "Imported Data", "Published", "Approved"]);
-  var propState = window.promptSelection("Select State:", ["Current", "Transition", "Reference", "Reference Placeholder", "Work Package", "Unknown", "Decomissioned"]);
+	var propAuthor = window.prompt("Value for element Author (leave empty to cancel)?", "");
+	var propDate = window.prompt("Value for element Date (leave empty to set to current date) (Format: YYYY-MM-DD)?", "");
+	var propStatus = window.promptSelection("Select Status:", ["Draft", "For Review", "Imported Data", "Published", "Approved"]);
+	var propState = window.promptSelection("Select State:", ["Current", "Transition", "Reference", "Reference Placeholder", "Work Package", "Unknown", "Decomissioned"]);
+	// var promptSwitch = window.promptSelection("Prompt property values?", ["Yes", "No"]);
+
 	// Select diagram and its elements
 	var diagram = $("archimate-diagram-model").filter("." + selection.get(0).name).first();
 	console.log("Diagram: ", diagram.name);
@@ -113,7 +109,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 
 	// console.log("Flow relationships in view: " + flowRelationships.size());
 
-	flowRelationships.each(function(rel) {
+	flowRelationships.each(function (rel) {
 		var modelRel = rel.concept;
 
 		setPropIfMissing(modelRel, "Object Author", propAuthor || "");
@@ -124,7 +120,7 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 		setPropIfMissing(modelRel, "Object Version", "1.0");
 
 		setPropIfMissing(modelRel, "Flow Data Entity", "");
-		promptProp(modelRel, "Flow Integration Type", "Flow Integration Type: ",["API", "Data Replication", "Publish-Subscribe"]);
+		promptProp(modelRel, "Flow Integration Type", "Flow Integration Type: ", ["API", "Data Replication", "Publish-Subscribe"]);
 		setPropIfMissing(modelRel, "Flow Identifier Etc", "");
 
 	});
@@ -137,315 +133,302 @@ if (selection.size() === 1 && ($(selection.get(0)).is('archimate-diagram-model')
 		}
 
 		// matchingModelElements.each(function (modelelement) { <- This was the original loop this will apply to all model elements
-			console.log("Model element:", modelelement.name, " View Element :", element.name);
+		console.log("Model element:", modelelement.name, " View Element :", element.name);
 
-			// Common properties
-			setPropIfMissing(modelelement, "Object Author", propAuthor || "");
-			setPropIfMissing(modelelement, "Object Date", propDate);
-			setPropIfMissing(modelelement, "Object Status", propStatus || "");
-			setPropIfMissing(modelelement, "Object State", propState || "");
-			// promptProp(modelelement, "Object Status", "Object Status: ", ["Draft", "For Review", "Imported Data", "Published", "Approved"]);  //, For Review, Published, Retired, Imported");
-			// promptProp(modelelement, "Object State", "Object State: ", ["Current", "Transition", "Reference", "Reference Placeholder", "Work Package", "Unknown", "Decomissioned"]); //, Transition, Target, Reference, Work Package, Unknown, Decomissioned");
-			setPropIfMissing(modelelement, "Object Type", ""); // check note
-			setPropIfMissing(modelelement, "Object Version", "1.0");
+		// Common properties
+		setPropIfMissing(modelelement, "Object Author", propAuthor || "");
+		setPropIfMissing(modelelement, "Object Date", propDate);
+		setPropIfMissing(modelelement, "Object Status", propStatus || "");
+		setPropIfMissing(modelelement, "Object State", propState || "");
+		setPropIfMissing(modelelement, "Object Type", ""); // check note
+		setPropIfMissing(modelelement, "Object Version", "1.0");
 
-			switch (modelelement.type) {
-				case "requirement":
-					addToFolder("Requirements", modelelement, motivationFolder);
-					promptProp(modelelement, "Requirement Type", "Requirement Type: ", ["Functional", "Non-Functional", "Business", "Undefined"]);
-					break;
-				case "driver":
-					addToFolder("Drivers", modelelement, motivationFolder);
-					break;
-				case "goal":
-					addToFolder("Goals", modelelement, motivationFolder);
-					break;
-				case "capability":
-					addToFolder("Capabilities", modelelement, strategyFolder);
-					promptProp(modelelement, "Current Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
-					promptProp(modelelement, "Current Maturity Assessment - Process", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
-					promptProp(modelelement, "Current Maturity Assessment - Technology", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
-					promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
-					promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
-					promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
-				case "business-service":
-					addToFolder("Business Services", modelelement, businessFolder);
-					setPropIfMissing(modelelement, "Service Owner", "");
-				case "business-event":
-					addToFolder("Business Events", modelelement, businessFolder);
-					setPropIfMissing(modelelement, "Event Frequency", "");
-					promptProp(modelelement, "Event Periodicity", "Event Period: ", ["msec", "sec", "min", "hour", "day", "month", "year"]);
-					promptProp(modelelement, "Event Asset/Function", "Event Type: ", ["All BHP Asset and Function", "None"]); // check note
-					break;
-				case "business-process":
-					addToFolder("Business Processes", modelelement, businessFolder);
-					setPropIfMissing(modelelement, "Object Type", "Business Process");
-					promptProp(modelelement, "Process Level", "");
-					promptProp(modelelement, "Process State", "");
-					promptProp(modelelement, "Process Maturity - Current State", "Process Maturity - Current State: ", ["1", "2", "3", "4", "5"]);
-					promptProp(modelelement, "Process Maturity - Target State", "Process Maturity - Target State: ", ["1", "2", "3", "4", "5"]);
-					setPropIfMissing(modelelement, "Process Improvement Opportunity", "");
-					setPropIfMissing(modelelement, "Process Artefact", "");
-					setPropIfMissing(modelelement, "Process Artefact Link Reference", ""); //show if process artefact is assigned
-					promptProp(modelelement, "Has Process Owner", "Has Process Owner: ", ["Y", "N"]); // check note
-					setPropIfMissing(modelelement, "Process Owner", ""); // check note
-					promptProp(modelelement, "Process Asset", "Process Asset: ", ["All BHP Asset and Functions", "None"]); // check note
-					promptProp(modelelement, "Process Function", "Process Function: ", ["All BHP Asset and Functions", "None"]); // check note
-					break;
-				case "business-role":
-					addToFolder("Business Roles", modelelement, businessFolder);
-					setPropIfMissing(modelelement, "Object Type", "Business Role");
-					setPropIfMissing(modelelement, "Position Code", "");
-					promptProp(modelelement, "Role Type", "Role Type selected from list: ", ["Employee", "Fixed Term Position", "Contractor", "Apprentice", "Work Experience", "Agency Temp"]);
-					promptProp(modelelement, "Role Employment Status", "Role Employment Status selected from list: ", ["Permanent Fulltime", "Permanent Partime", "Casual", "Fix Term Fulltime", "Fixed Term Parttime"]);
-					break;
-				case "data-object":
-					addToFolder("Data Objects", modelelement, applicationFolder);
-					setPropIfMissing(modelelement, "Object Type", "Data Object");
-					setPropIfMissing(modelelement, "System of Record", "");
-					// setPropIfMissing(modelelement, "Data Domain", "");
-					promptProp(modelelement, "Data Domain", "Data Domain: ", [
-						"Asset Maintenance",
-						"Business Development",
-						"Communications",
-						"Engineering",
-						"Exploration",
-						"Finance",
-						"Health",
-						"Safety and Environment",
-						"Legal and Regulatory Requirements",
-						"Marketing and Sales",
-						"People",
-						"Procurement",
-						"Production - Minerals",
-						"Projects",
-						"Resource Governance and Assurance",
-						"Resource Planning - Minerals",
-						"Risk and Assurance",
-						"Technology",
-						"Warehousing and Distribution",
-					]);
-					setPropIfMissing(modelelement, "Data Steward", "");
-					break;
-				case "application-interface":
-					addToFolder("Application Interfaces", modelelement, applicationFolder);
-					setPropIfMissing(modelelement, "Object Type", "Application Interface");
-					setPropIfMissing(modelelement, "Port", "");
-					break;
-				case "application-component":
-					addToFolder("Applications", modelelement, applicationFolder);
-					setPropIfMissing(modelelement, "Object Type", "Application");
-					setPropIfMissing(modelelement, "Vendor", "");
-					setPropIfMissing(modelelement, "Product", "");
-					promptProp(modelelement, "Application Is Licensed", "Application Is Licensed: ", ["Yes", "No"]);
-					promptProp(modelelement, "Application License Type", "Application License Type: ", ["COTS", "Bespoke (In-House Developed)", "Bespoke (Externally Developed)", "Open Source (GPLv2)", "Open Source (GPLv3)"]);
-					promptProp(modelelement, "Application License Duration", "Application License Duration: ", ["Perpetual", "Annual", "Monthly", "Unknown"]);
-					setPropIfMissing(modelelement, "Application License Cost", "0.0");
-					setPropIfMissing(modelelement, "Application License Number", "");
-					promptProp(modelelement, "Application Vendor Support", "Application Vendor Support: ", ["Yes", "No", "Unknown"]);
-					setPropIfMissing(modelelement, "Application Business Owner", "");
-					promptProp(modelelement, "Application Lifecycle State", "Application Lifecycle State: ", ["Unknown", "Current", "Supported", "End-of-Life"]);
-					setPropIfMissing(modelelement, "Application Alias", "");
-					setPropIfMissing(modelelement, "Application Version", "");
-					promptProp(modelelement, "Application Asset", "Application Asset: ", ["All BHP Assets", "None", "Unknown"]);
-					promptProp(modelelement, "Application Lifecycle Assessment", "Application Lifecycle Assessment: ", ["Unknown", "Evaluate", "Tolerate", "Invest", "Migrate", "Eliminate"]);
-					promptProp(modelelement, "Application Function", "Application Function: ", ["All BHP Functions", "None", "Unknown"]);
-					setPropIfMissing(modelelement, "Application Portfolio", "Application Portfolio: ");
-					promptProp(modelelement, "Application Installation Type", "Application Installation Type: ", ["On-Premise", "Desktop", "PaaS", "Saas", "Hybrid", "Unknown"]);
-					setPropIfMissing(modelelement, "Application GEAR ID", "");
-					setPropIfMissing(modelelement, "Application Identifier", "");
-					promptProp(modelelement, "Application Valid Start Date", "Application Valid Start Date (Format: YYYY-MM-DD):");
-					promptProp(modelelement, "Application Valid Start End", "Application Valid Start End (Format: YYYY-MM-DD):");
-					break;
-				case "technology-interface":
-					addToFolder("Technology Interfaces", modelelement, technologyFolder);
-					setPropIfMissing(modelelement, "Object Type", "Technology Interface");
-					setPropIfMissing(modelelement, "Port", "");
-					break;
-				case "node":
-					addToFolder("Technology Nodes", modelelement, technologyFolder);
-					setPropIfMissing(modelelement, "Object Type", "Technology");
-					setPropIfMissing(modelelement, "Vendor", "");
-					setPropIfMissing(modelelement, "Product", "");
-					promptProp(modelelement, "Is Licensed", "Is Licensed: ", ["Yes", "No"]);
-					promptProp(modelelement, "License Type", "License Type: ", ["COTS", "Bespoke (In-House Developed)", "Bespoke (Externally Developed)", "Open Source (GPLv2)", "Open Source (GPLv3)"]);
-					promptProp(modelelement, "Licensing", "Licensing: ", ["Perpetual", "Annual", "Monthly"]);
-					setPropIfMissing(modelelement, "License Cost", "");
-					setPropIfMissing(modelelement, "Number of Licenses", "");
-					promptProp(modelelement, "Vendor Support", "Vendor Support: ", ["Yes", "No"]);
-					setPropIfMissing(modelelement, "Vendor Support Costs", "");
-					setPropIfMissing(modelelement, "Business Owner", "");
-					promptProp(modelelement, "Environment", "Environment: ", ["Production", "Test", "Quality Assurance", "Development", "User Acceptance Testing"]);
-					setPropIfMissing(modelelement, "Alias", "");
-					setPropIfMissing(modelelement, "IP Address", "");
-					promptProp(modelelement, "Lifecycle State", "Lifecycle State: ", ["Unknown", "Current", "Maintained", "Decomissioned"]);
-					setPropIfMissing(modelelement, "Version", "");
-					promptProp(modelelement, "Technology eTIME", "Technology eTIME: ", ["Unknown", "Evaluate", "Tolerate", "Invest", "Migrate", "Eliminate"]);
-					setPropIfMissing(modelelement, "Technology Portfolio", "");
-					break;
-				case "location":
-					// setPropIfMissing(modelelement, "Location Type", "Logical");
-					addToFolder("Locations", modelelement, otherFolder)
-					setPropIfMissing(modelelement, "Location Address", "");
-					setPropIfMissing(modelelement, "Location Identifier", "");
-					break;
-				case "business-actor":
-					addToFolder("Business Actors", modelelement, businessFolder);
-					setPropIfMissing(modelelement, "Object Type", "Business Actor");
-					promptProp(modelelement, "Actor Type", "Actor Type: ", ["Asset", "Department", "Person"]);
-					setPropIfMissing(modelelement, "Position Identifier", "");
-					break;
-				case "system-software":
-					addToFolder("System Software", modelelement, technologyFolder);
-					setPropIfMissing(modelelement, "Object Type", "System Software");
-					promptProp(modelelement, "System Software Vendor", "System Software Vendor: ");
-					promptProp(modelelement, "System Software Product", "System Software Product: ");
-					promptProp(modelelement, "System Software Version", "System Software Version: ");
-					promptProp(modelelement, "System Software Lifecycle State", "System Software Lifecycle State: ", ["Unknown", "Current", "Supported", "End-of-Life"]);
-					promptProp(modelelement, "System Software Licensed", "System Software Licensed: ", ["Unknown", "Yes", "No"]);
-					promptProp(modelelement, "System Software License Type", "System Software License Type: ", ["Unknown", "COTS", "Bespoke (Internal)", "Bespoke (External)", "Open Source (GPLv2)", "Open Source (GPLv3)", "Open Source (MIT)", "Open Source (GNU)"]);
-					break;
-				case "technology-service":
-					addToFolder("Technology Services", modelelement, technologyFolder);
-					setPropIfMissing(modelelement, "Object Type", "Technology Service");
-					break;
-				case "equipment":
-					addToFolder("Technology Equipment", modelelement, technologyFolder);
-					setPropIfMissing(modelelement, "Object Type", "Equipment");
-					break;
-				case "gap":
-					addToFolder("Gaps", modelelement, implementationFolder);
-					setPropIfMissing(modelelement, "Object Type", "Gap");
-					break;
-				case "business-object":
-					addToFolder("Business Objects", modelelement, businessFolder);
-					setPropIfMissing(modelelement, "Entity Class", "");
-					setPropIfMissing(modelelement, "Entity Data Domain", "");
-					break;
-				case "work-package":
-					addToFolder("Work Packages", modelelement, implementationFolder);
-					setPropIfMissing(modelelement, "Object Type", "Work Package");
-					promptProp(modelelement, "Work Package State", "Work Package State: ", ["Unknown", "Active", "Inactive", "Halted", "Completed", "Proposed"]);
-					promptProp(modelelement, "Work Package Type", "Work Package Type: ", ["Unknown", "Non-Project", "Project", "Program of Work"]);
-					promptProp(modelelement, "Work Package Project Type", "Work Package Project Type: ", ["Unknown", "Compliance: External", "Compliance - Internal", "Improvement - Cost", "Improvement - Culture", "Improvement - Production", "Risk Reduction - Material", "Risk Reduction - Non-Material", "Sustaining - Asset Integrity", "Sustaining - Cost", "Sustaining - Capacity"]);
-					// promptProp(modelelement, "Work Package Budget", "Work Package Budget: ");
-					promptProp(modelelement, "Work Package Start Date", "Work Package Start Date (YYYY-MM-DD): ");
-					promptProp(modelelement, "Work Package End Date", "Work Package End Date (YYYY-MM-DD): ");
-					promptProp(modelelement, "Work Package Requestor", "Work Package Requestor: ");
-					promptProp(modelelement, "Work Package Sponsor", "Work Package Sponsor: ");
-					setPropIfMissing(modelelement, "Work Package Reference", "");
-					promptProp(modelelement, "Work Package Investment Amount", "Work Package Investment Amount: ");
-					promptProp(modelelement, "Work Package Function", "Work Package Function: ", ["Unknown", "Technology", "Finance", "Human Resources", "Maintenance", "Projects", "Human Resources", "HSE", "Supply", "Corporate Services"]);
-					promptProp(modelelement, "Work Package Asset", "Work Package Asset: ", ["Coal", "CopperSA", "NiW", "WAIO", "Escondida", "Pampa Norte", "Potash", "Legacy Assets"]);
-					promptProp(modelelement, "Work Package Phase", "Work Package Phase: ", ["Initiation", "Identification", "Selection", "Definition", "Selection & Definition", "Execution", "Close", "Execution & Close"]);
-					promptProp(modelelement, "Work Package Investment Size", "Work Package Investment Size: ");
-					promptProp(modelelement, "Work Package Priority", "Work Package Priority: ", ["Low", "Medium", "High", "Essential", "Growth"]);
-					promptProp(modelelement, "Work Package Budget (CAPEX)", "Work Package Budget (CAPEX): ");
-					promptProp(modelelement, "Work Package Budget (OPEX)", "Work Package Budget (OPEX): ");
-					promptProp(modelelement, "Work Package Actual (CAPEX)", "Work Package Actual (CAPEX): ");
-					promptProp(modelelement, "Work Package Actual (OPEX)", "Work Package Actual (OPEX): ");
-					promptProp(modelelement, "Work Package ROI (Estimated)", "Work Package ROI (Estimated): ");
-					promptProp(modelelement, "Work Package NPV (Estimated)", "Work Package NPV (Estimated): ");
-					break;
-				case "stakeholder":
-					addToFolder("Stakeholder", modelelement, motivationFolder);
-					break;
-				case "constraint":
-					addToFolder("Constraint", modelelement, motivationFolder);
-					break;
-				case "outcome":
-					addToFolder("Outcome", modelelement, motivationFolder);
-					break;
-				case "assessment":
-					addToFolder("Assessment", modelelement, motivationFolder);
-					break;
-				case "business-function":
-					addToFolder("Business Function", modelelement, businessFolder);
-					break;
-				case "product":
-					addToFolder("Business Process", modelelement, businessFolder);
-					break;
-				case "application-collaboration":
-					addToFolder("Application Collaboration", modelelement, applicationFolder);
-					break;
-				case "application-function":
-					addToFolder("Application Function", modelelement, applicationFolder);
-					break;
-				case "application-process":
-					addToFolder("Application Process", modelelement, applicationFolder);
-					break;
-				case "application-event":
-					addToFolder("Application Event", modelelement, applicationFolder);
-					break;
-				case "application-service":
-					addToFolder("Application Service", modelelement, applicationFolder);
-					break;
-				case "device":
-					addToFolder("Device", modelelement, technologyFolder);
-					break;
-				case "system-software":
-					addToFolder("System Software", modelelement, technologyFolder);
-					break;
-				case "technology-collaboration":
-					addToFolder("Technology Collaboration", modelelement, technologyFolder);
-					break;
-				case "path":
-					addToFolder("Path", modelelement, technologyFolder);
-					break;
-				case "communication-network":
-					addToFolder("Communication Network", modelelement, technologyFolder);
-					break;
-				case "technology-function":
-					addToFolder("Technology Function", modelelement, technologyFolder);
-					break;
-				case "technology-process":
-					addToFolder("Technology Process", modelelement, technologyFolder);
-					break;
-				case "technology-interaction":
-					addToFolder("Technology Interaction", modelelement, technologyFolder);
-					break;
-				case "technology-event":
-					addToFolder("Technology Event", modelelement, technologyFolder);
-					break;
-				case "technology-service":
-					addToFolder("Technology Service", modelelement, technologyFolder);
-					break;
-				case "artifact":
-					addToFolder("Artifact", modelelement, technologyFolder);
-					break;
-				case "grouping":
-					addToFolder("Grouping", modelelement, otherFolder);
-					promptProp(modelelement, "Group Class", "Group Class: ", ["Standard (Default)", "Capability Group", "Portfolio", "Azure Subscription"]);
-					break;
-				case "deliverable":
-					addToFolder("Deliverable", modelelement, implementationFolder);
-					setPropIfMissing(modelelement, "Version", "");
-					promptProp(modelelement, "Deliverable State", "Deliverable State: ", ["Draft", "Approved"]);
-					setPropIfMissing(modelelement, "Approved By", "");
-					promptProp(modelelement, "Approved Date", "Approved Date (YYYY-MM-DD): ");
-					setPropIfMissing(modelelement, "Reference", "");
-					break;
-				case "implementation-event":
-					addToFolder("Implementation Event", modelelement, implementationFolder);
-					break;
-				case "plateau":
-					addToFolder("Plateau", modelelement, implementationFolder);
-					break;
-				case "junction":
-					addToFolder("Junction", modelelement, otherFolder);
-					break;
-				// case "":
-				// 	addToFolder("", modelelement,);
-				// 	break;
-				// case "":
-				// 	addToFolder("", modelelement,);
-				// 	break;
-				// case "":
-				// 	addToFolder("", modelelement,);
-				// 	break;
-				// case "technology": //THIS IS A NODE
-				// 	break;
-			}
+		switch (modelelement.type) {
+			case "requirement":
+				addToFolder("Requirements", modelelement, motivationFolder);
+				promptProp(modelelement, "Requirement Type", "Requirement Type: ", ["Functional", "Non-Functional", "Business", "Undefined"]);
+				break;
+			case "driver":
+				addToFolder("Drivers", modelelement, motivationFolder);
+				break;
+			case "goal":
+				addToFolder("Goals", modelelement, motivationFolder);
+				break;
+			case "capability":
+				addToFolder("Capabilities", modelelement, strategyFolder);
+				promptProp(modelelement, "Current Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Current Maturity Assessment - Process", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Current Maturity Assessment - Technology", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Target Maturity Assessment - People", "CMMI Score range: ", ["1", "2", "3", "4", "5"]);
+			case "business-service":
+				addToFolder("Business Services", modelelement, businessFolder);
+				setPropIfMissing(modelelement, "Service Owner", "");
+			case "business-event":
+				addToFolder("Business Events", modelelement, businessFolder);
+				setPropIfMissing(modelelement, "Event Frequency", "");
+				promptProp(modelelement, "Event Periodicity", "Event Period: ", ["msec", "sec", "min", "hour", "day", "month", "year"]);
+				promptProp(modelelement, "Event Asset/Function", "Event Type: ", ["All BHP Asset and Function", "None"]); // check note
+				break;
+			case "business-process":
+				addToFolder("Business Processes", modelelement, businessFolder);
+				setPropIfMissing(modelelement, "Object Type", "Business Process");
+				promptProp(modelelement, "Process Level", "Process Level:");
+				promptProp(modelelement, "Process State", "Process State:");
+				promptProp(modelelement, "Process Maturity - Current State", "Process Maturity - Current State: ", ["1", "2", "3", "4", "5"]);
+				promptProp(modelelement, "Process Maturity - Target State", "Process Maturity - Target State: ", ["1", "2", "3", "4", "5"]);
+				setPropIfMissing(modelelement, "Process Improvement Opportunity", "");
+				setPropIfMissing(modelelement, "Process Artefact", "");
+				setPropIfMissing(modelelement, "Process Artefact Link Reference", ""); //show if process artefact is assigned
+				promptProp(modelelement, "Has Process Owner", "Has Process Owner: ", ["Y", "N"]); // check note
+				setPropIfMissing(modelelement, "Process Owner", ""); // check note
+				promptProp(modelelement, "Process Asset", "Process Asset: ", ["All BHP Asset and Functions", "None"]); // check note
+				promptProp(modelelement, "Process Function", "Process Function: ", ["All BHP Asset and Functions", "None"]); // check note
+				break;
+			case "business-role":
+				addToFolder("Business Roles", modelelement, businessFolder);
+				setPropIfMissing(modelelement, "Object Type", "Business Role");
+				setPropIfMissing(modelelement, "Position Code", "");
+				promptProp(modelelement, "Role Type", "Role Type selected from list: ", ["Employee", "Fixed Term Position", "Contractor", "Apprentice", "Work Experience", "Agency Temp"]);
+				promptProp(modelelement, "Role Employment Status", "Role Employment Status selected from list: ", ["Permanent Fulltime", "Permanent Partime", "Casual", "Fix Term Fulltime", "Fixed Term Parttime"]);
+				break;
+			case "data-object":
+				addToFolder("Data Objects", modelelement, applicationFolder);
+				setPropIfMissing(modelelement, "Object Type", "Data Object");
+				setPropIfMissing(modelelement, "System of Record", "");
+				// setPropIfMissing(modelelement, "Data Domain", "");
+				promptProp(modelelement, "Data Domain", "Data Domain: ", [
+					"Asset Maintenance",
+					"Business Development",
+					"Communications",
+					"Engineering",
+					"Exploration",
+					"Finance",
+					"Health",
+					"Safety and Environment",
+					"Legal and Regulatory Requirements",
+					"Marketing and Sales",
+					"People",
+					"Procurement",
+					"Production - Minerals",
+					"Projects",
+					"Resource Governance and Assurance",
+					"Resource Planning - Minerals",
+					"Risk and Assurance",
+					"Technology",
+					"Warehousing and Distribution",
+				]);
+				setPropIfMissing(modelelement, "Data Steward", "");
+				break;
+			case "application-interface":
+				addToFolder("Application Interfaces", modelelement, applicationFolder);
+				setPropIfMissing(modelelement, "Object Type", "Application Interface");
+				setPropIfMissing(modelelement, "Port", "");
+				break;
+			case "application-component":
+				addToFolder("Applications", modelelement, applicationFolder);
+				setPropIfMissing(modelelement, "Object Type", "Application");
+				setPropIfMissing(modelelement, "Vendor", "");
+				setPropIfMissing(modelelement, "Product", "");
+				promptProp(modelelement, "Application Is Licensed", "Application Is Licensed: ", ["Yes", "No"]);
+				promptProp(modelelement, "Application License Type", "Application License Type: ", ["COTS", "Bespoke (In-House Developed)", "Bespoke (Externally Developed)", "Open Source (GPLv2)", "Open Source (GPLv3)"]);
+				promptProp(modelelement, "Application License Duration", "Application License Duration: ", ["Perpetual", "Annual", "Monthly", "Unknown"]);
+				setPropIfMissing(modelelement, "Application License Cost", "0.0");
+				setPropIfMissing(modelelement, "Application License Number", "");
+				promptProp(modelelement, "Application Vendor Support", "Application Vendor Support: ", ["Yes", "No", "Unknown"]);
+				setPropIfMissing(modelelement, "Application Business Owner", "");
+				promptProp(modelelement, "Application Lifecycle State", "Application Lifecycle State: ", ["Unknown", "Current", "Supported", "End-of-Life"]);
+				setPropIfMissing(modelelement, "Application Alias", "");
+				setPropIfMissing(modelelement, "Application Version", "");
+				promptProp(modelelement, "Application Asset", "Application Asset: ", ["All BHP Assets", "None", "Unknown"]);
+				promptProp(modelelement, "Application Lifecycle Assessment", "Application Lifecycle Assessment: ", ["Unknown", "Evaluate", "Tolerate", "Invest", "Migrate", "Eliminate"]);
+				promptProp(modelelement, "Application Function", "Application Function: ", ["All BHP Functions", "None", "Unknown"]);
+				setPropIfMissing(modelelement, "Application Portfolio", "Application Portfolio: ");
+				promptProp(modelelement, "Application Installation Type", "Application Installation Type: ", ["On-Premise", "Desktop", "PaaS", "Saas", "Hybrid", "Unknown"]);
+				setPropIfMissing(modelelement, "Application GEAR ID", "");
+				setPropIfMissing(modelelement, "Application Identifier", "");
+				promptProp(modelelement, "Application Valid Start Date", "Application Valid Start Date (Format: YYYY-MM-DD):");
+				promptProp(modelelement, "Application Valid Start End", "Application Valid Start End (Format: YYYY-MM-DD):");
+				break;
+			case "technology-interface":
+				addToFolder("Technology Interfaces", modelelement, technologyFolder);
+				setPropIfMissing(modelelement, "Object Type", "Technology Interface");
+				setPropIfMissing(modelelement, "Port", "");
+				break;
+			case "node":
+				addToFolder("Technology Nodes", modelelement, technologyFolder);
+				setPropIfMissing(modelelement, "Object Type", "Technology");
+				setPropIfMissing(modelelement, "Vendor", "");
+				setPropIfMissing(modelelement, "Product", "");
+				promptProp(modelelement, "Is Licensed", "Is Licensed: ", ["Yes", "No"]);
+				promptProp(modelelement, "License Type", "License Type: ", ["COTS", "Bespoke (In-House Developed)", "Bespoke (Externally Developed)", "Open Source (GPLv2)", "Open Source (GPLv3)"]);
+				promptProp(modelelement, "Licensing", "Licensing: ", ["Perpetual", "Annual", "Monthly"]);
+				setPropIfMissing(modelelement, "License Cost", "");
+				setPropIfMissing(modelelement, "Number of Licenses", "");
+				promptProp(modelelement, "Vendor Support", "Vendor Support: ", ["Yes", "No"]);
+				setPropIfMissing(modelelement, "Vendor Support Costs", "");
+				setPropIfMissing(modelelement, "Business Owner", "");
+				promptProp(modelelement, "Environment", "Environment: ", ["Production", "Test", "Quality Assurance", "Development", "User Acceptance Testing"]);
+				setPropIfMissing(modelelement, "Alias", "");
+				setPropIfMissing(modelelement, "IP Address", "");
+				promptProp(modelelement, "Lifecycle State", "Lifecycle State: ", ["Unknown", "Current", "Maintained", "Decomissioned"]);
+				setPropIfMissing(modelelement, "Version", "");
+				promptProp(modelelement, "Technology eTIME", "Technology eTIME: ", ["Unknown", "Evaluate", "Tolerate", "Invest", "Migrate", "Eliminate"]);
+				setPropIfMissing(modelelement, "Technology Portfolio", "");
+				break;
+			case "location":
+				// setPropIfMissing(modelelement, "Location Type", "Logical");
+				addToFolder("Locations", modelelement, otherFolder)
+				setPropIfMissing(modelelement, "Location Address", "");
+				setPropIfMissing(modelelement, "Location Identifier", "");
+				break;
+			case "business-actor":
+				addToFolder("Business Actors", modelelement, businessFolder);
+				setPropIfMissing(modelelement, "Object Type", "Business Actor");
+				promptProp(modelelement, "Actor Type", "Actor Type: ", ["Asset", "Department", "Person"]);
+				setPropIfMissing(modelelement, "Position Identifier", "");
+				break;
+			case "system-software":
+				addToFolder("System Software", modelelement, technologyFolder);
+				setPropIfMissing(modelelement, "Object Type", "System Software");
+				promptProp(modelelement, "System Software Vendor", "System Software Vendor: ");
+				promptProp(modelelement, "System Software Product", "System Software Product: ");
+				promptProp(modelelement, "System Software Version", "System Software Version: ");
+				promptProp(modelelement, "System Software Lifecycle State", "System Software Lifecycle State: ", ["Unknown", "Current", "Supported", "End-of-Life"]);
+				promptProp(modelelement, "System Software Licensed", "System Software Licensed: ", ["Unknown", "Yes", "No"]);
+				promptProp(modelelement, "System Software License Type", "System Software License Type: ", ["Unknown", "COTS", "Bespoke (Internal)", "Bespoke (External)", "Open Source (GPLv2)", "Open Source (GPLv3)", "Open Source (MIT)", "Open Source (GNU)"]);
+				break;
+			case "technology-service":
+				addToFolder("Technology Services", modelelement, technologyFolder);
+				setPropIfMissing(modelelement, "Object Type", "Technology Service");
+				break;
+			case "equipment":
+				addToFolder("Technology Equipment", modelelement, technologyFolder);
+				setPropIfMissing(modelelement, "Object Type", "Equipment");
+				break;
+			case "gap":
+				addToFolder("Gaps", modelelement, implementationFolder);
+				setPropIfMissing(modelelement, "Object Type", "Gap");
+				break;
+			case "business-object":
+				addToFolder("Business Objects", modelelement, businessFolder);
+				setPropIfMissing(modelelement, "Entity Class", "");
+				setPropIfMissing(modelelement, "Entity Data Domain", "");
+				break;
+			case "work-package":
+				addToFolder("Work Packages", modelelement, implementationFolder);
+				setPropIfMissing(modelelement, "Object Type", "Work Package");
+				promptProp(modelelement, "Work Package State", "Work Package State: ", ["Unknown", "Active", "Inactive", "Halted", "Completed", "Proposed"]);
+				promptProp(modelelement, "Work Package Type", "Work Package Type: ", ["Unknown", "Non-Project", "Project", "Program of Work"]);
+				promptProp(modelelement, "Work Package Project Type", "Work Package Project Type: ", ["Unknown", "Compliance: External", "Compliance - Internal", "Improvement - Cost", "Improvement - Culture", "Improvement - Production", "Risk Reduction - Material", "Risk Reduction - Non-Material", "Sustaining - Asset Integrity", "Sustaining - Cost", "Sustaining - Capacity"]);
+				// promptProp(modelelement, "Work Package Budget", "Work Package Budget: ");
+				promptProp(modelelement, "Work Package Start Date", "Work Package Start Date (YYYY-MM-DD): ");
+				promptProp(modelelement, "Work Package End Date", "Work Package End Date (YYYY-MM-DD): ");
+				promptProp(modelelement, "Work Package Requestor", "Work Package Requestor: ");
+				promptProp(modelelement, "Work Package Sponsor", "Work Package Sponsor: ");
+				setPropIfMissing(modelelement, "Work Package Reference", "");
+				promptProp(modelelement, "Work Package Investment Amount", "Work Package Investment Amount: ");
+				promptProp(modelelement, "Work Package Function", "Work Package Function: ", ["Unknown", "Technology", "Finance", "Human Resources", "Maintenance", "Projects", "Human Resources", "HSE", "Supply", "Corporate Services"]);
+				promptProp(modelelement, "Work Package Asset", "Work Package Asset: ", ["Coal", "CopperSA", "NiW", "WAIO", "Escondida", "Pampa Norte", "Potash", "Legacy Assets"]);
+				promptProp(modelelement, "Work Package Phase", "Work Package Phase: ", ["Initiation", "Identification", "Selection", "Definition", "Selection & Definition", "Execution", "Close", "Execution & Close"]);
+				promptProp(modelelement, "Work Package Investment Size", "Work Package Investment Size: ");
+				promptProp(modelelement, "Work Package Priority", "Work Package Priority: ", ["Low", "Medium", "High", "Essential", "Growth"]);
+				promptProp(modelelement, "Work Package Budget (CAPEX)", "Work Package Budget (CAPEX): ");
+				promptProp(modelelement, "Work Package Budget (OPEX)", "Work Package Budget (OPEX): ");
+				promptProp(modelelement, "Work Package Actual (CAPEX)", "Work Package Actual (CAPEX): ");
+				promptProp(modelelement, "Work Package Actual (OPEX)", "Work Package Actual (OPEX): ");
+				promptProp(modelelement, "Work Package ROI (Estimated)", "Work Package ROI (Estimated): ");
+				promptProp(modelelement, "Work Package NPV (Estimated)", "Work Package NPV (Estimated): ");
+				break;
+			case "stakeholder":
+				addToFolder("Stakeholder", modelelement, motivationFolder);
+				break;
+			case "constraint":
+				addToFolder("Constraint", modelelement, motivationFolder);
+				break;
+			case "outcome":
+				addToFolder("Outcome", modelelement, motivationFolder);
+				break;
+			case "assessment":
+				addToFolder("Assessment", modelelement, motivationFolder);
+				break;
+			case "business-function":
+				addToFolder("Business Function", modelelement, businessFolder);
+				break;
+			case "product":
+				addToFolder("Business Process", modelelement, businessFolder);
+				break;
+			case "application-collaboration":
+				addToFolder("Application Collaboration", modelelement, applicationFolder);
+				break;
+			case "application-function":
+				addToFolder("Application Function", modelelement, applicationFolder);
+				break;
+			case "application-process":
+				addToFolder("Application Process", modelelement, applicationFolder);
+				break;
+			case "application-event":
+				addToFolder("Application Event", modelelement, applicationFolder);
+				break;
+			case "application-service":
+				addToFolder("Application Service", modelelement, applicationFolder);
+				break;
+			case "device":
+				addToFolder("Device", modelelement, technologyFolder);
+				break;
+			case "system-software":
+				addToFolder("System Software", modelelement, technologyFolder);
+				break;
+			case "technology-collaboration":
+				addToFolder("Technology Collaboration", modelelement, technologyFolder);
+				break;
+			case "path":
+				addToFolder("Path", modelelement, technologyFolder);
+				break;
+			case "communication-network":
+				addToFolder("Communication Network", modelelement, technologyFolder);
+				break;
+			case "technology-function":
+				addToFolder("Technology Function", modelelement, technologyFolder);
+				break;
+			case "technology-process":
+				addToFolder("Technology Process", modelelement, technologyFolder);
+				break;
+			case "technology-interaction":
+				addToFolder("Technology Interaction", modelelement, technologyFolder);
+				break;
+			case "technology-event":
+				addToFolder("Technology Event", modelelement, technologyFolder);
+				break;
+			case "technology-service":
+				addToFolder("Technology Service", modelelement, technologyFolder);
+				break;
+			case "artifact":
+				addToFolder("Artifact", modelelement, technologyFolder);
+				break;
+			case "grouping":
+				addToFolder("Grouping", modelelement, otherFolder);
+				promptProp(modelelement, "Group Class", "Group Class: ", ["Standard (Default)", "Capability Group", "Portfolio", "Azure Subscription"]);
+				break;
+			case "deliverable":
+				addToFolder("Deliverable", modelelement, implementationFolder);
+				setPropIfMissing(modelelement, "Version", "");
+				promptProp(modelelement, "Deliverable State", "Deliverable State: ", ["Draft", "Approved"]);
+				setPropIfMissing(modelelement, "Approved By", "");
+				promptProp(modelelement, "Approved Date", "Approved Date (YYYY-MM-DD): ");
+				setPropIfMissing(modelelement, "Reference", "");
+				break;
+			case "implementation-event":
+				addToFolder("Implementation Event", modelelement, implementationFolder);
+				break;
+			case "plateau":
+				addToFolder("Plateau", modelelement, implementationFolder);
+				break;
+			case "junction":
+				addToFolder("Junction", modelelement, otherFolder);
+				break;
+		}
 		// });
 	});
 } else {
