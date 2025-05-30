@@ -27,7 +27,7 @@ console.clear();
 console.log("=== IMPACTED WORK PACKAGES ===\n");
 
 var diagram = $(selection).filter("archimate-diagram-model").first();
-var model = diagram.model;
+// var model = diagram.model;
 if (!diagram) {
 	console.log("> No view identified: exiting.");
 	exit();
@@ -75,7 +75,7 @@ if (diagram) {
 				if (cap.target.type == "capability") {
 					console.log("    " + counter + ".", cap.target.name);
 					console.log("  		Active Impacting Work-Packages:");
-					workPackages.each(function (r) {
+					$("."+cap.name).each(function (r) {
 						var src = r.source;
 						// console.log(src.type)
 						// console.log(src.prop("Work Package State"))
