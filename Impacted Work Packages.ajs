@@ -27,6 +27,7 @@ console.clear();
 console.log("=== IMPACTED WORK PACKAGES ===\n");
 
 var diagram = $(selection).filter("archimate-diagram-model").first();
+var model = diagram.model;
 if (!diagram) {
 	console.log("> No view identified: exiting.");
 	exit();
@@ -61,31 +62,40 @@ if (diagram) {
 		}
 
 		// Capabilities & impactors
+		var workPackages = $("work-package")
+		// console.log(workPackages.size(), "Work Packages found in the model.");
+
 		var rels = $(wp).outRels("realization-relationship");
 		var counter = 1;
 		if (rels.size() > 0) {
-			console.log("  Capabilities impacted:", rels.size());
+			// console.log("  Capabilities impacted:", rels.size());
 			console.log("")
 			rels.each(function (cap) {
-				console.log("    " + counter + ".", cap.target.name);
-				console.log("  		Active Impacting Work-Packages:");
-				$("." + cap.target.name)
-					.inRels("realization-relationship")
-					.each(function (r) {
-						var src = r.source;
-						// console.log(src.type)
-						// console.log(src.prop("Work Package State"))
-						// console.log(src.name)
-						// console.log(name)
-						if (
-							src.type === "work-package" &&
-							src.prop("Work Package State") === "Active" &&
-							src.name !== name
-						) {
-							console.log("         •", src.name);
-						}
-					});
-				counter++;
+
+
+
+				if(cap.target.type == "capability") {
+					console.log("    " + counter + ".", cap.target.name);
+					console.log("  		Active Impacting Work-Packages:");
+					$("." + cap.target.name)
+						.inRels("realization-relationship")
+						.each(function (r) {
+							var src = r.source;
+							// console.log(src.type)
+							// console.log(src.prop("Work Package State"))
+							// console.log(src.name)
+							// console.log(name)
+							if (
+								src.type === "work-package" &&
+								src.prop("Work Package State") === "Active" &&
+								src.name !== name
+							) {
+								console.log("         •", src.name);
+							}
+						});
+					counter++;
+				}
+
 			});
 		}
 	});
