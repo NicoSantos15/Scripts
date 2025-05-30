@@ -28,8 +28,8 @@ console.log("=== IMPACTED WORK PACKAGES ===\n");
 
 var diagram = $(selection).filter("archimate-diagram-model").first();
 if (!diagram) {
-  console.log("> No view identified: exiting.");
-  exit();
+	console.log("> No view identified: exiting.");
+	exit();
 }
 
 function isValidDate(dateStr) {
@@ -62,11 +62,13 @@ if (diagram) {
 
 		// Capabilities & impactors
 		var rels = $(wp).outRels("realization-relationship");
+		var counter = 1;
 		if (rels.size() > 0) {
 			console.log("  Capabilities impacted:", rels.size());
+			console.log("")
 			rels.each(function (cap) {
-				console.log("    -", cap.target.name);
-				console.log("  	- Active Impacting Work-Packages:");
+				console.log("    " + counter + ".", cap.target.name);
+				console.log("  		Active Impacting Work-Packages:");
 				$("." + cap.target.name)
 					.inRels("realization-relationship")
 					.each(function (r) {
@@ -83,6 +85,7 @@ if (diagram) {
 							console.log("         •", src.name);
 						}
 					});
+				counter++;
 			});
 		}
 	});
