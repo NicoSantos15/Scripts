@@ -71,30 +71,27 @@ if (diagram) {
 			// console.log("  Capabilities impacted:", rels.size());
 			console.log("")
 			rels.each(function (cap) {
-
-
-
-				if(cap.target.type == "capability") {
+				// workPackages.each(function (modelWp) {
+				if (cap.target.type == "capability") {
 					console.log("    " + counter + ".", cap.target.name);
 					console.log("  		Active Impacting Work-Packages:");
-					$("." + cap.target.name)
-						.inRels("realization-relationship")
-						.each(function (r) {
-							var src = r.source;
-							// console.log(src.type)
-							// console.log(src.prop("Work Package State"))
-							// console.log(src.name)
-							// console.log(name)
-							if (
-								src.type === "work-package" &&
-								src.prop("Work Package State") === "Active" &&
-								src.name !== name
-							) {
-								console.log("         •", src.name);
-							}
-						});
+					$(workPackages).inRels("realization-relationship").each(function (r) {
+						var src = r.source;
+						console.log(src.type)
+						console.log(src.prop("Work Package State"))
+						console.log(src.name)
+						console.log(name)
+						if (
+							src.type === "work-package" &&
+							src.prop("Work Package State") === "Active" &&
+							src.name !== name
+						) {
+							console.log("         •", src.name);
+						}
+					});
 					counter++;
 				}
+				// });
 
 			});
 		}
