@@ -19,7 +19,7 @@ var allModelWPs = $("work-package");
 
 // console.log("Total Work Packages in Model:", allModelWPs.length);
 
-// Only the WPs *shown in the selected view* are reference points
+// Only the work packages *shown in the selected view* are reference points
 $(diagram)
   .find("element")
   .each(function (viewElement) {
@@ -33,13 +33,22 @@ $(diagram)
     console.log("Work Package:", wpName);
 
     if (!startDate || !isValidDate(startDate)) {
-      console.log("  Start Date:", startDate || "N/A");
-    }
-    if (!endDate || !isValidDate(endDate)) {
-      console.log("  End Date:", endDate || "N/A");
+      console.log(
+        "  Start Date: N/A (Invalid date format or missing date on work package)"
+      );
+    } else {
+      console.log("  Start Date:", startDate);
     }
 
-    // Capabilities realized by this view WP
+    if (!endDate || !isValidDate(endDate)) {
+      console.log(
+        "  End Date: N/A (Invalid date format or missing date on work package)"
+      );
+    } else {
+      console.log("  End Date:", endDate);
+    }
+
+    // Capabilities realised by this view WP
     var realizedCaps = $(viewElement)
       .outRels("realization-relationship")
       .filter(function (rel) {
@@ -56,7 +65,7 @@ $(diagram)
 
       allModelWPs.each(function (modelWP) {
         // console.log("    - MODEL WP NAME", modelWP.name);
-		// console.log("      VIEW ELEMENT NAME:", viewElement.name);	
+        // console.log("      VIEW ELEMENT NAME:", viewElement.name);
         if (
           modelWP.concept.id !== viewElement.concept.id &&
           modelWP.prop("Work Package State") == "Active"
@@ -73,7 +82,24 @@ $(diagram)
             });
 
           if (alsoRealizes) {
-            console.log("      ", modelWP.name);
+            var modelStart = modelWP.prop("Work Package Start Date");
+            var modelEnd = modelWP.prop("Work Package End Date");
+
+            if (
+              isValidDate(startDate) &&
+              isValidDate(endDate) &&
+              isValidDate(modelStart) &&
+              isValidDate(modelEnd)
+            ) {
+              var s1 = new Date(startDate);
+              var e1 = new Date(endDate);
+              var s2 = new Date(modelStart);
+              var e2 = new Date(modelEnd);
+
+              if (s1 <= e2 && s2 <= e1) {
+                console.log("      ", modelWP.name);
+              }
+            }
           }
         }
       });
