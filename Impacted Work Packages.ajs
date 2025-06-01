@@ -1,45 +1,85 @@
-﻿/*
- * New Archi Script
- */
- 
-console.show();
+﻿console.show();
 console.clear();
 
-console.log("> Impacted Work Packages Script");
+console.log("=== IMPACTED WORK PACKAGES ===\n");
 
-var nameDiagram = window.prompt("View Name (leave empty to cancel)?", "");
-
-// get a diagram by name
-function selectDiagram(diagramName) {
-  return $("archimate-diagram-model").filter("."+diagramName).first() ;
+var diagram = $(selection).filter("archimate-diagram-model").first();
+if (!diagram) {
+  console.log("> No view identified: exiting.");
+  exit();
+} else {
+  console.log("Selected View:", diagram.name + "\n");
 }
 
-var workpackagecount = 0;
+function isValidDate(dateStr) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
+}
 
-if (nameDiagram != "") {
-		diagram = selectDiagram(nameDiagram);
-		//var workpackages = $(diagram).find("work-package");
-		$(diagram).find("Work-Package").each(function(wp) {
-			console.log("\n",wp,"\n");
-			if ($(wp).outRels("realization-relationship").size() > 0) {
-				console.log("Capabilities impacted: ",$(wp).outRels("realization-relationship").size(),"\n");
-				// Step through each capability impacted
-				$(wp).outRels("realization-relationship").each(function(cap) {
-					console.log("\nCapability: ",cap.target.name);
-					console.log("  Active Impacting Work-Packages:");
-					// Remember thus far the context was the view, need to change context of capabilities and relationships to whole model otherwise will not pickup other workpackages
-					if ($("."+cap.target.name).inRels("realization-relationship").size() >0) {
-						//console.log("Work packages: ",$("."+cap.target.name).inRels("realization-relationship").size(),"\n");
-						$("."+cap.target.name).inRels("realization-relationship").each(function(relwp) {
-							//console.log("Source: ",relwp.source.name,"\n");
-							if ((relwp.source.type === "work-package") && (relwp.source.prop("Work Package State") === "Active") && (wp.name != relwp.source.name)) {
-								console.log("\t - ",relwp.source.name);
-							}
-						})
-					}
-				})
-			}
-		});
-	}
+var allModelWPs = $("work-package");
 
-console.log("\n > Impacted Work Packages Script Script");
+// console.log("Total Work Packages in Model:", allModelWPs.length);
+
+// Only the WPs *shown in the selected view* are reference points
+$(diagram)
+  .find("element")
+  .each(function (viewElement) {
+    if (viewElement.type != "work-package") return;
+
+    var wpName = viewElement.name;
+    var startDate = viewElement.prop("Work Package Start Date");
+    var endDate = viewElement.prop("Work Package End Date");
+
+    console.log("");
+    console.log("Work Package:", wpName);
+
+    if (!startDate || !isValidDate(startDate)) {
+      console.log("  Start Date:", startDate || "N/A");
+    }
+    if (!endDate || !isValidDate(endDate)) {
+      console.log("  End Date:", endDate || "N/A");
+    }
+
+    // Capabilities realized by this view WP
+    var realizedCaps = $(viewElement)
+      .outRels("realization-relationship")
+      .filter(function (rel) {
+        // console.log("  Realized Capability:", rel.target.type);
+        return rel.target.type == "capability";
+      });
+
+    var counter = 1;
+
+    realizedCaps.each(function (rel) {
+      var cap = rel.target;
+      console.log("  " + counter + ".", cap.name);
+      console.log("    Active Impacting Work-Packages:");
+
+      allModelWPs.each(function (modelWP) {
+        // console.log("    - MODEL WP NAME", modelWP.name);
+		// console.log("      VIEW ELEMENT NAME:", viewElement.name);	
+        if (
+          modelWP.concept.id !== viewElement.concept.id &&
+          modelWP.prop("Work Package State") == "Active"
+        ) {
+          // validate if the model WP realizes the capability
+          var alsoRealizes = $(modelWP)
+            .outRels("realization-relationship")
+            .some(function (r) {
+              return (
+                r.target.type == "capability" &&
+                r.target.name == cap.name &&
+                cap.type == "capability"
+              );
+            });
+
+          if (alsoRealizes) {
+            console.log("      ", modelWP.name);
+          }
+        }
+      });
+
+      counter++;
+    });
+  });
+
+console.log("\nEnd of Impacted Work Packages Report");
