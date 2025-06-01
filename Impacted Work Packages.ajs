@@ -129,7 +129,10 @@ $(diagram)
               if (s1 <= e2 && s2 <= e1) {
                 console.log("      ", modelWP.name);
               }
-            }
+            } else if (!startDate || !endDate || !modelStart || !modelEnd) {
+			  // If any date is invalid, skip the overlap check
+			  console.log("      ",modelWP.name,"(Date validation skipped due to missing or invalid dates)");
+			}
           }
         }
       });
