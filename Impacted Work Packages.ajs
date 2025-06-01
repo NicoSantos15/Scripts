@@ -1,8 +1,34 @@
-﻿console.show();
+﻿/*
+ * ----------------------------------------------------------------------------
+ * Script: Impacted Work Packages Report
+ * Tool: jArchi
+ *
+ * Description:
+ * For each Work Package shown in the selected diagram view, this script:
+ * - Validates and displays its start and end dates.
+ * - Identifies capabilities it realizes.
+ * - Finds other Work Packages (in the entire model) that:
+ *     - Realize the same capability
+ *     - Are marked as "Active"
+ *     - Have overlapping date ranges
+ * - Reports only those work packages that truly affect the selected view WP.
+ *
+ * Usage:
+ * - Select an ArchiMate diagram view in the model tree.
+ * - Run this script in jArchi.
+ * - Review the console output for impacted Work Packages.
+ *
+ * Ownership: Property of BHP
+ * Version: 1.1
+ * ----------------------------------------------------------------------------
+ */
+
+console.show();
 console.clear();
 
 console.log("=== IMPACTED WORK PACKAGES ===\n");
 
+// Get the selected diagram view
 var diagram = $(selection).filter("archimate-diagram-model").first();
 if (!diagram) {
   console.log("> No view identified: exiting.");
@@ -11,15 +37,15 @@ if (!diagram) {
   console.log("Selected View:", diagram.name + "\n");
 }
 
+// Validate date string format (YYYY-MM-DD)
 function isValidDate(dateStr) {
   return /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
 }
 
+// Fetch all work packages in the model
 var allModelWPs = $("work-package");
 
-// console.log("Total Work Packages in Model:", allModelWPs.length);
-
-// Only the work packages *shown in the selected view* are reference points
+// Iterate over each work package *in the selected view*
 $(diagram)
   .find("element")
   .each(function (viewElement) {
@@ -32,6 +58,7 @@ $(diagram)
     console.log("");
     console.log("Work Package:", wpName);
 
+    // Validate and print start date
     if (!startDate || !isValidDate(startDate)) {
       console.log(
         "  Start Date: N/A (Invalid date format or missing date on work package)"
@@ -40,6 +67,7 @@ $(diagram)
       console.log("  Start Date:", startDate);
     }
 
+    // Validate and print end date
     if (!endDate || !isValidDate(endDate)) {
       console.log(
         "  End Date: N/A (Invalid date format or missing date on work package)"
@@ -48,29 +76,29 @@ $(diagram)
       console.log("  End Date:", endDate);
     }
 
-    // Capabilities realised by this view WP
+    // Find all capabilities realized by this WP
     var realizedCaps = $(viewElement)
       .outRels("realization-relationship")
       .filter(function (rel) {
-        // console.log("  Realized Capability:", rel.target.type);
         return rel.target.type == "capability";
       });
 
     var counter = 1;
 
+    // For each capability realized by the view WP
     realizedCaps.each(function (rel) {
       var cap = rel.target;
       console.log("  " + counter + ".", cap.name);
       console.log("    Active Impacting Work-Packages:");
 
+      // Iterate through all model work packages
       allModelWPs.each(function (modelWP) {
-        // console.log("    - MODEL WP NAME", modelWP.name);
-        // console.log("      VIEW ELEMENT NAME:", viewElement.name);
+        // Skip if same WP or not active
         if (
           modelWP.concept.id !== viewElement.concept.id &&
           modelWP.prop("Work Package State") == "Active"
         ) {
-          // validate if the model WP realizes the capability
+          // Check if the model WP realizes the same capability
           var alsoRealizes = $(modelWP)
             .outRels("realization-relationship")
             .some(function (r) {
@@ -82,6 +110,7 @@ $(diagram)
             });
 
           if (alsoRealizes) {
+            // Retrieve and validate model WP's start/end dates
             var modelStart = modelWP.prop("Work Package Start Date");
             var modelEnd = modelWP.prop("Work Package End Date");
 
@@ -96,6 +125,7 @@ $(diagram)
               var s2 = new Date(modelStart);
               var e2 = new Date(modelEnd);
 
+              // Check if date ranges overlap
               if (s1 <= e2 && s2 <= e1) {
                 console.log("      ", modelWP.name);
               }
