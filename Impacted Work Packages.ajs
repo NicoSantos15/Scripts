@@ -17,7 +17,7 @@
  * - Select an ArchiMate diagram view in the model tree.
  * - Run this script in jArchi.
  * - Review the console output for impacted Work Packages.
- * - Null dates will appear on display. 
+ * - Null dates will appear on display.
  * - The script will not fail if a date is missing or in an invalid format but will leave a note which requires a proper date.
  *
  * Ownership: Property of BHP
@@ -42,26 +42,28 @@ if (!diagram) {
 
 function parseDate(dateStr) {
   if (!dateStr || typeof dateStr !== "string") return null;
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
-    var parts = dateStr.split("/");
-    dateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
+
+  // Accept formats like d/m/yyyy, dd/mm/yyyy
+  var dmFormat = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+  var match = dateStr.match(dmFormat);
+  if (match) {
+    var day = match[1].padStart(2, "0");
+    var month = match[2].padStart(2, "0");
+    var year = match[3];
+    return new Date(`${year}-${month}-${day}`);
   }
 
-  return new Date(dateStr);
+  // Accept yyyy-mm-dd (ISO 8601)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return new Date(dateStr);
+  }
+
+  return null; // Fallback for unrecognized format
 }
 
-
 function isValidDate(dateStr) {
-  if (!dateStr || typeof dateStr !== "string") return false;
-
-  // If format is dd/mm/yyyy, convert it just for checking
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
-    var parts = dateStr.split("/");
-    dateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
-  }
-
-  // Now parse yyyy-mm-dd
-  return /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
+  var date = parseDate(dateStr);
+  return date instanceof Date && !isNaN(date.getTime());
 }
 
 // Fetch all work packages in the model
@@ -76,23 +78,27 @@ $(diagram)
     var wpName = viewElement.name;
     var rawStart = viewElement.prop("Work Package Start Date");
     var rawEnd = viewElement.prop("Work Package End Date");
-    
+
     var startDate = parseDate(rawStart);
     var endDate = parseDate(rawEnd);
-    
+
     console.log("");
     console.log("Work Package:", wpName);
-    
+
     // Validate and print start date
     if (!rawStart || !isValidDate(rawStart)) {
-      console.log("  Start Date: N/A (Invalid date format or missing date on work package)");
+      console.log(
+        "  Start Date: N/A (Invalid date format or missing date on work package)"
+      );
     } else {
       console.log("  Start Date:", rawStart);
     }
-    
+
     // Validate and print end date
     if (!rawEnd || !isValidDate(rawEnd)) {
-      console.log("  End Date: N/A (Invalid date format or missing date on work package)");
+      console.log(
+        "  End Date: N/A (Invalid date format or missing date on work package)"
+      );
     } else {
       console.log("  End Date:", rawEnd);
     }
@@ -110,7 +116,9 @@ $(diagram)
     realizedCaps.each(function (rel) {
       var cap = rel.target;
       console.log("  " + counter + ".", cap.name);
-      console.log("    Active Impacting Work-Packages:");
+      console.log("    - Active Impacting Work-Packages:");
+
+      var skippedWPs = []; // Declare skipped list for this capability
 
       // Iterate through all model work packages
       allModelWPs.each(function (modelWP) {
@@ -134,10 +142,10 @@ $(diagram)
             // Retrieve and validate model WP's start/end dates
             var rawModelStart = modelWP.prop("Work Package Start Date");
             var rawModelEnd = modelWP.prop("Work Package End Date");
-            
+
             var modelStart = parseDate(rawModelStart);
             var modelEnd = parseDate(rawModelEnd);
-            
+
             if (
               isValidDate(rawStart) &&
               isValidDate(rawEnd) &&
@@ -147,19 +155,27 @@ $(diagram)
               var s1 = startDate;
               var e1 = endDate;
               var s2 = modelStart;
-              var e2 = modelEnd;              
+              var e2 = modelEnd;
 
               // Check if date ranges overlap
               if (s1 <= e2 && s2 <= e1) {
                 console.log("      ", modelWP.name);
               }
-            } else if (!startDate || !endDate || !modelStart || !modelEnd) {
-              // If any date is invalid, skip the overlap check
-              console.log("      ", modelWP.name, "(Date validation skipped due to missing or invalid date format (YYYY-MM-DD or DD/MM/YYYY))");
+            } else {
+              // Collect skipped WP names
+              skippedWPs.push(modelWP.name);
             }
           }
         }
       });
+
+      // Print skipped WPs after all valid ones
+      if (skippedWPs.length > 0) {
+        console.log("    - Skipped due to missing or invalid dates:");
+        skippedWPs.forEach(function (name) {
+          console.log("      ",name);
+        });
+      }
 
       counter++;
     });
