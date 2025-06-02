@@ -1,14 +1,14 @@
 ﻿/*
  * ----------------------------------------------------------------------------
- * Script: Impacted Work Packages Report
+ * Script: Impacted Work Packages
  * Tool: jArchi
  *
  * Description:
  * For each Work Package shown in the selected diagram view, this script:
  * - Validates and displays its start and end dates.
- * - Identifies capabilities it realizes.
+ * - Identifies capabilities it realises.
  * - Finds other Work Packages (in the entire model) that:
- *     - Realize the same capability
+ *     - Realise the same capability
  *     - Are marked as "Active"
  *     - Have overlapping date ranges
  * - Reports only those work packages that truly affect the selected view WP.
@@ -17,9 +17,12 @@
  * - Select an ArchiMate diagram view in the model tree.
  * - Run this script in jArchi.
  * - Review the console output for impacted Work Packages.
+ * - Null dates will appear on display. 
+ * - The script will not fail if a date is missing or in an invalid format but will leave a note which requires a proper date.
  *
  * Ownership: Property of BHP
  * Version: 1.1
+ *        : 1.2
  * ----------------------------------------------------------------------------
  */
 
@@ -39,8 +42,6 @@ if (!diagram) {
 
 function parseDate(dateStr) {
   if (!dateStr || typeof dateStr !== "string") return null;
-
-  // Convert dd/mm/yyyy → yyyy-mm-dd
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
     var parts = dateStr.split("/");
     dateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
