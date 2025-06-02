@@ -46,26 +46,18 @@ if (!diagram) {
 // }
 
 function isValidDate(dateStr) {
-  return toDate(dateStr) !== null;
-}
+  if (!dateStr || typeof dateStr !== "string") return false;
 
-// Converts either yyyy-mm-dd or dd/mm/yyyy to a Date object
-function toDate(dateStr) {
-  if (!dateStr || typeof dateStr !== "string") return null;
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    var d = toDate(dateStr);
-    return isNaN(d) ? null : d;
-  }
-
+  // If format is dd/mm/yyyy, convert it just for checking
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
     var parts = dateStr.split("/");
-    var d = toDate(`${parts[2]}-${parts[1]}-${parts[0]}`);
-    return isNaN(d) ? null : d;
+    dateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
   }
 
-  return null;
+  // Now parse yyyy-mm-dd
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
 }
+
 
 // Fetch all work packages in the model
 var allModelWPs = $("work-package");
@@ -145,10 +137,10 @@ $(diagram)
               isValidDate(modelStart) &&
               isValidDate(modelEnd)
             ) {
-              var s1 = toDate(startDate);
-              var e1 = toDate(endDate);
-              var s2 = toDate(modelStart);
-              var e2 = toDate(modelEnd);
+              var s1 = new Date(startDate);
+              var e1 = new Date(endDate);
+              var s2 = new Date(modelStart);
+              var e2 = new Date(modelEnd);
 
               // Check if date ranges overlap
               if (s1 <= e2 && s2 <= e1) {
