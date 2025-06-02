@@ -1,0 +1,25 @@
+As a program/domain/enterprise architect, and given a base viewpoint (standard archimate viewpoint, e.g. capability application landscape), I want a script that will apply a heatmap (colouring of elements) to the viewpoint based on a specified property of those elements so that I can visually represent aspects of an architecture landscape to other stakeholders / leaders within the business.
+
+The script should prompt the user for the following:
+
+The element type (from the element types found in the selected view) that are to be coloured.
+
+The property from those elements in the view (from the properties that exist on the elements) that is to be used to base the colouring on.
+
+The buckets, groupings or values / value ranges that should be used from the property values (e.g. if the property values are enumerated list then what items in that enumerated list should be used, or if the property values are numbers then what ranges of numbers should be used), and what colour should be applied for each category / bucket / range.
+
+The script should then apply this colouring scheme to the view.
+
+A legend to represent the colouring scheme should also be added to the view, or appended to the existing legend if a legend already exists on the view.
+
+Example of a base viewpoint - Capability Application Landscape Viewpoint
+
+Example of a coloured / heatmap viewpoint - Capability Application (Lifecycle) Landscape Viewpoint
+
+Ignore the note / box annotations in the corner of the application component elements in this example as that is covered by TEP-1789
+
+Example script - Application Lifecycle State Heatmap.ajs
+
+
+
+This colormap wizard script may be able to be used as reference and/or modified / extended - GitHub - rchevallier/jarchi-lib: ArchimateTool jArchi script library
