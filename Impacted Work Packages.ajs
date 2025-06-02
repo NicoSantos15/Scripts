@@ -73,8 +73,8 @@ $(diagram)
     if (viewElement.type != "work-package") return;
 
     var wpName = viewElement.name;
-    var startDate = viewElement.prop("Work Package Start Date");
-    var endDate = viewElement.prop("Work Package End Date");
+    var startDate = parseDate(viewElement.prop("Work Package Start Date"));
+    var endDate = parseDate(viewElement.prop("Work Package End Date"));
 
     console.log("");
     console.log("Work Package:", wpName);
@@ -132,8 +132,8 @@ $(diagram)
 
           if (alsoRealizes) {
             // Retrieve and validate model WP's start/end dates
-            var modelStart = modelWP.prop("Work Package Start Date");
-            var modelEnd = modelWP.prop("Work Package End Date");
+            var modelStart = parseDate(modelWP.prop("Work Package Start Date"));
+            var modelEnd = parseDate(modelWP.prop("Work Package End Date"));
 
             if (
               isValidDate(startDate) &&
@@ -141,15 +141,10 @@ $(diagram)
               isValidDate(modelStart) &&
               isValidDate(modelEnd)
             ) {
-              // var s1 = new Date(startDate);
-              // var e1 = new Date(endDate);
-              // var s2 = new Date(modelStart);
-              // var e2 = new Date(modelEnd);
-
-              var s1 = parseDate(startDate);
-              var e1 = parseDate(endDate);
-              var s2 = parseDate(modelStart);
-              var e2 = parseDate(modelEnd);
+              var s1 = new Date(startDate);
+              var e1 = new Date(endDate);
+              var s2 = new Date(modelStart);
+              var e2 = new Date(modelEnd);
 
               // Check if date ranges overlap
               if (s1 <= e2 && s2 <= e1) {
