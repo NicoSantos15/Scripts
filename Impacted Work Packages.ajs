@@ -37,13 +37,18 @@ if (!diagram) {
   console.log("Selected View:", diagram.name + "\n");
 }
 
-// Validate date string format (YYYY-MM-DD)
-// function isValidDate(dateStr) {
-//   return (
-//     (/^\d{4}-\d{2}-\d{2}$/.test(dateStr) || /^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) && 
-//     !isNaN(Date.parse(dateStr.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")))
-//   );
-// }
+function parseDate(dateStr) {
+  if (!dateStr || typeof dateStr !== "string") return null;
+
+  // Convert dd/mm/yyyy → yyyy-mm-dd
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+    var parts = dateStr.split("/");
+    dateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+
+  return new Date(dateStr);
+}
+
 
 function isValidDate(dateStr) {
   if (!dateStr || typeof dateStr !== "string") return false;
@@ -57,7 +62,6 @@ function isValidDate(dateStr) {
   // Now parse yyyy-mm-dd
   return /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
 }
-
 
 // Fetch all work packages in the model
 var allModelWPs = $("work-package");
@@ -137,10 +141,15 @@ $(diagram)
               isValidDate(modelStart) &&
               isValidDate(modelEnd)
             ) {
-              var s1 = new Date(startDate);
-              var e1 = new Date(endDate);
-              var s2 = new Date(modelStart);
-              var e2 = new Date(modelEnd);
+              // var s1 = new Date(startDate);
+              // var e1 = new Date(endDate);
+              // var s2 = new Date(modelStart);
+              // var e2 = new Date(modelEnd);
+
+              var s1 = parseDate(startDate);
+              var e1 = parseDate(endDate);
+              var s2 = parseDate(modelStart);
+              var e2 = parseDate(modelEnd);
 
               // Check if date ranges overlap
               if (s1 <= e2 && s2 <= e1) {
