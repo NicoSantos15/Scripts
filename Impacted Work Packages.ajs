@@ -73,28 +73,27 @@ $(diagram)
     if (viewElement.type != "work-package") return;
 
     var wpName = viewElement.name;
-    var startDate = parseDate(viewElement.prop("Work Package Start Date"));
-    var endDate = parseDate(viewElement.prop("Work Package End Date"));
-
+    var rawStart = viewElement.prop("Work Package Start Date");
+    var rawEnd = viewElement.prop("Work Package End Date");
+    
+    var startDate = parseDate(rawStart);
+    var endDate = parseDate(rawEnd);
+    
     console.log("");
     console.log("Work Package:", wpName);
-
+    
     // Validate and print start date
-    if (!startDate || !isValidDate(startDate)) {
-      console.log(
-        "  Start Date: N/A (Invalid date format or missing date on work package)"
-      );
+    if (!rawStart || !isValidDate(rawStart)) {
+      console.log("  Start Date: N/A (Invalid date format or missing date on work package)");
     } else {
-      console.log("  Start Date:", startDate);
+      console.log("  Start Date:", rawStart);
     }
-
+    
     // Validate and print end date
-    if (!endDate || !isValidDate(endDate)) {
-      console.log(
-        "  End Date: N/A (Invalid date format or missing date on work package)"
-      );
+    if (!rawEnd || !isValidDate(rawEnd)) {
+      console.log("  End Date: N/A (Invalid date format or missing date on work package)");
     } else {
-      console.log("  End Date:", endDate);
+      console.log("  End Date:", rawEnd);
     }
 
     // Find all capabilities realized by this WP
@@ -132,19 +131,22 @@ $(diagram)
 
           if (alsoRealizes) {
             // Retrieve and validate model WP's start/end dates
-            var modelStart = parseDate(modelWP.prop("Work Package Start Date"));
-            var modelEnd = parseDate(modelWP.prop("Work Package End Date"));
-
+            var rawModelStart = modelWP.prop("Work Package Start Date");
+            var rawModelEnd = modelWP.prop("Work Package End Date");
+            
+            var modelStart = parseDate(rawModelStart);
+            var modelEnd = parseDate(rawModelEnd);
+            
             if (
-              isValidDate(startDate) &&
-              isValidDate(endDate) &&
-              isValidDate(modelStart) &&
-              isValidDate(modelEnd)
+              isValidDate(rawStart) &&
+              isValidDate(rawEnd) &&
+              isValidDate(rawModelStart) &&
+              isValidDate(rawModelEnd)
             ) {
-              var s1 = new Date(startDate);
-              var e1 = new Date(endDate);
-              var s2 = new Date(modelStart);
-              var e2 = new Date(modelEnd);
+              var s1 = startDate;
+              var e1 = endDate;
+              var s2 = modelStart;
+              var e2 = modelEnd;              
 
               // Check if date ranges overlap
               if (s1 <= e2 && s2 <= e1) {
