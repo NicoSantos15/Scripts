@@ -1,0 +1,8 @@
+{
+  "name": "Work Package End Date",
+  "type": "Categorical",
+  "resetDefault": true,
+  "colormap": {
+    "30/10/2025": "#FF8040"
+  }
+}

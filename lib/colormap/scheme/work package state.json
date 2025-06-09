@@ -1,0 +1,8 @@
+{
+  "name": "Work Package State",
+  "type": "Categorical",
+  "resetDefault": true,
+  "colormap": {
+    "Active": "#00FF00"
+  }
+}

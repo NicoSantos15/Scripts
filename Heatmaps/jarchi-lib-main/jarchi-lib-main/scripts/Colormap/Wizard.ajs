@@ -61,6 +61,27 @@ function gatherViewPropertiesInfo(view, property = undefined) {
     return result;
 }
 
+function getPropertiesByElementType(view, selectedType) {
+    const props = new Map();
+
+    $(view).find("element").each(e => {
+
+
+
+        // if (selectedType != "All" || e.type != selectedType) return;
+        console.log("I HAVE TO CHECK HERE" + selectedType)
+        for (const p of e.prop()) {
+            if (!props.has(p)) props.set(p, new Set());
+            props.get(p).add(e.prop(p));
+        }
+    });
+
+    return Object.fromEntries(
+        [...props.entries()].sort().map(([name, values]) => [name, [...values].sort()])
+    );
+}
+
+
 
 /**
  * Apply to the view the heatmap as configured by the wizard
@@ -154,7 +175,8 @@ function colorWizard(view, openView = false) {
         // view.openInUI() no api in jscript ;-(
     }
 
-    const scheme = Wizard.execute(gatherViewPropertiesInfo(view), view.prop(COLORMAP_PROPERTY));
+    // I should check this properly, this will fail to check for the element properties if the gatherViewProperties fire fir
+    const scheme = Wizard.execute();
     if (scheme) {
         log.debug(`scheme = ${JSON.stringify(scheme, null, 2)}`)
         applyColorScheme(view, scheme);
@@ -163,7 +185,7 @@ function colorWizard(view, openView = false) {
     } else {
         log.warn("execution cancelled");
         return false
-    }    
+    }
 }
 
 
