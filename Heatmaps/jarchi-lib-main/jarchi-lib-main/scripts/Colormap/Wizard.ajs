@@ -1,10 +1,5 @@
 /**
  * SWT Wizard to set a color based of property value
- * 
- * @license Apache-2.0 cf LICENSE-2.0.txt
- * @author rchevallier
- * @copyright 2023 rchevallier
- * @see {@link ../../doc/Colormap%wizard.md}
  */
 
 if (typeof __CALLER_SCRIPT__ == 'undefined') {
@@ -171,7 +166,7 @@ if (typeof __CALLER_SCRIPT__ != 'undefined') {
     log.trace(`${__FILE__} loaded as a library for '${__CALLER_SCRIPT__}'`)
 } else {
     log.info("*** Colormap: Wizard - start")
-    const theView = getCurrentView();
+    const theView = getCurrentView(); 
     colorWizard(theView);
     log.info("*** Colormap: Wizard - end.");
 }
