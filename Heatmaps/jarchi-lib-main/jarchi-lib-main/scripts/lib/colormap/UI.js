@@ -33,6 +33,59 @@ const SelectionListener = Java.type('org.eclipse.swt.events.SelectionListener');
 const CustomColorDialog = Java.type('com.archimatetool.editor.ui.components.CustomColorDialog');
 const ColorMapWizardPage = Java.extend(Java.type('org.eclipse.jface.wizard.WizardPage'));
 
+const pageElementTypeSelection = new ColorMapWizardPage("pageElementTypeSelection", {
+    createControl(parent) {
+        try {
+          log.trace("pageElementTypeSelection...");
+  
+          const container = new Composite(parent, SWT.NONE);
+          GridLayoutFactory.swtDefaults()
+            .numColumns(2)
+            .margins(20, 10)
+            .spacing(20, 10)
+            .applyTo(container);
+  
+          WidgetFactory.label(SWT.NONE)
+            .text("Element Type:")
+            .layoutData(GridDataFactory.fillDefaults().create())
+            .create(container);
+  
+          // const elementTypes = ["All", "BusinessActor", "BusinessProcess", "ApplicationComponent", "TechnologyNode"];
+  
+          // get the elements from the selected view
+          const view = getCurrentView();
+          const elementsInView = $(view).find("element");
+          const elementTypesSet = new Set();
+          elementsInView.each((el) => elementTypesSet.add(el.type));
+          const elementTypes = ["All", ...Array.from(elementTypesSet).sort()];
+  
+          const list = new ListBox(container, SWT.BORDER | SWT.SINGLE);
+          list.setItems(Java.to(elementTypes, StringArray));
+          list.setLayoutData(new GridData(GridData.FILL_BOTH));
+  
+          // Wizard.selectedElementType = elementTypes[1]; // default
+          list.addSelectionListener(
+            SelectionListener.widgetSelectedAdapter((e) => {
+              Wizard.selectedElementType = list.getSelection()[0];
+              selected_element_type = list.getSelection()[0];
+              log.info(`Selected element type: ${Wizard.selectedElementType}`);
+              pageElementTypeSelection.setPageComplete(true);
+            })
+          );
+  
+          pageElementTypeSelection.setTitle("Select Element Type");
+          pageElementTypeSelection.setDescription(
+            "Choose the type of element you want to apply colour mapping to."
+          );
+          pageElementTypeSelection.setControl(container);
+          pageElementTypeSelection.setPageComplete(true); // or false if you want to force selection
+          log.trace("...pageElementTypeSelection created");
+        } catch (err) {
+          log.error("Error in pageElementTypeSelection: " + err.toString());
+        }
+    }
+  });
+
 const pagePropertySelection = new ColorMapWizardPage("pagePropertySelection", {
 
     createControl(parent) 
@@ -788,6 +841,7 @@ const Wizard = {
         const ColorMapWizard = Java.extend(Java.type('org.eclipse.jface.wizard.Wizard'));
         const colorMapWizard = new ColorMapWizard (WIZARD_SUBCLASS_EXTENSION);
         colorMapWizard.setHelpAvailable(false);
+        colorMapWizard.addPage(pageElementTypeSelection);
         colorMapWizard.addPage(pagePropertySelection);
         colorMapWizard.addPage(pageLabelsSelection);
         colorMapWizard.addPage(pageCategoryColor);
