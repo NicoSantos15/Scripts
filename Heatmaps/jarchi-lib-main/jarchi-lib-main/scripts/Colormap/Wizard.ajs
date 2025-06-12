@@ -177,7 +177,7 @@ function colorWizard(view, openView = false) {
 
     const elements = $(view).find("element");
 
-    const elementMap = new Map();
+    // const elementMap = new Map();
     const elementNames = [];
     const seenTypes = new Set();   // track element types
 
@@ -185,9 +185,9 @@ function colorWizard(view, openView = false) {
         if (seenTypes.has(el.type)) return;  // skip if type already seen
         seenTypes.add(el.type);              // mark type as seen
 
-        const name = el.name ? el.name : "(unnamed)";
-        elementMap.set(el.name, el.type);
-        elementNames.push(name);
+        // const name = el.name ? el.name : "(unnamed)";
+        // elementMap.set(el.name, el.type);
+        elementNames.push(el.type);
     });
 
     const selectedName = window.promptSelection("Select an element from the view:", elementNames);
@@ -195,13 +195,13 @@ function colorWizard(view, openView = false) {
         console.log("No element selected.");
         return false;
     }
-
-    elementMap.forEach((value, key) => {
-        console.log(`Key: ${key}`, `Value: ${value}`);
-        if (key == selectedName) {
-            selectedType = value;
-        }
-    });
+    selectedType = selectedName;
+    // elementMap.forEach((value, key) => {
+    //     console.log(`Key: ${key}`, `Value: ${value}`);
+    //     if (key == selectedName) {
+    //         selectedType = value;
+    //     }
+    // });
 
     console.log(`Selected element type:` + selectedType);
 
