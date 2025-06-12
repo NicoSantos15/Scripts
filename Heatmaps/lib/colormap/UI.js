@@ -1,11 +1,10 @@
 /**
- * SWT UI Wizard classes for Colormap wizard.ajs script
+ * SWT UI Wizard classes for Colourmap wizard.ajs script
  *
  * @license Apache-2.0 cf LICENSE-2.0.txt
  * @author rchevallier
  * @copyright 2023 rchevallier
  * @see {@link ./doc/Colormap%20wizard.md}
- * @see {@link ../Colormap%20wizard.ajs}
  */
 
 load(__DIR__ + "ImageRegistry.js");

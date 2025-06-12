@@ -5,7 +5,6 @@
  * @author rchevallier
  * @copyright 2023 rchevallier
  * @see {@link ./doc/Colormap%20wizard.md}
- * @see {@link ../Colormap%20wizard.ajs}
  * @see {@link ../ColormapUI.js}
  */
 

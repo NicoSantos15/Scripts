@@ -37,8 +37,14 @@ function gatherViewPropertiesInfo(view, property = undefined) {
     /** 
      * @type {Map<string,Set<string>>} 
      */
-    const props = new Map(); 
-    $(view).find(String(getElementProperties(view))).each (
+    const props = new Map();
+    let element_type = String(getElementProperties(view));
+    if (!element_type) {
+        log.error("No element type selected, stopping");
+        // MessageDialog.openError(shell, "No element type", "No element type selected. Stopping.");
+        exit();
+    }
+    $(view).find(element_type).each (
         (e) => {
             for (let p of e.prop()) {
                 if (property === undefined || p === property) {
@@ -54,8 +60,7 @@ function gatherViewPropertiesInfo(view, property = undefined) {
     const result = Object.fromEntries([...props.entries()].sort().map(([pname, labels]) => [pname, [...labels].sort()]));
     log.trace('collected:' + JSON.stringify(result, null, 2));
     if (Object.keys(result).length == 0) {
-        MessageDialog.openError(shell, "No properties", "No property found among the views elements");
-        log.error("No property found in these views elements. Stopping");
+        console.log("Exiting");
         exit();
     }
     return result;
@@ -157,11 +162,11 @@ function getElementProperties(view) {
     const selectedName = window.promptSelection("Select an element from the view:", elementNames);
     if (!selectedName) {
         console.log("No element selected.");
-        return false;
+        // return false;
     }
 
     elementMap.forEach((value, key) => {
-        console.log(`Key: ${key}`, `Value: ${value}`);
+        // console.log(`Key: ${key}`, `Value: ${value}`);
         if(key == selectedName) {
             if (key == "All") {
                 selectedType = "element";       // special case for 'All'

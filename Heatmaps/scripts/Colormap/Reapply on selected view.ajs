@@ -77,11 +77,11 @@ function reapplyOnView(view) {
     }
 }
 
-// this global variable is used as a marker flag so Colormap/Wizard.ajs is only used as a library, and not as a main script
+// this global variable is used as a marker flag so Colormap/Colourmap Wizard.ajs is only used as a library, and not as a main script
 if (typeof __CALLER_SCRIPT__ == 'undefined') {
     var __CALLER_SCRIPT__ = __FILE__ 
 }
-load(__DIR__ + "Wizard.ajs");
+load(__DIR__ + "Colourmap Wizard.ajs");
 
 if (__CALLER_SCRIPT__ != __FILE__ ) {
     log.info(`${__FILE__} loaded as library by ${__CALLER_SCRIPT__}`)

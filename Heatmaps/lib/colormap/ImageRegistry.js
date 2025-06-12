@@ -4,9 +4,6 @@
  * @license Apache-2.0 cf LICENSE-2.0.txt
  * @author rchevallier
  * @copyright 2023 rchevallier
- * @see {@link ./doc/Colormap%20wizard.md}
- * @see {@link ../ColormapUI.js}
- * @see {@link ./Colormap%wizard.ajs}
  */
 
 const RGB = Java.type('org.eclipse.swt.graphics.RGB');
