@@ -22,7 +22,6 @@ load(__SCRIPTS_DIR__ + "lib/colormap/UI.js")
 
 // name of the property stored in view referencing the Archimate selected property for colormap
 const COLORMAP_PROPERTY = ".colormap.property";
-var selectedType;
 
 /**
  * Will gather all properties of all elements visual objects in the view (no relationships)
@@ -39,7 +38,7 @@ function gatherViewPropertiesInfo(view, property = undefined) {
      * @type {Map<string,Set<string>>} 
      */
     const props = new Map(); 
-    $(view).find(String(selectedType)).each (
+    $(view).find(String(getElementProperties(view))).each (
         (e) => {
             for (let p of e.prop()) {
                 if (property === undefined || p === property) {
@@ -62,26 +61,6 @@ function gatherViewPropertiesInfo(view, property = undefined) {
     return result;
 }
 
-// function getPropertiesByElementType(view, selectedType) {
-//     const props = new Map();
-
-//     $(view).find("element").each(e => {
-
-
-
-//         // if (selectedType != "All" || e.type != selectedType) return;
-//         console.log("I HAVE TO CHECK HERE" + selectedType)
-//         for (const p of e.prop()) {
-//             if (!props.has(p)) props.set(p, new Set());
-//             props.get(p).add(e.prop(p));
-//         }
-//     });
-
-//     return Object.fromEntries(
-//         [...props.entries()].sort().map(([name, values]) => [name, [...values].sort()])
-//     );
-// }
-
 /**
  * Apply to the view the heatmap as configured by the wizard
  * @param {ArchimateView} view 
@@ -102,7 +81,6 @@ function applyColorScheme(view, scheme)
     // then we save the ref as the last applied colormap for the view, so it can be reapplied without wizard
     view.prop(COLORMAP_PROPERTY, scheme.name);
 }
-
 
 /**
  * Replace or create the associated legend in the view
@@ -154,6 +132,39 @@ function createLegend(view, scheme) {
     }
 }
 
+function getElementProperties(view) {
+    let elements = $(view).find("element");
+    let elementMap = new Map();
+    let elementNames = [];
+    let seenTypes = new Set();                  // track element types
+    let name_el;
+    let selectedType;
+
+    elements.forEach(el => {
+        if (seenTypes.has(el.type)) return;     // skip if type already seen
+        seenTypes.add(el.type);                 // mark type as seen
+
+        name_el = el.name ? el.name : "(unnamed)";
+        elementMap.set(el.name, el.type);
+        elementNames.push(name_el);
+    });
+
+    const selectedName = window.promptSelection("Select an element from the view:", elementNames);
+    if (!selectedName) {
+        console.log("No element selected.");
+        return false;
+    }
+
+    elementMap.forEach((value, key) => {
+        console.log(`Key: ${key}`, `Value: ${value}`);
+        if (key == selectedName) {
+            selectedType = value;
+        }
+    });
+
+    console.log(`Selected element type:` + selectedType);
+    return selectedType;
+}
 
 /**
  * The Wizard main
@@ -174,38 +185,6 @@ function colorWizard(view, openView = false) {
         // view.openInUI() no api in jscript ;-(
     }
 
-
-    const elements = $(view).find("element");
-
-    const elementMap = new Map();
-    const elementNames = [];
-    const seenTypes = new Set();   // track element types
-
-    elements.forEach(el => {
-        if (seenTypes.has(el.type)) return;  // skip if type already seen
-        seenTypes.add(el.type);              // mark type as seen
-
-        const name = el.name ? el.name : "(unnamed)";
-        elementMap.set(el.name, el.type);
-        elementNames.push(name);
-    });
-
-    const selectedName = window.promptSelection("Select an element from the view:", elementNames);
-    if (!selectedName) {
-        console.log("No element selected.");
-        return false;
-    }
-
-    elementMap.forEach((value, key) => {
-        console.log(`Key: ${key}`, `Value: ${value}`);
-        if (key == selectedName) {
-            selectedType = value;
-        }
-    });
-
-    console.log(`Selected element type:` + selectedType);
-
-    // I should check this properly, this will fail to check for the element properties if the gatherViewProperties fire fir
     const scheme = Wizard.execute(gatherViewPropertiesInfo(view));
     if (scheme) {
         log.debug(`scheme = ${JSON.stringify(scheme, null, 2)}`)
@@ -217,7 +196,6 @@ function colorWizard(view, openView = false) {
         return false
     }
 }
-
 
 if (typeof __CALLER_SCRIPT__ != 'undefined') {
     log.trace(`${__FILE__} loaded as a library for '${__CALLER_SCRIPT__}'`)
