@@ -9,7 +9,7 @@
 
 if (typeof __CALLER_SCRIPT__ == 'undefined') {
     // it is the main script
-    load(__SCRIPTS_DIR__ + "lib/misc.js");
+    load(__SCRIPTS_DIR__ + "Heatmaps/lib/misc.js");
     log.level = LogLevel.INFO;
     if (log.level <= LogLevel.DEBUG) {
         console.clear();
@@ -17,8 +17,8 @@ if (typeof __CALLER_SCRIPT__ == 'undefined') {
     }
 }
 
-load(__SCRIPTS_DIR__ + "lib/colormap/Model.js")
-load(__SCRIPTS_DIR__ + "lib/colormap/UI.js")
+load(__SCRIPTS_DIR__ + "Heatmaps/lib/colormap/Model.js")
+load(__SCRIPTS_DIR__ + "Heatmaps/lib/colormap/UI.js")
 
 // name of the property stored in view referencing the Archimate selected property for colormap
 const COLORMAP_PROPERTY = ".colormap.property";
@@ -174,7 +174,7 @@ function getElementProperties(view) {
  * @returns {boolean} true if wizard successful, false if prematurely terminated
  */
 function colorWizard(view, openView = false) {
-    const dir = __SCRIPTS_DIR__ + 'lib/colormap/scheme';
+    const dir = __SCRIPTS_DIR__ + 'Heatmaps/lib/colormap/scheme';
     if (!mkdirs(dir)) {
         MessageDialog.openWarning(shell, "Color scheme saving", `Cannot create directory '${dir}' for storing color scheme.\nWon't be able to save them for default colors.`);
         log.warn(`Not possible to create directory '${dir}' for storing color scheme`);
