@@ -39,18 +39,6 @@ const ColorMapWizardPage = Java.extend(
 );
 const Combo = Java.type("org.eclipse.swt.widgets.Combo");
 
-const hardcodedProperties = {
-  status: ["active", "inactive", "proposed"],
-  owner: ["alice", "bob", "carol"],
-  type: ["internal", "external"],
-};
-var hardcodedProperties2 = {
-  status: ["active", "inactive", "proposed"],
-  owner: ["alice", "bob", "carol"],
-};
-
-var selected_element_type;
-
 const pageElementTypeSelection = new ColorMapWizardPage("pageElementTypeSelection", {
   createControl(parent) {
       try {
@@ -68,8 +56,6 @@ const pageElementTypeSelection = new ColorMapWizardPage("pageElementTypeSelectio
           .layoutData(GridDataFactory.fillDefaults().create())
           .create(container);
 
-        // const elementTypes = ["All", "BusinessActor", "BusinessProcess", "ApplicationComponent", "TechnologyNode"];
-
         // get the elements from the selected view
         const view = getCurrentView();
         const elementsInView = $(view).find("element");
@@ -81,11 +67,10 @@ const pageElementTypeSelection = new ColorMapWizardPage("pageElementTypeSelectio
         list.setItems(Java.to(elementTypes, StringArray));
         list.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        // Wizard.selectedElementType = elementTypes[1]; // default
+        Wizard.selectedElementType = elementTypes[1]; // default
         list.addSelectionListener(
           SelectionListener.widgetSelectedAdapter((e) => {
             Wizard.selectedElementType = list.getSelection()[0];
-            selected_element_type = list.getSelection()[0];
             log.info(`Selected element type: ${Wizard.selectedElementType}`);
             pageElementTypeSelection.setPageComplete(true);
           })
@@ -107,8 +92,6 @@ const pageElementTypeSelection = new ColorMapWizardPage("pageElementTypeSelectio
 const pagePropertySelection = new ColorMapWizardPage("pagePropertySelection", {
   createControl(parent) {
     try {
-      // Wizard.cm = new ColorModel(hardcodedProperties2);
-      // console.log("THIS GOES FIRST");
       log.trace(pagePropertySelection.getName() + "...");
       const container = new Composite(parent, SWT.NONE);
       GridLayoutFactory.swtDefaults()

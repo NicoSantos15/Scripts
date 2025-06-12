@@ -331,7 +331,7 @@ class ColorMap extends Map {
      * @returns {string} the path to the color scheme saved file
      */
     _schemePath() {
-        return __SCRIPTS_DIR__ + 'lib/colormap/scheme/' + this.name.toLowerCase() + '.json'
+        return __SCRIPTS_DIR__ + 'Heatmaps/lib/colormap/scheme/' + this.name.toLowerCase() + '.json'
     }
 
     /**

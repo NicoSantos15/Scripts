@@ -132,10 +132,15 @@ function createLegend(view, scheme) {
     }
 }
 
+/**
+ * Prompts the user to select an element from the view and returns its type.
+ * @param {ArchimateView} view  
+ */
 function getElementProperties(view) {
     let elements = $(view).find("element");
     let elementMap = new Map();
-    let elementNames = [];
+    elementMap.set("All", "element");           // default option for all elements
+    let elementNames = ["All"];                 // start with a default option
     let seenTypes = new Set();                  // track element types
     let name_el;
     let selectedType;
@@ -157,8 +162,12 @@ function getElementProperties(view) {
 
     elementMap.forEach((value, key) => {
         console.log(`Key: ${key}`, `Value: ${value}`);
-        if (key == selectedName) {
-            selectedType = value;
+        if(key == selectedName) {
+            if (key == "All") {
+                selectedType = "element";       // special case for 'All'
+            } else {
+                selectedType = value;
+            }
         }
     });
 

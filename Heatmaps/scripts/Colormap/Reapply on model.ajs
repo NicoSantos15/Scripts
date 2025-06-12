@@ -8,7 +8,7 @@
  * @see {@link ../../doc/Colormap%20reapply.md}
  */
 
-load(__SCRIPTS_DIR__ + "lib/misc.js");
+load(__SCRIPTS_DIR__ + "Heatmaps/lib/misc.js");
 log.level = LogLevel.DEBUG;
 if (log.level <= LogLevel.DEBUG) {
     console.clear();
