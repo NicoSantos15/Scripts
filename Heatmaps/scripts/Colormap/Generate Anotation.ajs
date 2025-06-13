@@ -1,0 +1,116 @@
+/* 
+ * ----------------------------------------------------------------------------
+ * Script: Heatmap Colour Wizard for ArchiMate Views
+ * Tool: jArchi
+ * 
+ * Description:
+ *   Provides a UI-based wizard to generate heatmaps on ArchiMate views by
+ *   applying fill colours based on element property values.
+ *   Supports:
+ *     - Gathering property values from a selected element type
+ *     - Applying colour schemes to matching elements
+ *     - Automatically generating a visual legend
+ * 
+ * Ownership: Property of BHP
+ * Author   : Santos, Nico
+ * Version  : 1.0
+ * Last Updated: 2025-06-10
+ * ----------------------------------------------------------------------------
+ */
+
+if (typeof __CALLER_SCRIPT__ == 'undefined') {
+    // it is the main script
+    load(__SCRIPTS_DIR__ + "Heatmaps/lib/misc.js");
+    log.level = LogLevel.INFO;
+    if (log.level <= LogLevel.DEBUG) {
+        console.clear();
+        console.show();
+    }
+}
+
+load(__SCRIPTS_DIR__ + "Heatmaps/lib/colormap/Model.js")
+load(__SCRIPTS_DIR__ + "Heatmaps/lib/colormap/UI.js")
+
+function getElement(view) {
+
+    const element_text = "element";
+    const general_text = "All elements";
+    let elements = $(view).find(element_text);
+    let elementMap = new Map();
+    let elementNames = [general_text];                      // start with a default option
+    let seenTypes = new Set();                              // track element types
+    let name_el;
+    let selectedType;
+
+    elementMap.set(general_text, element_text);             // default option for all elements
+
+    elements.forEach(el => {
+        if (seenTypes.has(el.type)) return;                 // skip if type already seen
+        seenTypes.add(el.type);                             // mark type as seen
+
+        name_el = el.name ? el.name : "(unnamed)";
+        elementMap.set(el.name, el.type);
+        elementNames.push(name_el);
+    });
+
+    const selectedName = window.promptSelection("Select an element from the view:", elementNames, 0);
+    if (!selectedName) {
+        console.log("No element selected.");
+        // return false;
+    }
+
+    elementMap.forEach((value, key) => {
+        // console.log(`Key: ${key}`, `Value: ${value}`);
+        if(key == selectedName) {
+            if (key == general_text) {
+                selectedType = element_text;                // special case for 'All'
+            } else {
+                selectedType = value;
+            }
+        }
+    });
+
+    console.log(`Selected element type:` + selectedType);
+    return selectedType;
+}
+
+function createAnnotationInside(el, text) {
+    const SIZE = 25;
+    const x = 95;
+    const y = 30;
+
+    const group = el.createObject("group", x, y, SIZE, SIZE);
+    group.name = text;
+    group.fillColor = "#E0E0E0";
+    group.borderType = BORDER.RECTANGLE;
+    group.fontStyle = "italic";
+
+    // el.view().bringToFront(group);
+
+    console.log(`Annotation added inside: ${el.name}`);
+}
+
+function run_main() {
+    const the_view = getCurrentView();
+    const selectedType = getElement(the_view);
+    if (!selectedType) {
+        console.error("No element type selected.");
+        return;
+    }
+
+    // const view = getCurrentView();
+    const elements = $(the_view).find(selectedType);
+
+    if (!elements) {
+        console.log("No matching elements found.");
+        exit;
+    }
+
+    elements.forEach(el => {
+        createAnnotationInside(el);
+    });
+
+    console.log(`Created annotations inside ${elements.length} "${selectedType}" elements.`);
+}
+
+run_main();

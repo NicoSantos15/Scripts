@@ -974,4 +974,7 @@ const Wizard = {
       Wizard.ir.dispose();
     }
   },
+
+  execute_generate_anotation: function (){
+  }
 };

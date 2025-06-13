@@ -1,11 +1,23 @@
-/**
- * SWT Wizard to set a color based of property value
+/* 
+ * ----------------------------------------------------------------------------
+ * Script: Heatmap Colour Wizard for ArchiMate Views
+ * Tool: jArchi
  * 
- * @license Apache-2.0 cf LICENSE-2.0.txt
- * @author rchevallier
- * @copyright 2023 rchevallier
- * @see {@link ../../doc/Colormap%wizard.md}
+ * Description:
+ *   Provides a UI-based wizard to generate heatmaps on ArchiMate views by
+ *   applying fill colours based on element property values.
+ *   Supports:
+ *     - Gathering property values from a selected element type
+ *     - Applying colour schemes to matching elements
+ *     - Automatically generating a visual legend
+ * 
+ * Ownership: Property of BHP
+ * Author   : Santos, Nico
+ * Version  : 1.0
+ * Last Updated: 2025-06-10
+ * ----------------------------------------------------------------------------
  */
+
 
 if (typeof __CALLER_SCRIPT__ == 'undefined') {
     // it is the main script
@@ -38,7 +50,7 @@ function gatherViewPropertiesInfo(view, property = undefined) {
      * @type {Map<string,Set<string>>} 
      */
     const props = new Map();
-    let element_type = String(getElementProperties(view));
+    let element_type = String(getElement(view));
     if (!element_type) {
         log.error("No element type selected, stopping");
         // MessageDialog.openError(shell, "No element type", "No element type selected. Stopping.");
@@ -141,18 +153,21 @@ function createLegend(view, scheme) {
  * Prompts the user to select an element from the view and returns its type.
  * @param {ArchimateView} view  
  */
-function getElementProperties(view) {
-    let elements = $(view).find("element");
+function getElement(view) {
+    const element_text = "element";
+    const general_text = "All";
+    let elements = $(view).find(element_text);
     let elementMap = new Map();
-    elementMap.set("All", "element");           // default option for all elements
-    let elementNames = ["All"];                 // start with a default option
-    let seenTypes = new Set();                  // track element types
+    let elementNames = [general_text];                      // start with a default option
+    let seenTypes = new Set();                              // track element types
     let name_el;
     let selectedType;
 
+    elementMap.set(general_text, element_text);             // default option for all elements
+
     elements.forEach(el => {
-        if (seenTypes.has(el.type)) return;     // skip if type already seen
-        seenTypes.add(el.type);                 // mark type as seen
+        if (seenTypes.has(el.type)) return;                 // skip if type already seen
+        seenTypes.add(el.type);                             // mark type as seen
 
         name_el = el.name ? el.name : "(unnamed)";
         elementMap.set(el.name, el.type);
@@ -168,8 +183,8 @@ function getElementProperties(view) {
     elementMap.forEach((value, key) => {
         // console.log(`Key: ${key}`, `Value: ${value}`);
         if(key == selectedName) {
-            if (key == "All") {
-                selectedType = "element";       // special case for 'All'
+            if (key == general_text) {
+                selectedType = element_text;                // special case for 'All'
             } else {
                 selectedType = value;
             }
