@@ -56,6 +56,7 @@ function getElement(view) {
     const selectedName = window.promptSelection("Select an element from the view:", elementNames, 0);
     if (!selectedName) {
         console.log("No element selected.");
+        exit();
         // return false;
     }
 
@@ -75,6 +76,8 @@ function getElement(view) {
 }
 
 function createAnnotationInside(el, text) {
+
+    // sets the size and position of the annotation
     const SIZE = 25;
     const x = 95;
     const y = 30;
@@ -103,7 +106,7 @@ function run_main() {
 
     if (!elements) {
         console.log("No matching elements found.");
-        exit;
+        exit();
     }
 
     elements.forEach(el => {

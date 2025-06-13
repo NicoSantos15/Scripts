@@ -112,7 +112,7 @@ function createLegend(view, scheme) {
     const COLOR_WIDTH = 12 * GRID_SIZE;
     let X_LEGEND_ORIGIN = GRID_SIZE;
     let Y_LEGEND_ORIGIN = GRID_SIZE;
-    const LEGEND_WIDTH = 2 * X_MARGIN + COLOR_WIDTH;
+    const LEGEND_WIDTH = 2 * X_MARGIN + COLOR_WIDTH + scheme.name.length;
     const LEGEND_NAME = "Color Legend";
     const LEGEND_BACKGROUND = "#F7F7F7";
     const LEGEND_FONT_STYLE = "bold";
@@ -141,12 +141,13 @@ function createLegend(view, scheme) {
     colormap.sort(isCategorical ? undefined : (a, b) => parseFloat(a[0]) - parseFloat(b[0]));
     for (const [label, color] of colormap) {
         log.trace(`legend label '${label}' color = ${color}`);
-        let colLegend = legendGroup.createObject("diagram-model-note", X_MARGIN, y, COLOR_WIDTH, COLOR_HEIGHT);
+        let colLegend = legendGroup.createObject("diagram-model-note", X_MARGIN, y, COLOR_WIDTH + scheme.name.length, COLOR_HEIGHT);
         y += COLOR_HEIGHT + spacing -1;
         colLegend.fillColor = color;
         colLegend.borderType = isCategorical ? BORDER.RECTANGLE : BORDER.NONE;
         colLegend.text = scheme.name + " = " + label;
     }
+
 }
 
 /**
@@ -203,11 +204,11 @@ function getElement(view) {
  * @returns {boolean} true if wizard successful, false if prematurely terminated
  */
 function colorWizard(view, openView = false) {
-    const dir = __SCRIPTS_DIR__ + 'Heatmaps/lib/colormap/scheme';
-    if (!mkdirs(dir)) {
-        MessageDialog.openWarning(shell, "Color scheme saving", `Cannot create directory '${dir}' for storing color scheme.\nWon't be able to save them for default colors.`);
-        log.warn(`Not possible to create directory '${dir}' for storing color scheme`);
-    }
+    // const dir = __SCRIPTS_DIR__ + 'Heatmaps/lib/colormap/scheme';
+    // if (!mkdirs(dir)) {
+    //     MessageDialog.openWarning(shell, "Color scheme saving", `Cannot create directory '${dir}' for storing color scheme.\nWon't be able to save them for default colors.`);
+    //     log.warn(`Not possible to create directory '${dir}' for storing color scheme`);
+    // }
     
     if (openView) {
         // show the view in case it is called from reapply on model

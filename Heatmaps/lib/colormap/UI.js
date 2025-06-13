@@ -287,7 +287,9 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
         const allNumeric = colormap.allIncludedNumeric();
         log.trace(`Enabling btnContinuous = ${allNumeric}`);
         Wizard.btnContinuous.setEnabled(allNumeric);
+
         if (!allNumeric) colormap.scaleClass = CategoricalScale;
+        
         Wizard.btnCategorical.setSelection(
           Wizard.cm.colormap.scaleClass == CategoricalScale
         );
@@ -335,13 +337,13 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
   },
 
   getNextPage: function () {
-    if (Wizard.cm.colormap.scale instanceof ContinuousScale) {
-      log.info("NextPage:", pageContinuousColor.getName());
-      return pageContinuousColor;
-    } else {
-      log.info("NextPage:", pageCategoryColor.getName());
-      return pageCategoryColor;
-    }
+    // if (Wizard.cm.colormap.scale instanceof ContinuousScale) {
+    //   log.info("NextPage:", pageContinuousColor.getName());
+    //   return pageContinuousColor;
+    // } else {
+    //   log.info("NextPage:", pageCategoryColor.getName());
+    //   return pageCategoryColor;
+    // }
   },
 });
 
