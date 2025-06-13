@@ -48,7 +48,7 @@ function getElement(view) {
         if (seenTypes.has(el.type)) return;                 // skip if type already seen
         seenTypes.add(el.type);                             // mark type as seen
 
-        name_el = el.name ? el.name : "(unnamed)";
+        name_el = el.type ? el.type : "(unnamed)";
         elementMap.set(el.name, el.type);
         elementNames.push(name_el);
     });
