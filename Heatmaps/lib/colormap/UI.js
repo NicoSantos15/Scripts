@@ -148,6 +148,7 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
     try {
       log.trace(pageLabelsSelection.getName() + "...");
 
+      // Function to handle double-clicks to go to the next page
       function gotoNextPageOnDblClick() {
         return MouseListener.mouseDoubleClickAdapter((e) => {
           try {
@@ -337,13 +338,13 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
   },
 
   getNextPage: function () {
-    // if (Wizard.cm.colormap.scale instanceof ContinuousScale) {
-    //   log.info("NextPage:", pageContinuousColor.getName());
-    //   return pageContinuousColor;
-    // } else {
-    //   log.info("NextPage:", pageCategoryColor.getName());
-    //   return pageCategoryColor;
-    // }
+    if (Wizard.cm.colormap.scale instanceof ContinuousScale) {
+      log.info("NextPage:", pageContinuousColor.getName());
+      return pageContinuousColor;
+    } else {
+      log.info("NextPage:", pageCategoryColor.getName());
+      return pageCategoryColor;
+    }
   },
 });
 
@@ -963,9 +964,9 @@ const Wizard = {
     try {
       const JWizardDialog = Java.type("org.eclipse.jface.wizard.WizardDialog");
       const wizardDialog = new JWizardDialog(shell, colorMapWizard);
-      const FINISH = 0,
-        CANCEL = 1;
+      const FINISH = 0, CANCEL = 1;
       log.trace("Ready to open");
+      
       if (wizardDialog.open() == FINISH) {
         return Wizard.cm.colormap.getColorScheme();
       } else {
@@ -978,5 +979,14 @@ const Wizard = {
   },
 
   execute_generate_anotation: function (){
-  }
+  },
+
+  test_execute: function () {
+    // for testing purpose only
+    const properties = {
+      "Property 1": ["Label 1", "Label 2", "Label 3"],
+      "Property 2": ["Label A", "Label B", "Label C"],
+    };
+    return Wizard.execute(properties, "Property 1");
+  },
 };

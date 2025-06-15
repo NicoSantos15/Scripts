@@ -383,6 +383,8 @@ class ColorMap extends Map {
             resetDefault: this.resetDefault,
             colormap: Object.fromEntries(colormap) // NB: order of labels are undetermined
         }
+
+        console.log("SCHEME" + scheme)
         // handle continuous scale extremities 
         if (this.scale instanceof ContinuousScale) {
             scheme.Continuous = {

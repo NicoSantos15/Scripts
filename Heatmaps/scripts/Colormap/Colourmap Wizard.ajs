@@ -45,12 +45,12 @@ const COLORMAP_PROPERTY = ".colormap.property";
  * @param {string} [property] collect only for this property
  * @returns {{[x:string]: string[]}} alphabetically ordered property names and associated labels
  */
-function gatherViewPropertiesInfo(view, property = undefined) {
+function gatherViewPropertiesInfo(view, property = undefined, selected_element_type) {
     /** 
      * @type {Map<string,Set<string>>} 
      */
     const props = new Map();
-    let element_type = String(getElement(view));
+    let element_type = selected_element_type;
     if (!element_type) {
         log.error("No element type selected, stopping");
         // MessageDialog.openError(shell, "No element type", "No element type selected. Stopping.");
@@ -83,20 +83,49 @@ function gatherViewPropertiesInfo(view, property = undefined) {
  * @param {ArchimateView} view 
  * @param {ColorScheme} scheme
  */
-function applyColorScheme(view, scheme)
-{
-    $(view).find("element").each(
-        (vo) => {
-            const label = vo.prop(scheme.name);
-            if (label && (label in scheme.colormap)) {
-                vo.fillColor =  scheme.colormap[label];
-            } else if (scheme.resetDefault) {
-                vo.fillColor = null
-            }
+function applyColorScheme(view, scheme, selectedType = "element") {
+    // First: reset all elements if required
+    if (scheme.resetDefault) {
+        $(view).find("element").each((vo) => {
+            vo.fillColor = null;
+        });
+    }
+
+    // Then: apply color scheme only to filtered elements
+    $(view).find(selectedType).each((vo) => {
+        const label = vo.prop(scheme.name);
+        if (label && label in scheme.colormap) {
+            console.log("HERE COLORMAP LABEL:" + scheme.colormap[label]);
+            vo.fillColor = scheme.colormap[label];
         }
-    );
-    // then we save the ref as the last applied colormap for the view, so it can be reapplied without wizard
-    view.prop(COLORMAP_PROPERTY, scheme.name);
+    });
+}
+
+function getElement(view) {
+  const element_text = "element";
+  const general_text = "All element types";
+  let elements = $(view).find(element_text);
+  let elementTypes = [general_text]; // Start with default option
+  let seenTypes = new Set(); // Track unique element types
+  let selectedType;
+
+  elements.forEach((el) => {
+    if (!el.type || seenTypes.has(el.type)) return;
+    seenTypes.add(el.type);
+    elementTypes.push(el.type);
+  });
+
+  console.log("TEST HERE" + elementTypes)
+  const selected = window.promptSelection("Select an element type from the view:", elementTypes,0);
+  if (!selected) {
+    console.log("No element selected.");
+    exit();
+  }
+
+  selectedType = selected == element_text ? element_text : selected;
+
+  console.log("Selected element type: " + selectedType);
+  return selectedType;
 }
 
 /**
@@ -209,16 +238,18 @@ function colorWizard(view, openView = false) {
     //     MessageDialog.openWarning(shell, "Color scheme saving", `Cannot create directory '${dir}' for storing color scheme.\nWon't be able to save them for default colors.`);
     //     log.warn(`Not possible to create directory '${dir}' for storing color scheme`);
     // }
+    let selected_element_type = getElement(view);
     
     if (openView) {
         // show the view in case it is called from reapply on model
         // view.openInUI() no api in jscript ;-(
     }
 
-    const scheme = Wizard.execute(gatherViewPropertiesInfo(view));
+    const scheme = Wizard.execute(gatherViewPropertiesInfo(view, undefined, selected_element_type));
+    console.log("ITS the SCHEME!!! " + JSON.stringify(scheme, null, 2));
     if (scheme) {
         log.debug(`scheme = ${JSON.stringify(scheme, null, 2)}`)
-        applyColorScheme(view, scheme);
+        applyColorScheme(view, scheme, selected_element_type);
         createLegend(view, scheme);
         return true
     } else {
