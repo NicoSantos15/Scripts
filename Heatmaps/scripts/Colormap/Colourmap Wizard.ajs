@@ -185,46 +185,29 @@ function createLegend(view, scheme) {
  */
 function getElement(view) {
     const element_text = "element";
-    const general_text = "All";
+    const general_text = "All element types";
     let elements = $(view).find(element_text);
-    let elementMap = new Map();
-    let elementNames = [general_text];                      // start with a default option
-    let seenTypes = new Set();                              // track element types
-    let name_el;
+    let elementTypes = [general_text]; // Start with default option
+    let seenTypes = new Set(); // Track unique element types
     let selectedType;
-
-    elementMap.set(general_text, element_text);             // default option for all elements
-
-    elements.forEach(el => {
-        if (seenTypes.has(el.type)) return;                 // skip if type already seen
-        seenTypes.add(el.type);                             // mark type as seen
-
-        name_el = el.name ? el.name : "(unnamed)";
-        elementMap.set(el.name, el.type);
-        elementNames.push(name_el);
+  
+    elements.forEach((el) => {
+      if (!el.type || seenTypes.has(el.type)) return;
+      seenTypes.add(el.type);
+      elementTypes.push(el.type);
     });
-
-    const selectedName = window.promptSelection("Select an element from the view:", elementNames);
-    if (!selectedName) {
-        console.log("No element selected.");
-        // return false;
+  
+    const selected = window.promptSelection("Select an element type from the view:", elementTypes, 0);
+    if (!selected) {
+      console.log("No element selected.");
+      exit();
     }
-
-    elementMap.forEach((value, key) => {
-        // console.log(`Key: ${key}`, `Value: ${value}`);
-        if(key == selectedName) {
-            if (key == general_text) {
-                selectedType = element_text;                // special case for 'All'
-            } else {
-                selectedType = value;
-            }
-        }
-    });
-
-    console.log(`Selected element type:` + selectedType);
+  
+    selectedType = selected == general_text ? element_text : selected;
+  
+    console.log("Selected element type: " + selectedType);
     return selectedType;
-}
-
+  }
 /**
  * The Wizard main
  * 

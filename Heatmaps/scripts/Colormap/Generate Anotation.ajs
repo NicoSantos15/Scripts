@@ -246,39 +246,6 @@ function gatherViewPropertiesInfo(view, property = undefined, selected_element_t
  * @param {ColorScheme} scheme
  */
 
-// function applyColorScheme(view, scheme, selectedType = "element") {
-//       const SIZE = 25;
-//       const CHAR_WIDTH = 7;  // Adjust if needed
-// 			const PADDING = 5;    // Add some padding
-// 			const x = 95;
-// 			const y = 30;
-
-// 		   $(view).find(selectedType).each((vo) => {
-//         const label = vo.prop(scheme.name);
-//         if (label && (label in scheme.colormap)) {
-//             const color = scheme.colormap[label];
-
-//             const width_len = label.length;
-//             const noteWidth = width_len * CHAR_WIDTH + PADDING;
-
-//             const bounds = vo.bounds;
-//             const maxX = bounds.width - noteWidth;
-//             const maxY = bounds.height - SIZE;
-
-//             const x = Math.max(5, Math.min(95, maxX));
-//             const y = Math.max(5, Math.min(30, maxY));
-
-//             const note = vo.createObject("diagram-model-note", x, y, noteWidth, SIZE);
-//             note.text = label;
-//             note.fillColor = color;
-//             note.fontStyle = "bold";
-//             note.borderType = BORDER.RECTANGLE;
-//         }
-//     });
-
-		
-// }
-
 // TODO: check if the note already exists inside the element
 // TODO: Add ID to note to avoid duplicates
 // TODO: Add a switch if we want to show text inside the note or not
@@ -319,8 +286,6 @@ function applyColorScheme(view, scheme, selectedType = "element") {
     });
 }
 
-
-
 function getElement(view) {
   const element_text = "element";
   const general_text = "All element types";
@@ -335,13 +300,13 @@ function getElement(view) {
     elementTypes.push(el.type);
   });
 
-  const selected = window.promptSelection("Select an element type from the view:", elementTypes,0);
+  const selected = window.promptSelection("Select an element type from the view:", elementTypes, 0);
   if (!selected) {
     console.log("No element selected.");
     exit();
   }
 
-  selectedType = selected == element_text ? element_text : selected;
+  selectedType = selected == general_text ? element_text : selected;
 
   console.log("Selected element type: " + selectedType);
   return selectedType;
@@ -396,52 +361,6 @@ function createLegend(view, scheme) {
         colLegend.text = scheme.name + " = " + label;
     }
 
-}
-
-/**
- * Prompts the user to select an element from the view and returns its type.
- * @param {ArchimateView} view  
- */
-function getElement(view) {
-    const element_text = "element";
-    const general_text = "All";
-    let elements = $(view).find(element_text);
-    let elementMap = new Map();
-    let elementNames = [general_text];                      // start with a default option
-    let seenTypes = new Set();                              // track element types
-    let name_el;
-    let selectedType;
-
-    elementMap.set(general_text, element_text);             // default option for all elements
-
-    elements.forEach(el => {
-        if (seenTypes.has(el.type)) return;                 // skip if type already seen
-        seenTypes.add(el.type);                             // mark type as seen
-
-        name_el = el.name ? el.name : "(unnamed)";
-        elementMap.set(el.name, el.type);
-        elementNames.push(name_el);
-    });
-
-    const selectedName = window.promptSelection("Select an element from the view:", elementNames);
-    if (!selectedName) {
-        console.log("No element selected.");
-        // return false;
-    }
-
-    elementMap.forEach((value, key) => {
-        // console.log(`Key: ${key}`, `Value: ${value}`);
-        if(key == selectedName) {
-            if (key == general_text) {
-                selectedType = element_text;                // special case for 'All'
-            } else {
-                selectedType = value;
-            }
-        }
-    });
-
-    console.log(`Selected element type:` + selectedType);
-    return selectedType;
 }
 
 /**
