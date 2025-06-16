@@ -452,14 +452,27 @@ const pageCategoryColor = new ColorMapWizardPage("pageCategoryColor", {
 
       Wizard.btnSave1 = createColorSchemeWidgets(container, 2);
 
-      const resetDefaultCB = WidgetFactory.button(SWT.CHECK)
-        .tooltip("Reset non-matching components to default colors")
-        .text("Reset other to default color")
-        .onSelect((e) => {
-          Wizard.cm.colormap.resetDefault = resetDefaultCB.getSelection();
-        })
-        .create(container);
-      resetDefaultCB.setSelection(Wizard.cm.colormap.resetDefault);
+      if (Wizard.scriptId != "generate-annotation") {
+        const resetDefaultCB = WidgetFactory.button(SWT.CHECK)
+          .tooltip("Reset non-matching components to default colors")
+          .text("Reset other to default color")
+          .onSelect((e) => {
+            Wizard.cm.colormap.resetDefault = resetDefaultCB.getSelection();
+          })
+          .create(container);
+        resetDefaultCB.setSelection(Wizard.cm.colormap.resetDefault);
+      } else {
+        const toggleAnnotationCB = WidgetFactory.button(SWT.CHECK)
+          .tooltip("Show or hide annotation text")
+          .text("Show annotation text")
+          .onSelect((_) => {
+            Wizard.annotationEnabled = toggleAnnotationCB.getSelection();
+          })
+          .layoutData(GridDataFactory.fillDefaults().span(4, 1).create())
+          .create(container);
+        toggleAnnotationCB.setSelection(true);
+        Wizard.annotationEnabled = true;
+      }
 
       pageCategoryColor.setDescription(
         "Please define the color for each label"
@@ -708,16 +721,29 @@ const pageContinuousColor = new ColorMapWizardPage("pageContinuousColor", {
         })
         .create(middleGroup);
 
-      // reset to default
-      const resetDefaultCB = WidgetFactory.button(SWT.CHECK)
-        .tooltip("Reset non-matching components to default colors")
-        .text("Reset other to default color")
-        .onSelect((_) => {
-          Wizard.cm.colormap.resetDefault = resetDefaultCB.getSelection();
-        })
-        .layoutData(GridDataFactory.fillDefaults().span(4, 1).create())
-        .create(container);
-      resetDefaultCB.setSelection(Wizard.cm.colormap.resetDefault);
+      if (Wizard.scriptId != "generate-annotation") {
+        // reset to default
+        const resetDefaultCB = WidgetFactory.button(SWT.CHECK)
+          .tooltip("Reset non-matching components to default colors")
+          .text("Reset other to default color")
+          .onSelect((_) => {
+            Wizard.cm.colormap.resetDefault = resetDefaultCB.getSelection();
+          })
+          .layoutData(GridDataFactory.fillDefaults().span(4, 1).create())
+          .create(container);
+        resetDefaultCB.setSelection(Wizard.cm.colormap.resetDefault);
+      } else {
+        const toggleAnnotationCB = WidgetFactory.button(SWT.CHECK)
+          .tooltip("Show or hide annotation text")
+          .text("Show annotation text")
+          .onSelect((_) => {
+            Wizard.annotationEnabled = toggleAnnotationCB.getSelection();
+          })
+          .layoutData(GridDataFactory.fillDefaults().span(4, 1).create())
+          .create(container);
+        toggleAnnotationCB.setSelection(true);
+        Wizard.annotationEnabled = true;
+      }
 
       // Preview
       const preview = WidgetFactory.group(SWT.NONE)
@@ -949,8 +975,9 @@ const Wizard = {
    * @param {string} [defaultProperty] the default property name to be selected on the Wizard 1st page
    * @returns {ColorScheme} if Wizard finished, null if cancelled
    */
-  execute: function (properties, defaultProperty = undefined) {
+  execute: function (properties, defaultProperty = undefined, script_id) {
     Wizard.cm = new ColorModel(properties, defaultProperty);
+    Wizard.scriptId = script_id;
     const ColorMapWizard = Java.extend(Java.type("org.eclipse.jface.wizard.Wizard"));
     const colorMapWizard = new ColorMapWizard(WIZARD_SUBCLASS_EXTENSION);
     colorMapWizard.setHelpAvailable(false);
@@ -978,15 +1005,15 @@ const Wizard = {
     }
   },
 
-  execute_generate_anotation: function (){
-  },
+  // execute_generate_anotation: function (){
+  // },
 
-  test_execute: function () {
-    // for testing purpose only
-    const properties = {
-      "Property 1": ["Label 1", "Label 2", "Label 3"],
-      "Property 2": ["Label A", "Label B", "Label C"],
-    };
-    return Wizard.execute(properties, "Property 1");
-  },
+  // test_execute: function () {
+  //   // for testing purpose only
+  //   const properties = {
+  //     "Property 1": ["Label 1", "Label 2", "Label 3"],
+  //     "Property 2": ["Label A", "Label B", "Label C"],
+  //   };
+  //   return Wizard.execute(properties, "Property 1");
+  // },
 };

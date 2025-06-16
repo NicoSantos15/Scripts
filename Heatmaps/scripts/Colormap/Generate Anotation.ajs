@@ -246,45 +246,49 @@ function gatherViewPropertiesInfo(view, property = undefined, selected_element_t
  * @param {ColorScheme} scheme
  */
 
-// TODO: check if the note already exists inside the element
-// TODO: Add ID to note to avoid duplicates
-// TODO: Add a switch if we want to show text inside the note or not
+// TODO: check if the note already exists inside the element. Place the position next to existing one.
 // TODO: Legend should reuse the existing legend if it exists (object_state: "legend")
-
 function applyColorScheme(view, scheme, selectedType = "element") {
     const SIZE = 25;
-    const CHAR_WIDTH = 7;
-    const PADDING = 5;
-    const x = 95;
-    const y = 30;
+    const CHAR_WIDTH = 8;
 
     $(view).find(selectedType).each((vo) => {
         const label = vo.prop(scheme.name);
         if (label && (label in scheme.colormap)) {
-            // ✅ Check if note with same text already exists inside the element
-          const allNotes = $(view).find("diagram-model-note");            
-          console.log("CHECKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"+allNotes[0]);
-            // if (noteExists) return;
-
             const color = scheme.colormap[label];
-            const width_len = label.length;
-            const noteWidth = width_len * CHAR_WIDTH + PADDING;
 
-            const bounds = vo.bounds;
-            const maxX = bounds.width - noteWidth;
-            const maxY = bounds.height - SIZE;
+            let noteWidth = SIZE;
+            let noteText = "";
+            let x = 95;
+            let y = 30;
 
-            const x = Math.max(5, Math.min(95, maxX));
-            const y = Math.max(5, Math.min(30, maxY));
+            if (Wizard.annotationEnabled) {
+                noteText = label;
+                noteWidth = label.length * CHAR_WIDTH;
+
+                const bounds = vo.bounds;
+                const maxX = bounds.width - noteWidth;
+                const maxY = bounds.height - SIZE;
+
+                x = Math.max(5, Math.min(95, maxX));
+                y = Math.max(5, Math.min(30, maxY));
+            }
 
             const note = vo.createObject("diagram-model-note", x, y, noteWidth, SIZE);
-            note.text = label;
+            const elementType = vo.type;
+            const propertyName = scheme.name;
+            const elementName = vo.name || "unnamed";
+            const noteId = `${elementType}-${propertyName}-${elementName}`;
+
+            note.prop("note-id", noteId);
+            note.text = noteText;
             note.fillColor = color;
             note.fontStyle = "bold";
             note.borderType = BORDER.RECTANGLE;
         }
     });
 }
+
 
 function getElement(view) {
   const element_text = "element";
@@ -383,8 +387,8 @@ function colorWizard(view, openView = false) {
         // view.openInUI() no api in jscript ;-(
     }
 
-    const scheme = Wizard.execute(gatherViewPropertiesInfo(view, undefined, selected_element_type));
-    console.log("ITS the SCHEME!!! " + JSON.stringify(scheme, null, 2));
+    const scheme = Wizard.execute(gatherViewPropertiesInfo(view, undefined, selected_element_type), undefined, "generate-annotation");
+    // console.log("ITS the SCHEME!!! " + JSON.stringify(scheme, null, 2));
     if (scheme) {
         log.debug(`scheme = ${JSON.stringify(scheme, null, 2)}`)
         applyColorScheme(view, scheme, selected_element_type);
