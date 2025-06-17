@@ -1,4 +1,4 @@
-/**
+/* 
  * ----------------------------------------------------------------------------
  * Script: Heatmap Colour Wizard for ArchiMate Views
  * Tool: jArchi
@@ -17,6 +17,7 @@
  * Last Updated: 2025-06-10
  * ----------------------------------------------------------------------------
  */
+
 
 if (typeof __CALLER_SCRIPT__ == 'undefined') {
     // it is the main script
@@ -83,111 +84,85 @@ function gatherViewPropertiesInfo(view, property = undefined, selected_element_t
  * @param {ColorScheme} scheme
  */
 function applyColorScheme(view, scheme, selectedType = "element") {
-    const SIZE = 25;
-    const CHAR_WIDTH = 8;
+    // First: reset all elements if required
+    if (scheme.resetDefault) {
+        $(view).find("element").each((vo) => {
+            vo.fillColor = null;
+        });
+    }
 
+    // Then: apply color scheme only to filtered elements
     $(view).find(selectedType).each((vo) => {
         const label = vo.prop(scheme.name);
-        if (label && (label in scheme.colormap)) {
-            const color = scheme.colormap[label];
-
-            let noteWidth = SIZE;
-            let noteText = "";
-            let x = 95;
-            let y = 30;
-
-            if (Wizard.annotationEnabled) {
-                noteText = label;
-                noteWidth = label.length * CHAR_WIDTH;
-
-                const bounds = vo.bounds;
-                const maxX = bounds.width - noteWidth;
-                const maxY = bounds.height - SIZE;
-
-                x = Math.max(5, Math.min(95, maxX));
-                y = Math.max(5, Math.min(30, maxY));
-            }
-
-            const note = vo.createObject("diagram-model-note", x, y, noteWidth, SIZE);
-            const elementType = vo.type;
-            const propertyName = scheme.name;
-            const elementName = vo.name || "unnamed";
-            const noteId = `${elementType}-${propertyName}-${elementName}`;
-
-            note.prop("note-id", noteId);
-            note.text = noteText;
-            note.fillColor = color;
-            note.fontStyle = "bold";
-            note.borderType = BORDER.RECTANGLE;
+        if (label && label in scheme.colormap) {
+            console.log("HERE COLORMAP LABEL:" + scheme.colormap[label]);
+            vo.fillColor = scheme.colormap[label];
         }
     });
 }
 
-function getElement(view, primary_element) {
-  //TODO:
-  // Param primary_element should check for all the relationship with that element.
-  // Elements related to primary_element will be used on this method so we can get all the properties of that and continue the wizard
-  
-	let relatedElements = [];
-
-	primary_element.relations().forEach(rel => {
-			let related = (rel.source === primary_element) ? rel.target : rel.source;
-			relatedElements.push(related);
-			console.log(`Related to ${primary_element.name}: ${related.name} via ${rel.type}`);
+/**
+ * Prompts the user to select an element from the view and returns its type.
+ * @param {ArchimateView} view  
+ */
+function getElement(view, primaryElement) {
+	let relatedElementsArr = [];
+	const relatedElements = $(view).find("relationship").filter(rel => rel.prop("Object State") !== "Legend");
+	
+	relatedElements.forEach(rel => {
+		// console.log(`Relation: ${rel.type}, Source: ${rel.source.name}, Target: ${rel.target.name}`);
+		// console.log("Relationship id" + rel.target.id)
+		// console.log("CHECK 2" + primaryElement.id)
+		if (rel.target.id == primaryElement.id) {
+			// console.log('I am here' + rel.source)
+			const type = rel.source.type;
+			if (!relatedElementsArr.includes(type)) {
+					relatedElementsArr.push(type);
+			}		
+		}
 	});
-	
-	
-	
-	
-	const element_text = "element";
-  const general_text = "All element types";
-  let elements = $(view).find(element_text).filter(el => el.prop("Object State") !== "Legend");
-  let elementTypes = [general_text]; // Start with default option
-  let seenTypes = new Set(); // Track unique element types
+
+  // const element_text = "element";
+  // const general_text = "All element types";
+  // let elements = $(view).find(element_text).filter(el => el.prop("Object State") !== "Legend");
+  // let elementTypes = [general_text]; 						// Start with default option
+  // let seenTypes = new Set(); 										// Track unique element types
   let selectedType;
 
-  elements.forEach((el) => {
-    if (!el.type || seenTypes.has(el.type)) return;
-    seenTypes.add(el.type);
-    elementTypes.push(el.type);
-  });
+  // elements.forEach((el) => {
+  //   if (!el.type || seenTypes.has(el.type)) return;
+  //   seenTypes.add(el.type);
+  //   elementTypes.push(el.type);
+  // });
 
-  const selected = window.promptSelection("Select an element type from the view:", elementTypes, 0);
+  const selected = window.promptSelection("Select an element type from the view:", relatedElementsArr, 0);
   if (!selected) {
     console.log("No element selected.");
     exit();
   }
 
-  selectedType = selected == general_text ? element_text : selected;
+  selectedType = selected;
 
   // console.log("Selected element type: " + selectedType);
   return selectedType;
 }
 
-function getPrimaryElement() {
-	//TODO: need to get the element that will be applying the colours
-	const general_text = "All element types";
-  let elements = $(view).find(element_text).filter(el => el.prop("Object State") !== "Legend");
-	let elementTypes = [general_text]; // Start with default option
-  let seenTypes = new Set(); // Track unique element types
-  let selectedType;
+function getPrimaryElement(view) {
+	let selectedElement;
+	const elements = $(view)
+		.find("element")
+		.filter(el => el.prop("Object State") !== "Legend");
 
-	elements.forEach((el) => {
-    if (!el.type || seenTypes.has(el.type)) return;
-    seenTypes.add(el.type);
-    elementTypes.push(el.type);
-  });
+	const elementNames = elements.map(el => el.name);
 
-	const selected = window.promptSelection("Select an element type from the view:", elementTypes, 0);
-  if (!selected) {
-    console.log("No element selected.");
-    exit();
-  }
-
-	
-  selectedType = selected == general_text ? element_text : selected;
-  // console.log("Selected element type: " + selectedType);
-  return selectedType;
+	const selectedName = window.promptSelection("Select a primary element from the view:", elementNames, 0);
+	for (let i = 0; i < elements.length; i++) {
+    if (elements[i].name == selectedName) {
+        selectedElement = elements[i];
+        break;
+    }
+	}
+	return selectedElement;
 }
 
 /**
@@ -201,36 +176,30 @@ function createLegend(view, scheme) {
     const Y_MARGIN = GRID_SIZE / 2;
     const COLOR_HEIGHT = 30;
     const COLOR_WIDTH = 12 * GRID_SIZE;
-
-    let X_LEGEND_ORIGIN = GRID_SIZE;
-    let Y_LEGEND_ORIGIN = GRID_SIZE;
     const LEGEND_NAME = "Color Legend";
     const LEGEND_BACKGROUND = "#F7F7F7";
     const LEGEND_FONT_STYLE = "bold";
-
     const isCategorical = scheme.type == "Categorical";
     const spacing = (isCategorical) ? Y_MARGIN : 0;
+    const CHAR_WIDTH = 6;     // Calculate max width based on label text
 
-    // Calculate max width based on label text
-    const CHAR_WIDTH = 6;
+		let X_LEGEND_ORIGIN = GRID_SIZE;
+    let Y_LEGEND_ORIGIN = GRID_SIZE;
     let maxLabelWidth = 0;
+		let y = COLOR_HEIGHT;
+
     for (const [label] of Object.entries(scheme.colormap)) {
         const text = scheme.name + " = " + label;
         const width = text.length * CHAR_WIDTH;
         if (width > maxLabelWidth) maxLabelWidth = width;
     }
-    const LEGEND_WIDTH = 2 * X_MARGIN + maxLabelWidth;
+
+    let LEGEND_WIDTH = 2 * X_MARGIN + maxLabelWidth;
 
     // Find existing legend by object_state property
     let legendGroup = $(view)
         .find("grouping")
         .filter(obj => obj.prop("Object State") == "Legend")[0];
-
-    // if (legendGroup) {
-    //     console.log("LEGEND GROUP: " + legendGroup.prop("Object State"));
-    // } else {
-    //     console.log("LEGEND GROUP not found");
-    // }
 
     if (!legendGroup) {
         const currentLegend = $(view).find("." + LEGEND_NAME).filter("diagram-model-group").first();
@@ -260,9 +229,6 @@ function createLegend(view, scheme) {
         legendGroup.prop("Object State", "Legend");
     }
 
-
-
-    let y = COLOR_HEIGHT;
     
     const colormap = Object.entries(scheme.colormap);
     colormap.sort(isCategorical ? undefined : (a, b) => parseFloat(a[0]) - parseFloat(b[0]));
@@ -279,9 +245,8 @@ function createLegend(view, scheme) {
             legendGroup.bounds.y + y, 
             noteWidth, 
             COLOR_HEIGHT, 
-            true // 👈 Enables autonesting
+            true // Enables autonesting
         );
-
 
         y += COLOR_HEIGHT + spacing - 1;
         colLegend.fillColor = color;
@@ -314,18 +279,19 @@ function colorWizard(view, openView = false) {
     //     MessageDialog.openWarning(shell, "Color scheme saving", `Cannot create directory '${dir}' for storing color scheme.\nWon't be able to save them for default colors.`);
     //     log.warn(`Not possible to create directory '${dir}' for storing color scheme`);
     // }
-    let selected_element_type = getElement(view);
+		let primaryElement = getPrimaryElement(view);
+    let selectedElementType = getElement(view, primaryElement);
     
     if (openView) {
         // show the view in case it is called from reapply on model
         // view.openInUI() no api in jscript ;-(
     }
 
-    const scheme = Wizard.execute(gatherViewPropertiesInfo(view, undefined, selected_element_type), undefined, "generate-annotation");
+    const scheme = Wizard.execute(gatherViewPropertiesInfo(view, undefined, selectedElementType));
     // console.log("ITS the SCHEME!!! " + JSON.stringify(scheme, null, 2));
     if (scheme) {
         log.debug(`scheme = ${JSON.stringify(scheme, null, 2)}`)
-        applyColorScheme(view, scheme, selected_element_type);
+        applyColorScheme(view, scheme, primaryElement.type);
         createLegend(view, scheme);
         return true
     } else {
@@ -342,6 +308,3 @@ if (typeof __CALLER_SCRIPT__ != 'undefined') {
     colorWizard(theView);
     log.info("*** Colormap: Wizard - end.");
 }
-
-// TODO: check if the note already exists inside the element. Place the position next to existing one.
-// TODO: Legend should reuse the existing legend if it exists (object_state: "legend")
