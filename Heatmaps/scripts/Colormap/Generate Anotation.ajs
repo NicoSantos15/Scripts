@@ -293,7 +293,7 @@ function applyColorScheme(view, scheme, selectedType = "element") {
 function getElement(view) {
   const element_text = "element";
   const general_text = "All element types";
-  let elements = $(view).find(element_text);
+  let elements = $(view).find(element_text).filter(el => el.prop("Object State") !== "Legend");
   let elementTypes = [general_text]; // Start with default option
   let seenTypes = new Set(); // Track unique element types
   let selectedType;
@@ -467,8 +467,10 @@ function createLegend(view, scheme) {
 
     // Find existing legend by object_state property
     let legendGroup = $(view)
-        .filter("diagram-model-group")
-        .filter(obj => obj.prop("Object State") === "legend")[0];
+        .find("grouping")
+        .filter(obj => obj.prop("Object State") == "Legend")[0];
+
+        console.log("LEGEND GROUP" + legendGroup.prop("Object State"))
 
     if (!legendGroup) {
         const currentLegend = $(view).find("." + LEGEND_NAME).filter("diagram-model-group").first();
@@ -479,16 +481,26 @@ function createLegend(view, scheme) {
             currentLegend.delete();
         }
 
-        legendGroup = view.createObject(
-            "diagram-model-group", X_LEGEND_ORIGIN, Y_LEGEND_ORIGIN, LEGEND_WIDTH,
-                COLOR_HEIGHT + (COLOR_HEIGHT + spacing) * Object.keys(scheme.colormap).length + spacing
+        const legendGrouping = model.createElement("grouping", LEGEND_NAME);
+        legendGrouping.prop("Object State", "Legend");
+
+        legendGroup = view.add(
+            legendGrouping,
+            X_LEGEND_ORIGIN,
+            Y_LEGEND_ORIGIN,
+            LEGEND_WIDTH,
+            COLOR_HEIGHT + (COLOR_HEIGHT + spacing) * Object.keys(scheme.colormap).length + spacing,
+            true
         );
+
         legendGroup.name = LEGEND_NAME;
         legendGroup.fillColor = LEGEND_BACKGROUND;
         legendGroup.fontStyle = LEGEND_FONT_STYLE;
         legendGroup.borderType = BORDER.RECTANGLE;
-        legendGroup.prop("object_state", "legend");
+        legendGroup.prop("Object State", "Legend");
     }
+
+
 
     let y = COLOR_HEIGHT;
     
@@ -501,13 +513,15 @@ function createLegend(view, scheme) {
         let noteWidth = noteText.length * CHAR_WIDTH;
 
         // note for legend
-        let colLegend = legendGroup.createObject(
+        let colLegend = view.createObject(
             "diagram-model-note", 
-            X_MARGIN, 
-            y, 
+            legendGroup.bounds.x + X_MARGIN, 
+            legendGroup.bounds.y + y, 
             noteWidth, 
-            COLOR_HEIGHT
+            COLOR_HEIGHT, 
+            true // 👈 Enables autonesting
         );
+
 
         y += COLOR_HEIGHT + spacing - 1;
         colLegend.fillColor = color;
@@ -515,6 +529,18 @@ function createLegend(view, scheme) {
         colLegend.text = scheme.name + " = " + label;
 
     }
+
+    // if (legendGroup) {
+    // const newHeight = y + spacing;
+    // const newWidth = 2 * X_MARGIN + maxLabelWidth;
+    // legendGroup.bounds = {
+    //     x: legendGroup.bounds.x,
+    //     y: legendGroup.bounds.y,
+    //     width: newWidth,
+    //     height: newHeight
+    // };
+}
+
 }
 
 
