@@ -229,7 +229,7 @@ function colorWizard(view, openView = false) {
     }
 
     const scheme = Wizard.execute(gatherViewPropertiesInfo(view, undefined, selected_element_type));
-    console.log("ITS the SCHEME!!! " + JSON.stringify(scheme, null, 2));
+    // console.log("ITS the SCHEME!!! " + JSON.stringify(scheme, null, 2));
     if (scheme) {
         log.debug(`scheme = ${JSON.stringify(scheme, null, 2)}`)
         applyColorScheme(view, scheme, selected_element_type);

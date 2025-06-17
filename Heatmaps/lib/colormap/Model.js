@@ -384,7 +384,7 @@ class ColorMap extends Map {
             colormap: Object.fromEntries(colormap) // NB: order of labels are undetermined
         }
 
-        console.log("SCHEME" + scheme)
+        // console.log("SCHEME" + scheme)
         // handle continuous scale extremities 
         if (this.scale instanceof ContinuousScale) {
             scheme.Continuous = {

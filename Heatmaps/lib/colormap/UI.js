@@ -339,10 +339,10 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
 
   getNextPage: function () {
     if (Wizard.cm.colormap.scale instanceof ContinuousScale) {
-      log.info("NextPage:", pageContinuousColor.getName());
+      // log.info("NextPage:", pageContinuousColor.getName());
       return pageContinuousColor;
     } else {
-      log.info("NextPage:", pageCategoryColor.getName());
+      // log.info("NextPage:", pageCategoryColor.getName());
       return pageCategoryColor;
     }
   },

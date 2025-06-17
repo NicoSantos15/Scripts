@@ -491,6 +491,7 @@ function createLegend(view, scheme) {
     }
 
     let y = COLOR_HEIGHT;
+    
     const colormap = Object.entries(scheme.colormap);
     colormap.sort(isCategorical ? undefined : (a, b) => parseFloat(a[0]) - parseFloat(b[0]));
 
