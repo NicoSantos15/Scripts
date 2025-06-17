@@ -207,7 +207,8 @@ function getElement(view) {
   
     console.log("Selected element type: " + selectedType);
     return selectedType;
-  }
+}
+
 /**
  * The Wizard main
  * 

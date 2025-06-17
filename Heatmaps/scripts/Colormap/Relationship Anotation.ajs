@@ -1,0 +1,342 @@
+/**
+ * ----------------------------------------------------------------------------
+ * Script: Heatmap Colour Wizard for ArchiMate Views
+ * Tool: jArchi
+ * 
+ * Description:
+ *   Provides a UI-based wizard to generate heatmaps on ArchiMate views by
+ *   applying fill colours based on element property values.
+ *   Supports:
+ *     - Gathering property values from a selected element type
+ *     - Applying colour schemes to matching elements
+ *     - Automatically generating a visual legend
+ * 
+ * Ownership: Property of BHP
+ * Author   : Santos, Nico
+ * Version  : 1.0
+ * Last Updated: 2025-06-10
+ * ----------------------------------------------------------------------------
+ */
+
+if (typeof __CALLER_SCRIPT__ == 'undefined') {
+    // it is the main script
+    load(__SCRIPTS_DIR__ + "Heatmaps/lib/misc.js");
+    log.level = LogLevel.INFO;
+    if (log.level <= LogLevel.DEBUG) {
+        console.clear();
+        console.show();
+    }
+}
+
+load(__SCRIPTS_DIR__ + "Heatmaps/lib/colormap/Model.js")
+load(__SCRIPTS_DIR__ + "Heatmaps/lib/colormap/UI.js")
+
+// name of the property stored in view referencing the Archimate selected property for colormap
+const COLORMAP_PROPERTY = ".colormap.property";
+
+/**
+ * Will gather all properties of all elements visual objects in the view (no relationships)
+ * and for each property, the set of found values
+ * 
+ * MAYBE: extend to support relationship schemes?
+ * 
+ * @param {ArchimateView} view the view to gather from
+ * @param {string} [property] collect only for this property
+ * @returns {{[x:string]: string[]}} alphabetically ordered property names and associated labels
+ */
+function gatherViewPropertiesInfo(view, property = undefined, selected_element_type) {
+    /** 
+     * @type {Map<string,Set<string>>} 
+     */
+    const props = new Map();
+    let element_type = selected_element_type;
+    if (!element_type) {
+        log.error("No element type selected, stopping");
+        // MessageDialog.openError(shell, "No element type", "No element type selected. Stopping.");
+        exit();
+    }
+    $(view).find(element_type).each (
+        (e) => {
+            for (let p of e.prop()) {
+                if (property === undefined || p === property) {
+                    if (!props.has(p)) {
+                        props.set(p, new Set());
+                    }
+                    props.get(p).add(e.prop(p));
+                }
+            }
+        }
+    )
+    // sorting alphabetically by property names and labels (as Array)
+    const result = Object.fromEntries([...props.entries()].sort().map(([pname, labels]) => [pname, [...labels].sort()]));
+    log.trace('collected:' + JSON.stringify(result, null, 2));
+    if (Object.keys(result).length == 0) {
+        console.log("Exiting");
+        exit();
+    }
+    return result;
+}
+
+/**
+ * Apply to the view the heatmap as configured by the wizard
+ * @param {ArchimateView} view 
+ * @param {ColorScheme} scheme
+ */
+function applyColorScheme(view, scheme, selectedType = "element") {
+    const SIZE = 25;
+    const CHAR_WIDTH = 8;
+
+    $(view).find(selectedType).each((vo) => {
+        const label = vo.prop(scheme.name);
+        if (label && (label in scheme.colormap)) {
+            const color = scheme.colormap[label];
+
+            let noteWidth = SIZE;
+            let noteText = "";
+            let x = 95;
+            let y = 30;
+
+            // NEEDS BETTER CALCULATION OF POSITION
+            if (Wizard.annotationEnabled) {
+                noteText = label;
+                noteWidth = label.length * CHAR_WIDTH;
+
+                const bounds = vo.bounds;
+                const maxX = bounds.width - noteWidth;
+                const maxY = bounds.height - SIZE;
+
+                x = Math.max(5, Math.min(95, maxX));
+                y = Math.max(5, Math.min(30, maxY));
+            }
+
+            const note = vo.createObject("diagram-model-note", x, y, noteWidth, SIZE);
+            const elementType = vo.type;
+            const propertyName = scheme.name;
+            const elementName = vo.name || "unnamed";
+            const noteId = `${elementType}-${propertyName}-${elementName}`;
+
+            note.prop("note-id", noteId);
+            note.text = noteText;
+            note.fillColor = color;
+            note.fontStyle = "bold";
+            note.borderType = BORDER.RECTANGLE;
+        }
+    });
+}
+
+function getElement(view, primaryElement) {
+	let relatedElementsArr = [];
+	const relatedElements = $(view).find("relationship").filter(rel => rel.prop("Object State") !== "Legend");
+	
+	relatedElements.forEach(rel => {
+		// console.log(`Relation: ${rel.type}, Source: ${rel.source.name}, Target: ${rel.target.name}`);
+		// console.log("Relationship id" + rel.target.id)
+		// console.log("CHECK 2" + primaryElement.id)
+		if (rel.target.id == primaryElement.id) {
+			// console.log('I am here' + rel.source)
+			const type = rel.source.type;
+			if (!relatedElementsArr.includes(type)) {
+					relatedElementsArr.push(type);
+			}		
+		}
+	});
+
+  // const element_text = "element";
+  // const general_text = "All element types";
+  // let elements = $(view).find(element_text).filter(el => el.prop("Object State") !== "Legend");
+  // let elementTypes = [general_text]; 						// Start with default option
+  // let seenTypes = new Set(); 										// Track unique element types
+  let selectedType;
+
+  // elements.forEach((el) => {
+  //   if (!el.type || seenTypes.has(el.type)) return;
+  //   seenTypes.add(el.type);
+  //   elementTypes.push(el.type);
+  // });
+
+  const selected = window.promptSelection("Select an element type from the view:", relatedElementsArr, 0);
+  if (!selected) {
+    console.log("No element selected.");
+    exit();
+  }
+
+  selectedType = selected;
+
+  // console.log("Selected element type: " + selectedType);
+  return selectedType;
+}
+
+function getPrimaryElement(view) {
+	let selectedElement;
+	const elements = $(view)
+		.find("element")
+		.filter(el => el.prop("Object State") !== "Legend");
+
+	const elementNames = elements.map(el => el.name);
+
+	const selectedName = window.promptSelection("Select a primary element from the view:", elementNames, 0);
+	for (let i = 0; i < elements.length; i++) {
+    if (elements[i].name == selectedName) {
+        selectedElement = elements[i];
+        break;
+    }
+	}
+	return selectedElement;
+}
+
+/**
+ * Replace or create the associated legend in the view
+ * @param {ArchimateView} view 
+ * @param {ColorScheme} scheme 
+ */
+function createLegend(view, scheme) {
+    const GRID_SIZE = 12;
+    const X_MARGIN = GRID_SIZE / 2;
+    const Y_MARGIN = GRID_SIZE / 2;
+    const COLOR_HEIGHT = 30;
+    const COLOR_WIDTH = 12 * GRID_SIZE;
+
+    let X_LEGEND_ORIGIN = GRID_SIZE;
+    let Y_LEGEND_ORIGIN = GRID_SIZE;
+    const LEGEND_NAME = "Color Legend";
+    const LEGEND_BACKGROUND = "#F7F7F7";
+    const LEGEND_FONT_STYLE = "bold";
+
+    const isCategorical = scheme.type == "Categorical";
+    const spacing = (isCategorical) ? Y_MARGIN : 0;
+
+    // Calculate max width based on label text
+    const CHAR_WIDTH = 6;
+    let maxLabelWidth = 0;
+    for (const [label] of Object.entries(scheme.colormap)) {
+        const text = scheme.name + " = " + label;
+        const width = text.length * CHAR_WIDTH;
+        if (width > maxLabelWidth) maxLabelWidth = width;
+    }
+    const LEGEND_WIDTH = 2 * X_MARGIN + maxLabelWidth;
+
+    // Find existing legend by object_state property
+    let legendGroup = $(view)
+        .find("grouping")
+        .filter(obj => obj.prop("Object State") == "Legend")[0];
+
+    // if (legendGroup) {
+    //     console.log("LEGEND GROUP: " + legendGroup.prop("Object State"));
+    // } else {
+    //     console.log("LEGEND GROUP not found");
+    // }
+
+    if (!legendGroup) {
+        const currentLegend = $(view).find("." + LEGEND_NAME).filter("diagram-model-group").first();
+        if (currentLegend && scheme.resetDefault) {
+            log.info(`previous ${LEGEND_NAME} found, deleting`);
+            X_LEGEND_ORIGIN = currentLegend.bounds.x;
+            Y_LEGEND_ORIGIN = currentLegend.bounds.y;
+            currentLegend.delete();
+        }
+
+        const legendGrouping = model.createElement("grouping", LEGEND_NAME);
+        legendGrouping.prop("Object State", "Legend");
+
+        legendGroup = view.add(
+            legendGrouping,
+            X_LEGEND_ORIGIN,
+            Y_LEGEND_ORIGIN,
+            LEGEND_WIDTH,
+            COLOR_HEIGHT + (COLOR_HEIGHT + spacing) * Object.keys(scheme.colormap).length + spacing,
+            true
+        );
+
+        legendGroup.name = LEGEND_NAME;
+        legendGroup.fillColor = LEGEND_BACKGROUND;
+        legendGroup.fontStyle = LEGEND_FONT_STYLE;
+        legendGroup.borderType = BORDER.RECTANGLE;
+        legendGroup.prop("Object State", "Legend");
+    }
+
+
+
+    let y = COLOR_HEIGHT;
+    
+    const colormap = Object.entries(scheme.colormap);
+    colormap.sort(isCategorical ? undefined : (a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+
+    for (const [label, color] of colormap) {
+        log.trace(`legend label '${label}' color = ${color}`);
+        let noteText = scheme.name + " = " + label;
+        let noteWidth = noteText.length * CHAR_WIDTH;
+
+        // note for legend
+        let colLegend = view.createObject(
+            "diagram-model-note", 
+            legendGroup.bounds.x + X_MARGIN, 
+            legendGroup.bounds.y + y, 
+            noteWidth, 
+            COLOR_HEIGHT, 
+            true // 👈 Enables autonesting
+        );
+
+
+        y += COLOR_HEIGHT + spacing - 1;
+        colLegend.fillColor = color;
+        colLegend.borderType = isCategorical ? BORDER.RECTANGLE : BORDER.NONE;
+        colLegend.text = scheme.name + " = " + label;
+
+    }
+
+    // if (legendGroup) {
+    // const newHeight = y + spacing;
+    // const newWidth = 2 * X_MARGIN + maxLabelWidth;
+    // legendGroup.bounds = {
+    //     x: legendGroup.bounds.x,
+    //     y: legendGroup.bounds.y,
+    //     width: newWidth,
+    //     height: newHeight
+    // };
+} 
+
+/**
+ * The Wizard main
+ * 
+ * @param {JavaObject} view the view to work on
+ * @param {boolean} openView open the view in UI (NIY)
+ * @returns {boolean} true if wizard successful, false if prematurely terminated
+ */
+function colorWizard(view, openView = false) {
+    // const dir = __SCRIPTS_DIR__ + 'Heatmaps/lib/colormap/scheme';
+    // if (!mkdirs(dir)) {
+    //     MessageDialog.openWarning(shell, "Color scheme saving", `Cannot create directory '${dir}' for storing color scheme.\nWon't be able to save them for default colors.`);
+    //     log.warn(`Not possible to create directory '${dir}' for storing color scheme`);
+    // }
+	let primaryElement = getPrimaryElement(view);
+    let selectedElementType = getElement(view, primaryElement);
+    
+    if (openView) {
+        // show the view in case it is called from reapply on model
+        // view.openInUI() no api in jscript ;-(
+    }
+
+    const scheme = Wizard.execute(gatherViewPropertiesInfo(view, undefined, selectedElementType), undefined, "generate-annotation");    
+    // console.log("ITS the SCHEME!!! " + JSON.stringify(scheme, null, 2));
+    if (scheme) {
+        log.debug(`scheme = ${JSON.stringify(scheme, null, 2)}`)
+        applyColorScheme(view, scheme, primaryElement.type);
+        createLegend(view, scheme);
+        return true
+    } else {
+        log.warn("execution cancelled");
+        return false
+    }
+}
+
+if (typeof __CALLER_SCRIPT__ != 'undefined') {
+    log.trace(`${__FILE__} loaded as a library for '${__CALLER_SCRIPT__}'`)
+} else {
+    log.info("*** Colormap: Wizard - start")
+    const theView = getCurrentView();
+    colorWizard(theView);
+    log.info("*** Colormap: Wizard - end.");
+}
+
+// TODO: check if the note already exists inside the element. Place the position next to existing one.
+// TODO: Legend should reuse the existing legend if it exists (object_state: "legend")

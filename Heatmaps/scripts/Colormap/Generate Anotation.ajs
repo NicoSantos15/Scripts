@@ -123,71 +123,30 @@ function applyColorScheme(view, scheme, selectedType = "element") {
     });
 }
 
-function getElement(view, primary_element) {
-  //TODO:
-  // Param primary_element should check for all the relationship with that element.
-  // Elements related to primary_element will be used on this method so we can get all the properties of that and continue the wizard
+function getElement(view) {
+    const element_text = "element";
+    const general_text = "All element types";
+    let elements = $(view).find(element_text);
+    let elementTypes = [general_text]; // Start with default option
+    let seenTypes = new Set(); // Track unique element types
+    let selectedType;
   
-	let relatedElements = [];
-
-	primary_element.relations().forEach(rel => {
-			let related = (rel.source === primary_element) ? rel.target : rel.source;
-			relatedElements.push(related);
-			console.log(`Related to ${primary_element.name}: ${related.name} via ${rel.type}`);
-	});
-	
-	
-	
-	
-	const element_text = "element";
-  const general_text = "All element types";
-  let elements = $(view).find(element_text).filter(el => el.prop("Object State") !== "Legend");
-  let elementTypes = [general_text]; // Start with default option
-  let seenTypes = new Set(); // Track unique element types
-  let selectedType;
-
-  elements.forEach((el) => {
-    if (!el.type || seenTypes.has(el.type)) return;
-    seenTypes.add(el.type);
-    elementTypes.push(el.type);
-  });
-
-  const selected = window.promptSelection("Select an element type from the view:", elementTypes, 0);
-  if (!selected) {
-    console.log("No element selected.");
-    exit();
-  }
-
-  selectedType = selected == general_text ? element_text : selected;
-
-  // console.log("Selected element type: " + selectedType);
-  return selectedType;
-}
-
-function getPrimaryElement() {
-	//TODO: need to get the element that will be applying the colours
-	const general_text = "All element types";
-  let elements = $(view).find(element_text).filter(el => el.prop("Object State") !== "Legend");
-	let elementTypes = [general_text]; // Start with default option
-  let seenTypes = new Set(); // Track unique element types
-  let selectedType;
-
-	elements.forEach((el) => {
-    if (!el.type || seenTypes.has(el.type)) return;
-    seenTypes.add(el.type);
-    elementTypes.push(el.type);
-  });
-
-	const selected = window.promptSelection("Select an element type from the view:", elementTypes, 0);
-  if (!selected) {
-    console.log("No element selected.");
-    exit();
-  }
-
-	
-  selectedType = selected == general_text ? element_text : selected;
-  // console.log("Selected element type: " + selectedType);
-  return selectedType;
+    elements.forEach((el) => {
+      if (!el.type || seenTypes.has(el.type)) return;
+      seenTypes.add(el.type);
+      elementTypes.push(el.type);
+    });
+  
+    const selected = window.promptSelection("Select an element type from the view:", elementTypes, 0);
+    if (!selected) {
+      console.log("No element selected.");
+      exit();
+    }
+  
+    selectedType = selected == general_text ? element_text : selected;
+  
+    console.log("Selected element type: " + selectedType);
+    return selectedType;
 }
 
 /**
