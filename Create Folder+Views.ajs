@@ -1,0 +1,291 @@
+﻿/* 
+ * Script: Create Folder+Views
+ *
+ * The script creates a project folder and blank viewpoints in the correct Asset and Model based on Architect's inputs
+ * validated against the models loaded in Model tree and model selected.
+ *
+ * Requirement/Dependencies:
+ *  - Requires: jArchi plug-in
+ *  - Dependencies: None
+ *
+ * Author: Malcolm Evans
+ * Version:  1.04
+ * 
+ * Version history
+ * 1.00 - Initial version 
+ * 1.01 - Default for BHP (Adopters) (covers all Assets)
+ * 1.02 - Added Global Functions and Minerals America
+ * 1.03 - Added Minerals Australia
+ * 1.04 - Added properties for folder and views created
+ */
+ 
+console.show();
+console.clear();
+
+var scriptversion = 1.04;
+
+var debug = true;
+
+function setPropIfMissing(element, propName, value) {
+	if (!element.prop(propName)) {
+		element.prop(propName, value, false);
+		if (debug) console.log(element.name, ` - No ${propName}, adding ${propName}`);
+	}
+}
+ 
+console.log("> Create Folder+Views Script");
+console.log("\n\n Script Version :",scriptversion);
+
+if ((selection.size() === 1) && ($(selection.get(0)).is('archimate-model'))) {
+
+var propAuthor = window.prompt("Value for Author (leave empty to cancel)?", "");
+var propDate = window.prompt("Value for Date (leave empty to set to current date) (Format: YYYY-MM-DD)?", "");
+
+
+if (!propDate) {
+	var date = new Date();
+	var month = date.getMonth()+1;
+	if (month < 10) {
+		month = "0" + month;
+	}
+	var day = date.getDate();
+	if (day < 10) {
+		day = "0" + day;
+	}
+	 
+	propDate = date.getFullYear()+"-"+month+"-"+day;
+}
+
+var modelselected = $(selection.get(0));
+
+var modelslist = $.model.getLoadedModels();
+
+console.log(modelselected.name);
+console.log(modelselected[0]);
+
+function titleBlock(diagramView,viewName,viewpoint,author,titledate) {
+	if (!diagramView.prop("Has Title")) {
+			var titleText = "BHP - "+viewName;
+			var titleNote = diagramView.createObject("note", 10, 10, 2000, 40);
+			titleNote.borderType = BORDER.RECTANGLE;
+			titleNote.fontStyle = "bold";
+			titleNote.setText(titleText);
+			titleNote.fontSize = 14;
+			diagramView.prop("Has Title","True",false);
+			var blankNote = diagramView.createObject("note", 10, 50, 1000, 30);
+			blankNote.borderType = BORDER.RECTANGLE;
+			//blankNote.fontStyle = "bold";
+			blankNote.setText(viewpoint);
+			blankNote.fontSize = 12;
+			var authorNote = diagramView.createObject("note", 1010, 50, 500, 30);
+			authorNote.borderType = BORDER.RECTANGLE;
+			//authorNote.fontStyle = "bold";
+			var authorText = "Author: "+author;
+			authorNote.setText(authorText);
+			authorNote.fontSize = 12;
+			var dateNote = diagramView.createObject("note", 1510, 50, 500, 30);
+			dateNote.borderType = BORDER.RECTANGLE;
+			//dateNote.fontStyle = "bold";
+			var dateText = "Date: "+titledate;
+			dateNote.setText(dateText);
+			dateNote.fontSize = 12;
+			// Add viewpoint properties
+			if (!diagramView.prop("Object Author")) {
+				diagramView.prop("Object Author",author,false);
+			}
+			if (!diagramView.prop("Object Date")) {
+				diagramView.prop("Object Date",titledate,false);
+			}
+			if (!diagramView.prop("Object State")) {
+				diagramView.prop("Object State","Work Package",false);
+			}
+			if (!diagramView.prop("Object Status")) {
+				diagramView.prop("Object Status","Draft",false);
+			}
+			if (!diagramView.prop("Object Type")) {
+				diagramView.prop("Object Type","View",false);
+			}
+			return true
+		}
+	else {
+		return false;
+		}
+}
+
+var propModel = window.promptSelection("Repository ", ["Global Functions", "Minerals America", "Minerals Australia","BHP (Adopters)"]);
+
+modelslist.forEach(function(amodel) {
+	//console.log(amodel.name);
+	if (amodel.name == propModel) {
+		console.log("Model is loaded in UI - Setting as Target");
+		console.log(propModel);
+		// Set to selected model
+		amodel.setAsCurrent();
+		switch (amodel.name) {
+			case "Global Functions":
+				// Prompt architect for Global Function they're project is related to 
+				do {
+					var propFunction = window.promptSelection("Select Group Function ", ["Commercial", "Finance", "Human Resources","Technical"]);
+					}
+				while (!propFunction);
+				if (propFunction == "Technical") {
+					do {
+						var propSubFunction = window.promptSelection("Select Sub-Function ", ["MCoE", "Minerals Exploration", "PCoE","RCoE","Technology"]);
+						}
+					while (!propSubFunction);
+				}
+				if (propSubFunction == "Technology") {
+					do {
+						var propSubSubFunction = window.promptSelection("Select Technology Function ", ["Cloud & Infrastructure","Core & Functions","Cybersecurity & Architecture","Strategy Portfolio & Performance"]);
+						}
+					while (!propSubSubFunction);
+				}
+				if (propSubSubFunction == "Cybersecurity & Architecture") {
+					do {
+						var propSubSubSubFunction = window.promptSelection("Select Cybersecurity & Architecture Function ", ["Cybersecurity","Technology Architecture"]);
+						}
+					while (!propSubSubSubFunction);
+				}
+				if (propFunction == "Technical") {
+					if (propSubFunction == "Technology") {
+						if (propSubSubFunction == "Cybersecurity & Architecture") {
+							var findFolder = "folder."+propSubSubSubFunction+" Work Packages";
+						} else {
+							var findFolder = "folder."+propSubSubFunction+" Work Packages";
+						}
+					} else {
+						var findFolder = "folder."+propSubFunction+" Work Packages";
+					}
+				} else {
+					var findFolder = "folder."+propFunction+" Work Packages";
+				}
+			break;
+			case "Minerals America":
+				// Prompt architect for Asset they're project is related to 
+				var propAsset = window.promptSelection("Select Asset ", ["Escondida", "Pampa Norte", "Potash", "Legacy Assets"]);
+				var findFolder = "folder."+propAsset+" Work Packages";
+		// Get Planview Id and Project Name
+			break;
+			case "Minerals Australia":
+				// Prompt architect for Asset they're project is related to 
+				var propAsset = window.promptSelection("Select Asset ", ["Coal", "CopperSA", "NiW","WAIO"]);
+				var findFolder = "folder."+propAsset+" Work Packages";
+			break;
+			case "BHP (Adopters)":
+				// Prompt architect for Asset they're project is related to 
+				var propAsset = window.promptSelection("Select Asset ", ["Coal", "CopperSA", "NiW","WAIO","Escondida", "Pampa Norte", "Potash", "Legacy Assets"]);
+				var findFolder = "folder."+propAsset+" Work Packages";
+		
+			break;
+		}	// End switch
+		// Now do all the work
+		// Get Planview Id and Project Name
+		var propPlanviewId = window.prompt("Planview ID (leave blank if not assigned PlanViewID): ","");
+		if ((!propPlanviewId) ||(propPlanviewId == "")) {
+			// Not defined
+			propPlanviewId = "NDF XX";
+		}
+		var propWorkpackageName = window.prompt("Name of Project/Program: ","");
+		if ((!propWorkpackageName) || (propWorkpackageName == "")) {
+			propWorkpackageName = propAuthor;
+		}
+		var workPackageFolderName = propPlanviewId+" - "+propWorkpackageName;
+		// Locate parent folder
+		console.log(findFolder);
+		//
+		var workPackagesFolder = $(findFolder).first();
+		// Now create folder for Architect's viewpoints
+		workPackagesFolder.createFolder(workPackageFolderName);
+		var viewsFolder = $("folder."+workPackageFolderName).first();
+		// Now create initial views in folder
+		// Workpackage 
+		var viewpointTitle = propWorkpackageName+" - Workpackage Viewpoint";
+		var workpackageView = amodel.createArchimateView(viewpointTitle,viewsFolder);
+		setPropIfMissing(workpackageView, "Object Author", propAuthor);
+		setPropIfMissing(workpackageView, "Object Date", propDate);
+		setPropIfMissing(workpackageView, "Object Status", "Draft");
+		setPropIfMissing(workpackageView, "Object State", "Work Package"+" ("+propPlanviewId+")");
+		// Now add title block
+		if (titleBlock(workpackageView,viewpointTitle,"Work Package",propAuthor,propDate)) {
+			console.log("Title block added to ",viewpointTitle);
+		}
+		// Business Context 
+		viewpointTitle = propWorkpackageName+" - Conceptual Viewpoint";
+		var workpackageView = amodel.createArchimateView(viewpointTitle,viewsFolder);
+		setPropIfMissing(workpackageView, "Object Author", propAuthor);
+		setPropIfMissing(workpackageView, "Object Date", propDate);
+		setPropIfMissing(workpackageView, "Object Status", "Draft");
+		setPropIfMissing(workpackageView, "Object State", "Work Package"+" ("+propPlanviewId+")");
+		// Now add title block
+		if (titleBlock(workpackageView,viewpointTitle,"Business Context",propAuthor,propDate)) {
+			console.log("Title block added to ",viewpointTitle);
+		}
+		// Business Coop - Current & Target
+		viewpointTitle = propWorkpackageName+" - Business Cooperation Viewpoint - Current State";
+		var workpackageView = amodel.createArchimateView(viewpointTitle,viewsFolder);
+		setPropIfMissing(workpackageView, "Object Author", propAuthor);
+		setPropIfMissing(workpackageView, "Object Date", propDate);
+		setPropIfMissing(workpackageView, "Object Status", "Draft");
+		setPropIfMissing(workpackageView, "Object State", "Work Package"+" ("+propPlanviewId+")");
+		// Now add title block
+		if (titleBlock(workpackageView,viewpointTitle,"Business Cooperation",propAuthor,propDate)) {
+			console.log("Title block added to ",viewpointTitle);
+		}
+		viewpointTitle = propWorkpackageName+" - Business Cooperation Viewpoint - Target State";
+		var workpackageView = amodel.createArchimateView(viewpointTitle,viewsFolder);
+		setPropIfMissing(workpackageView, "Object Author", propAuthor);
+		setPropIfMissing(workpackageView, "Object Date", propDate);
+		setPropIfMissing(workpackageView, "Object Status", "Draft");
+		setPropIfMissing(workpackageView, "Object State", "Work Package"+" ("+propPlanviewId+")");
+		// Now add title block
+		if (titleBlock(workpackageView,viewpointTitle,"Business Cooperation",propAuthor,propDate)) {
+			console.log("Title block added to ",viewpointTitle);
+		}
+		// Application Coop - Current & Target
+		viewpointTitle = propWorkpackageName+" - Application Cooperation Viewpoint - Current State";
+		var workpackageView = amodel.createArchimateView(viewpointTitle,viewsFolder);
+		setPropIfMissing(workpackageView, "Object Author", propAuthor);
+		setPropIfMissing(workpackageView, "Object Date", propDate);
+		setPropIfMissing(workpackageView, "Object Status", "Draft");
+		setPropIfMissing(workpackageView, "Object State", "Work Package"+" ("+propPlanviewId+")");
+		// Now add title block
+		if (titleBlock(workpackageView,viewpointTitle,"Application Cooperation",propAuthor,propDate)) {
+			console.log("Title block added to ",viewpointTitle);
+		}
+		viewpointTitle = propWorkpackageName+" - Application Cooperation Viewpoint - Target State";
+		var workpackageView = amodel.createArchimateView(viewpointTitle,viewsFolder);
+		setPropIfMissing(workpackageView, "Object Author", propAuthor);
+		setPropIfMissing(workpackageView, "Object Date", propDate);
+		setPropIfMissing(workpackageView, "Object Status", "Draft");
+		setPropIfMissing(workpackageView, "Object State", "Work Package"+" ("+propPlanviewId+")");
+		// Now add title block
+		if (titleBlock(workpackageView,viewpointTitle,"Application Cooperation",propAuthor,propDate)) {
+			console.log("Title block added to ",viewpointTitle);
+		}
+		// Deployment - Current & Target
+		viewpointTitle = propWorkpackageName+" - Deployment Viewpoint - Current State";
+		var workpackageView = amodel.createArchimateView(viewpointTitle,viewsFolder);
+		setPropIfMissing(workpackageView, "Object Author", propAuthor);
+		setPropIfMissing(workpackageView, "Object Date", propDate);
+		setPropIfMissing(workpackageView, "Object Status", "Draft");
+		setPropIfMissing(workpackageView, "Object State", "Work Package"+" ("+propPlanviewId+")");
+		// Now add title block
+		if (titleBlock(workpackageView,viewpointTitle,"Deployment",propAuthor,propDate)) {
+			console.log("Title block added to ",viewpointTitle);
+		}
+		viewpointTitle = propWorkpackageName+" - Deployment Viewpoint Viewpoint - Target State";
+		var workpackageView = amodel.createArchimateView(viewpointTitle,viewsFolder);
+		setPropIfMissing(workpackageView, "Object Author", propAuthor);
+		setPropIfMissing(workpackageView, "Object Date", propDate);
+		setPropIfMissing(workpackageView, "Object Status", "Draft");
+		setPropIfMissing(workpackageView, "Object State", "Work Package"+" ("+propPlanviewId+")");
+		// Now add title block
+		if (titleBlock(workpackageView,viewpointTitle,"Deployment",propAuthor,propDate)) {
+			console.log("Title block added to ",viewpointTitle);
+		}
+	} else {
+		console.log("Model not loaded");
+	}	
+})
+}
+console.log("> End Create Folder+Views script");
