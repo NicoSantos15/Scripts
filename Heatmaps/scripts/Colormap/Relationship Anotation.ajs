@@ -278,6 +278,7 @@ function createLegend(view, scheme) {
 
 
         y += COLOR_HEIGHT + spacing - 1;
+        colLegend.prop("Object State", "Legend");
         colLegend.fillColor = color;
         colLegend.borderType = isCategorical ? BORDER.RECTANGLE : BORDER.NONE;
         colLegend.text = scheme.name + " = " + label;

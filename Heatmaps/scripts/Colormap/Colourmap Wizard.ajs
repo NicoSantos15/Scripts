@@ -104,7 +104,7 @@ function applyColorScheme(view, scheme, selectedType = "element") {
 function getElement(view) {
   const element_text = "element";
   const general_text = "All element types";
-  let elements = $(view).find(element_text);
+  let elements = $(view).find(element_text).filter(rel => rel.prop("Object State") !== "Legend");
   let elementTypes = [general_text]; // Start with default option
   let seenTypes = new Set(); // Track unique element types
   let selectedType;
@@ -172,6 +172,7 @@ function createLegend(view, scheme) {
         log.trace(`legend label '${label}' color = ${color}`);
         let colLegend = legendGroup.createObject("diagram-model-note", X_MARGIN, y, COLOR_WIDTH + scheme.name.length, COLOR_HEIGHT);
         y += COLOR_HEIGHT + spacing -1;
+        colLegend.prop("Object State", "Legend");
         colLegend.fillColor = color;
         colLegend.borderType = isCategorical ? BORDER.RECTANGLE : BORDER.NONE;
         colLegend.text = scheme.name + " = " + label;
