@@ -170,6 +170,10 @@ function createLegend(view, scheme) {
     const isCategorical = scheme.type == "Categorical";
     const spacing = (isCategorical) ? Y_MARGIN : 0;
 
+    let y = COLOR_WIDTH;
+    const colormap = Object.entries(scheme.colormap);
+    colormap.sort(isCategorical ? undefined : (a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+
     // Calculate max width based on label text
     const CHAR_WIDTH = 6;
     let maxLabelWidth = 0;
@@ -182,14 +186,20 @@ function createLegend(view, scheme) {
 
     // Find existing legend by object_state property
     let legendGroup = $(view)
-        .find("grouping")
-        .filter(obj => obj.prop("Object State") == "Legend")[0];
+        .find("diagram-model-group")
+        .filter(obj => obj.prop("Object State") == "Legend" && obj.name == "Legend")[0];
 
-    // if (legendGroup) {
-    //     console.log("LEGEND GROUP: " + legendGroup.prop("Object State"));
-    // } else {
-    //     console.log("LEGEND GROUP not found");
-    // }
+    if (legendGroup) {
+        const totalNewHeight = colormap.length * 40;
+
+        legendGroup.bounds = {
+        x: legendGroup.bounds.y,
+        y: legendGroup.bounds.y,
+        width: legendGroup.bounds.width,
+        height: legendGroup.bounds.height + totalNewHeight
+        }
+
+    }
 
     if (!legendGroup) {
         const currentLegend = $(view).find("." + LEGEND_NAME).filter("diagram-model-group").first();
@@ -221,43 +231,60 @@ function createLegend(view, scheme) {
 
 
 
-    let y = COLOR_HEIGHT;
-    
-    const colormap = Object.entries(scheme.colormap);
-    colormap.sort(isCategorical ? undefined : (a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+    // for (const [label, color] of colormap) {
+    //     log.trace(`legend label '${label}' color = ${color}`);
+    //     let noteText = scheme.name + " = " + label;
+    //     let noteWidth = noteText.length * CHAR_WIDTH;
 
-    for (const [label, color] of colormap) {
-        log.trace(`legend label '${label}' color = ${color}`);
-        let noteText = scheme.name + " = " + label;
-        let noteWidth = noteText.length * CHAR_WIDTH;
-
-        // note for legend
-        let colLegend = view.createObject(
-            "diagram-model-note", 
-            legendGroup.bounds.x + X_MARGIN, 
-            legendGroup.bounds.y + y, 
-            noteWidth, 
-            COLOR_HEIGHT, 
-            true // 👈 Enables autonesting
-        );
+    //     // note for legend
+    //     let colLegend = view.createObject(
+    //         "diagram-model-note", 
+    //         legendGroup.bounds.x + X_MARGIN,
+    //         legendGroup.bounds.y + legendGroup.bounds.height - 40, //Adds 10 padding below
+    //         noteWidth, 
+    //         COLOR_HEIGHT, 
+    //         true // Enables autonesting
+    //     );
 
 
-        y += COLOR_HEIGHT + spacing - 1;
-        colLegend.fillColor = color;
-        colLegend.borderType = isCategorical ? BORDER.RECTANGLE : BORDER.NONE;
-        colLegend.text = scheme.name + " = " + label;
+    //     y += COLOR_HEIGHT + spacing - 1;
+    //     colLegend.fillColor = color;
+    //     colLegend.borderType = isCategorical ? BORDER.RECTANGLE : BORDER.NONE;
+    //     colLegend.text = scheme.name + " = " + label;
 
+    // }
+
+    let notes = $(legendGroup).find("diagram-model-note");
+    let yStart;
+
+    if (notes.length > 0) {
+        // Find the bottom Y position of the lowest note
+        yStart = Math.max(...notes.map(n => n.bounds.y + n.bounds.height));
+    } else {
+        // No notes yet, start near top of legendGroup
+        yStart = legendGroup.bounds.y + legendGroup.bounds.height - 40 //Adds 10 padding below
     }
 
-    // if (legendGroup) {
-    // const newHeight = y + spacing;
-    // const newWidth = 2 * X_MARGIN + maxLabelWidth;
-    // legendGroup.bounds = {
-    //     x: legendGroup.bounds.x,
-    //     y: legendGroup.bounds.y,
-    //     width: newWidth,
-    //     height: newHeight
-    // };
+    for (const [label, color] of colormap) {
+        const noteText = scheme.name + " = " + label;
+        const noteWidth = noteText.length * CHAR_WIDTH;
+
+        const colLegend = view.createObject(
+            "diagram-model-note", 
+            legendGroup.bounds.x + X_MARGIN,
+            yStart,
+            noteWidth,
+            COLOR_HEIGHT,
+            true
+        );
+
+        colLegend.fillColor = color;
+        colLegend.borderType = isCategorical ? BORDER.RECTANGLE : BORDER.NONE;
+        colLegend.text = noteText;
+
+        // yStart += COLOR_HEIGHT + spacing;
+    }
+
 } 
 
 /**
