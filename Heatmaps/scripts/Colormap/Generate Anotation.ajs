@@ -82,47 +82,6 @@ function gatherViewPropertiesInfo(view, property = undefined, selected_element_t
  * @param {ArchimateView} view 
  * @param {ColorScheme} scheme
  */
-// function applyColorScheme(view, scheme, selectedType = "element") {
-//     const SIZE = 25;
-//     const CHAR_WIDTH = 8;
-
-//     $(view).find(selectedType).each((vo) => {
-//         const label = vo.prop(scheme.name);
-//         if (label && (label in scheme.colormap)) {
-//             const color = scheme.colormap[label];
-
-//             let noteWidth = SIZE;
-//             let noteText = "";
-//             let x = 95;
-//             let y = 30;
-
-//             if (Wizard.annotationEnabled) {
-//                 noteText = label;
-//                 noteWidth = label.length * CHAR_WIDTH;
-
-//                 const bounds = vo.bounds;
-//                 const padding = 0;
-
-//                 const maxX = bounds.width - noteWidth - padding;
-//                 const maxY = bounds.height - SIZE - padding;
-
-//                 x = Math.max(padding, maxX);
-//                 y = Math.max(padding, maxY);
-//         		}
-
-//             const note = vo.createObject("diagram-model-note", x, y, noteWidth, SIZE);
-//             const elementType = vo.type;
-//             const propertyName = scheme.name;
-//             const elementName = vo.name || "unnamed";
-//             const noteId = `${elementType}-${propertyName}-${elementName}`;
-
-//             note.prop("note-id", noteId);
-//             note.text = noteText;
-//             note.fillColor = color;
-//             note.borderType = BORDER.RECTANGLE;
-//         }
-//     });
-// }
 
 function applyColorScheme(view, scheme, selectedType = "element") {
     const SIZE = 25;
@@ -160,21 +119,36 @@ function applyColorScheme(view, scheme, selectedType = "element") {
             const elementType = vo.type;
             const propertyName = scheme.name;
             const elementName = vo.name || "unnamed";
-            const noteId = `${elementType}-${propertyName}-${elementName}`;
+            const elementId = vo.id; 
+            const noteId = `${elementType}-${propertyName}-${elementName}-${elementId}`;
 
-            let existingNotes = $(view)
-                .find("diagram-model-note")
-                .filter(note => note.prop("note-id") === noteId);
+            let existingNotes = [];
+            let allNotes = $(view).find("diagram-model-note");
 
-            let totalWidth = 0;
-            for (let note of existingNotes) {
-                totalWidth += note.bounds.width;
+            for (let i = 0; i < allNotes.length; i++) {
+                let note = allNotes[i];
+                if (note.prop("note-id") === noteId) {
+                    existingNotes.push(note);
+                }
             }
 
+            let noteX, noteY;
 
-            // const note = view.createObject("diagram-model-note", x - totalWidth, y, noteWidth, SIZE);
-            const note = vo.createObject("diagram-model-note", x - totalWidth - vo.bounds.x, y - vo.bounds.y, noteWidth, SIZE);
+            if (existingNotes.length > 0) {
+                // Stack to the left of the rightmost note
+                let totalNoteWidth = 0;
+                for (const note of existingNotes) {
+                    totalNoteWidth += note.bounds.width;
+                }
 
+                noteX = x - totalNoteWidth - vo.bounds.x;
+            } else {
+                // First note – right bottom corner of the element
+                noteX = x - vo.bounds.x;
+            }
+
+            noteY = y - vo.bounds.y;
+            const note = vo.createObject("diagram-model-note", noteX, noteY, noteWidth, SIZE);
 
             note.prop("note-id", noteId);
             note.text = noteText;
@@ -279,7 +253,7 @@ function createLegend(view, scheme) {
     }
 
     notes = $(view).find("diagram-model-note").filter(note => note.prop("Object State") == LEGEND_NAME);
-    yStart = notes.length > 0 ? legendGroup.bounds.y + legendGroup.bounds.height - 50 : 45; //Adjusts to the bottom of the legendGroup
+    yStart = (notes.length > 0 || legendGroup) ? legendGroup.bounds.y + legendGroup.bounds.height - 50 : 45; //Adjusts to the bottom of the legendGroup
 
     if (notes.length > 0) {
         for (let note of notes) {
@@ -309,8 +283,6 @@ function createLegend(view, scheme) {
         colLegend.text = newTextNote;
         colLegend.prop("Object State", LEGEND_NAME);
 
-        // console.log(colLegend.width, colLegend.bounds.width, maxNoteWidth);
-
         if (colLegend.bounds.width >= maxNoteWidth) {
             maxNoteWidth = colLegend.bounds.width;
         }
@@ -318,10 +290,9 @@ function createLegend(view, scheme) {
         yStart += COLOR_HEIGHT + 10;
     }
 
+    // Adjust the size of notes symetrically if there is a longer note existing
     if (notes.length > 0) {
 		for (const note of notes) {
-			// note.bounds.width = maxNoteWidth;
-
             note.bounds = {
                 x: note.bounds.x,
                 y: note.bounds.y,
