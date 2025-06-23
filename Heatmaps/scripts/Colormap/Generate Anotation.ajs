@@ -57,6 +57,7 @@ function gatherViewPropertiesInfo(view, property = undefined, selected_element_t
     }
     $(view).find(element_type).each (
         (e) => {
+            if (e.prop("Object State") === "Legend") {return;} // skip legend elements
             for (let p of e.prop()) {
                 if (property === undefined || p === property) {
                     if (!props.has(p)) {
@@ -160,7 +161,8 @@ function applyColorScheme(view, scheme, selectedType = "element") {
 function getElement(view) {
     const element_text = "element";
     const general_text = "All element types";
-    let elements = $(view).find(element_text).filter(el => el.prop("Object State") !== "Legend");;
+    let elements = $(view).find(element_text);
+    // .filter(el => el.prop("Object State") !== "Legend");
     let elementTypes = [general_text]; // Start with default option
     let seenTypes = new Set(); // Track unique element types
     let selectedType;
@@ -168,7 +170,8 @@ function getElement(view) {
     elements.forEach((el) => {
       if (!el.type || seenTypes.has(el.type)) return;
       seenTypes.add(el.type);
-      elementTypes.push(el.type);
+      if (el.prop("Object State") !== "Legend")
+        elementTypes.push(el.type);
     });
   
     const selected = window.promptSelection("Select an element type from the view:", elementTypes, 0);
