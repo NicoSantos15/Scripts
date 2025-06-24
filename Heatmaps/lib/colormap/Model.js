@@ -768,6 +768,29 @@ class ColorModel extends Map {
         return this._colormap;
     }
 
+    /**
+     * Get the currently selected element type
+     * @returns {string | null}
+     */
+    get elementType() {
+        return this._elementType;
+    }
+
+    /**
+     * Set the element type
+     * @param {string} type 
+     */
+    set elementType(type) {
+        this._elementType = type;
+    }
+
+    /**
+     * Check if an element type has been selected
+     * @returns {boolean}
+     */
+    get hasElementType() {
+        return this._elementType != null;
+    }
 }
 
 /**

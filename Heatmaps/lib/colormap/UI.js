@@ -41,47 +41,36 @@ const Combo = Java.type("org.eclipse.swt.widgets.Combo");
 const pageElementTypeSelection = new ColorMapWizardPage("pageElementTypeSelection", {
   createControl(parent) {
       try {
-        log.trace("pageElementTypeSelection...");
+        // log.trace("pageElementTypeSelection...");
 
         const container = new Composite(parent, SWT.NONE);
-        GridLayoutFactory.swtDefaults()
-          .numColumns(2)
-          .margins(20, 10)
-          .spacing(20, 10)
-          .applyTo(container);
-
-        WidgetFactory.label(SWT.NONE)
-          .text("Element Type:")
-          .layoutData(GridDataFactory.fillDefaults().create())
-          .create(container);
+        GridLayoutFactory.swtDefaults().numColumns(2).margins(20, 10).spacing(20, 10).applyTo(container);
+        WidgetFactory.label(SWT.NONE).text("Element Type:").layoutData(GridDataFactory.fillDefaults().create()).create(container);
 
         // get the elements from the selected view
         const view = getCurrentView();
         const elementsInView = $(view).find("element");
         const elementTypesSet = new Set();
-        elementsInView.each((el) => elementTypesSet.add(el.type));
+        elementsInView.each((el) => { if (el.prop("Object State") !== "Legend") elementTypesSet.add(el.type); });
         const elementTypes = ["All", ...Array.from(elementTypesSet).sort()];
 
         const list = new ListBox(container, SWT.BORDER | SWT.SINGLE);
         list.setItems(Java.to(elementTypes, StringArray));
         list.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        Wizard.selectedElementType = elementTypes[1]; // default
-        list.addSelectionListener(
-          SelectionListener.widgetSelectedAdapter((e) => {
-            Wizard.selectedElementType = list.getSelection()[0];
-            log.info(`Selected element type: ${Wizard.selectedElementType}`);
-            pageElementTypeSelection.setPageComplete(true);
-          })
-        );
+        // Wizard.selectedElementType = elementTypes[1]; // default
+
+        list.addSelectionListener(SelectionListener.widgetSelectedAdapter((e) => {
+          Wizard.cm.elementType = list.getSelection()[0];
+          // log.info(`Selected element type: ${Wizard.cm.elementType}`);
+          pageElementTypeSelection.setPageComplete(Wizard.cm.hasElementType);
+        }));
 
         pageElementTypeSelection.setTitle("Select Element Type");
-        pageElementTypeSelection.setDescription(
-          "Choose the type of element you want to apply colour mapping to."
-        );
+        pageElementTypeSelection.setDescription("Choose the type of element you want to apply colour mapping to.");
         pageElementTypeSelection.setControl(container);
         pageElementTypeSelection.setPageComplete(true); // or false if you want to force selection
-        log.trace("...pageElementTypeSelection created");
+        // log.trace("...pageElementTypeSelection created");
       } catch (err) {
         log.error("Error in pageElementTypeSelection: " + err.toString());
       }
@@ -91,40 +80,34 @@ const pageElementTypeSelection = new ColorMapWizardPage("pageElementTypeSelectio
 const pagePropertySelection = new ColorMapWizardPage("pagePropertySelection", {
   createControl(parent) {
     try {
-      log.trace(pagePropertySelection.getName() + "...");
+      // log.trace(pagePropertySelection.getName() + "...");
       const container = new Composite(parent, SWT.NONE);
-      GridLayoutFactory.swtDefaults()
-        .numColumns(2)
-        .margins(20, 10)
-        .spacing(20, 10)
-        .applyTo(container);
-      WidgetFactory.label(SWT.NONE)
-        .text("Properties: ")
-        .layoutData(GridDataFactory.fillDefaults().create())
-        .create(container);
+      GridLayoutFactory.swtDefaults().numColumns(2).margins(20, 10).spacing(20, 10).applyTo(container);
+      WidgetFactory.label(SWT.NONE).text("Properties: ").layoutData(GridDataFactory.fillDefaults().create()).create(container);
+      
       const list = new ListBox(container, SWT.BORDER | SWT.SINGLE);
+      
       list.addSelectionListener(SelectionListener.widgetSelectedAdapter((e) => {
           try {
             Wizard.cm.property = list.getSelection()[0];
-            log.info(`Property ${Wizard.cm.property} selected`);
+            // log.info(`Property ${Wizard.cm.property} selected`);
             pagePropertySelection.setPageComplete(Wizard.cm.hasProperty); // should never be false
           } catch (err) {
             log.error(err.toString());
           }
         })
       );
+      
       list.addMouseListener(MouseListener.mouseDoubleClickAdapter((e) => {
           try {
             // going next page
-            pagePropertySelection
-              .getWizard()
-              .getContainer()
-              .showPage(pageLabelsSelection);
+            pagePropertySelection.getWizard().getContainer().showPage(pageLabelsSelection);
           } catch (err) {
             log.error(err.toString());
           }
         })
       );
+
       // console.log("CM PROPS" + JSON.stringify(Wizard.cm.properties));
       // console.log("TEST CM PROPS" + JSON.stringify(hardcodedProperties));
       list.setItems(Java.to(Wizard.cm.properties, StringArray));
@@ -245,16 +228,8 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
     }
   },
 
-  /**
-   * @param {boolean} visible
-   */
   setVisible: function (visible) {
-    log.trace(
-      "Showing " +
-        pageLabelsSelection.getName() +
-        "property: " +
-        Wizard.cm.property
-    );
+    // log.trace("Showing " + pageLabelsSelection.getName() + " property: " + Wizard.cm.property);
 
     /**
      *
@@ -364,6 +339,7 @@ function createColorSchemeWidgets(container, verticalSpan) {
     .text("Color scheme")
     .layout(layout)
     .create(container);
+
   GridDataFactory.defaultsFor(group)
     .span(1, verticalSpan)
     .indent(16, 0)
@@ -777,10 +753,6 @@ const pageContinuousColor = new ColorMapWizardPage("pageContinuousColor", {
     }
   },
 
-  /**
-   * @override
-   * @param {boolean} visible
-   */
   setVisible: function (visible) {
     /**
      *
@@ -976,6 +948,7 @@ const Wizard = {
    * @returns {ColorScheme} if Wizard finished, null if cancelled
    */
   execute: function (properties, defaultProperty = undefined, script_id) {
+    console.log("HERE PROPERTIESSSSS" +  JSON.stringify(properties, null, 2));
     Wizard.cm = new ColorModel(properties, defaultProperty);
     Wizard.scriptId = script_id;
     const ColorMapWizard = Java.extend(Java.type("org.eclipse.jface.wizard.Wizard"));
@@ -1003,17 +976,5 @@ const Wizard = {
       colorMapWizard.dispose();
       Wizard.ir.dispose();
     }
-  },
-
-  // execute_generate_anotation: function (){
-  // },
-
-  // test_execute: function () {
-  //   // for testing purpose only
-  //   const properties = {
-  //     "Property 1": ["Label 1", "Label 2", "Label 3"],
-  //     "Property 2": ["Label A", "Label B", "Label C"],
-  //   };
-  //   return Wizard.execute(properties, "Property 1");
-  // },
+  }
 };

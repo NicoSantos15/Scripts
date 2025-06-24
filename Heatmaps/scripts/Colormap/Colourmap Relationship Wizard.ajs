@@ -78,62 +78,39 @@ function gatherViewPropertiesInfo(view, property = undefined, selected_element_t
     return result;
 }
 
-/**
- * Apply to the view the heatmap as configured by the wizard
- * @param {ArchimateView} view 
- * @param {ColorScheme} scheme
- */
 function applyColorScheme(view, scheme, selectedType = "element") {
-    // First: reset all elements if required
+    // console.log("SCHEME " + JSON.stringify(scheme, null, 2));
     if (scheme.resetDefault) {
         $(view).find("element").each((vo) => {
             vo.fillColor = null;
         });
     }
 
-    // Then: apply color scheme only to filtered elements
     $(view).find(selectedType).each((vo) => {
-        const label = vo.prop(scheme.name);
-        if (label && label in scheme.colormap) {
-            console.log("HERE COLORMAP LABEL:" + scheme.colormap[label]);
-            vo.fillColor = scheme.colormap[label];
-        }
+            const firstLabel = Object.keys(scheme.colormap)[0];
+            vo.fillColor = scheme.colormap[firstLabel];
     });
 }
 
-/**
- * Prompts the user to select an element from the view and returns its type.
- * @param {ArchimateView} view  
- */
 function getElement(view, primaryElement) {
 	let relatedElementsArr = [];
+    let selectedType;
 	const relatedElements = $(view).find("relationship").filter(rel => rel.prop("Object State") !== "Legend");
-	
-	relatedElements.forEach(rel => {
-		// console.log(`Relation: ${rel.type}, Source: ${rel.source.name}, Target: ${rel.target.name}`);
-		// console.log("Relationship id" + rel.target.id)
-		// console.log("CHECK 2" + primaryElement.id)
-		if (rel.target.id == primaryElement.id) {
-			// console.log('I am here' + rel.source)
-			const type = rel.source.type;
-			if (!relatedElementsArr.includes(type)) {
-					relatedElementsArr.push(type);
-			}		
-		}
-	});
 
-  // const element_text = "element";
-  // const general_text = "All element types";
-  // let elements = $(view).find(element_text).filter(el => el.prop("Object State") !== "Legend");
-  // let elementTypes = [general_text]; 						// Start with default option
-  // let seenTypes = new Set(); 										// Track unique element types
-  let selectedType;
+    relatedElements.forEach(rel => {
+        const sourceEl = rel.source;
+        const targetEl = rel.target;
 
-  // elements.forEach((el) => {
-  //   if (!el.type || seenTypes.has(el.type)) return;
-  //   seenTypes.add(el.type);
-  //   elementTypes.push(el.type);
-  // });
+        if (sourceEl.id === primaryElement.id && targetEl.id !== primaryElement.id) {
+            if (!relatedElementsArr.includes(targetEl.type)) {
+                relatedElementsArr.push(targetEl.type);
+            }
+        } else if (targetEl.id === primaryElement.id && sourceEl.id !== primaryElement.id) {
+            if (!relatedElementsArr.includes(sourceEl.type)) {
+                relatedElementsArr.push(sourceEl.type);
+            }
+        }
+    });
 
   const selected = window.promptSelection("Select an element type from the view:", relatedElementsArr, 0);
   if (!selected) {
@@ -142,156 +119,145 @@ function getElement(view, primaryElement) {
   }
 
   selectedType = selected;
-
-  // console.log("Selected element type: " + selectedType);
   return selectedType;
 }
 
 function getPrimaryElement(view) {
-	let selectedElement;
-	const elements = $(view)
-		.find("element")
-		.filter(el => el.prop("Object State") !== "Legend");
+	const elements = $(view).find("element");
+	const uniqueTypes = [...new Set(elements.map(el => el.type))];
+	const selectedType = window.promptSelection("Select a primary element type from the view:", uniqueTypes, 0);
 
-	const elementNames = elements.map(el => el.name);
-
-	const selectedName = window.promptSelection("Select a primary element from the view:", elementNames, 0);
-	for (let i = 0; i < elements.length; i++) {
-    if (elements[i].name == selectedName) {
-        selectedElement = elements[i];
-        break;
-    }
+	// Return the first element that matches the selected type
+	for (let el of elements) {
+		if (el.type == selectedType) {
+			return el;
+		}
 	}
-	return selectedElement;
+
+	// return null;
 }
 
-/**
- * Replace or create the associated legend in the view
- * @param {ArchimateView} view 
- * @param {ColorScheme} scheme 
- */
 function createLegend(view, scheme) {
-    const GRID_SIZE = 12;
-    const X_MARGIN = GRID_SIZE / 2;
-    const Y_MARGIN = GRID_SIZE / 2;
+    const X_MARGIN = 6;
+    const Y_MARGIN = 6;
     const COLOR_HEIGHT = 30;
-    const COLOR_WIDTH = 12 * GRID_SIZE;
-    const LEGEND_NAME = "Color Legend";
-    const LEGEND_BACKGROUND = "#F7F7F7";
-    const LEGEND_FONT_STYLE = "bold";
+    const CHAR_WIDTH = 6;
+    const LEGEND_NAME = "Legend";
     const isCategorical = scheme.type == "Categorical";
-    const spacing = (isCategorical) ? Y_MARGIN : 0;
-    const CHAR_WIDTH = 6;     // Calculate max width based on label text
 
-		let X_LEGEND_ORIGIN = GRID_SIZE;
-    let Y_LEGEND_ORIGIN = GRID_SIZE;
+    const colormap = Object.entries(scheme.colormap);
+    if (!isCategorical) {
+        colormap.sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+    }
+
+    let X_LEGEND_ORIGIN = 12;
+    let Y_LEGEND_ORIGIN = 12;
     let maxLabelWidth = 0;
-		let y = COLOR_HEIGHT;
+    let maxNoteWidth = 0;
+    let notes;
+    let yStart;
+    let noteText
 
-    for (const [label] of Object.entries(scheme.colormap)) {
-        const text = scheme.name + " = " + label;
-        const width = text.length * CHAR_WIDTH;
+    for (let [label] of colormap) {
+        noteText = scheme.name + " = " + label;
+        let width = noteText.length * CHAR_WIDTH;
         if (width > maxLabelWidth) maxLabelWidth = width;
     }
 
-    let LEGEND_WIDTH = 2 * X_MARGIN + maxLabelWidth;
+    const LEGEND_WIDTH = 2 * X_MARGIN + maxLabelWidth;
 
-    // Find existing legend by object_state property
     let legendGroup = $(view)
-        .find("grouping")
-        .filter(obj => obj.prop("Object State") == "Legend")[0];
+        .find("diagram-model-group")
+        .filter(obj => obj.name == LEGEND_NAME)[0];
+            //  && obj.prop("Object State") == LEGEND_NAME)[0];
 
-    if (!legendGroup) {
-        const currentLegend = $(view).find("." + LEGEND_NAME).filter("diagram-model-group").first();
-        if (currentLegend && scheme.resetDefault) {
-            log.info(`previous ${LEGEND_NAME} found, deleting`);
-            X_LEGEND_ORIGIN = currentLegend.bounds.x;
-            Y_LEGEND_ORIGIN = currentLegend.bounds.y;
-            currentLegend.delete();
+    if (legendGroup) {
+        const totalNewHeight = colormap.length * 40;
+        let newWidth = legendGroup.bounds.width;
+        let proposedWidth = 15 + maxLabelWidth;
+
+        if (proposedWidth > newWidth) {
+            newWidth = proposedWidth;
         }
 
-        const legendGrouping = model.createElement("grouping", LEGEND_NAME);
-        legendGrouping.prop("Object State", "Legend");
-
-        legendGroup = view.add(
-            legendGrouping,
+        legendGroup.bounds = {
+            x: legendGroup.bounds.y,
+            y: legendGroup.bounds.y,
+            width: newWidth,
+            height: legendGroup.bounds.height + totalNewHeight
+        };
+    } else {
+        legendGroup = view.createObject(
+            "diagram-model-group",
             X_LEGEND_ORIGIN,
             Y_LEGEND_ORIGIN,
             LEGEND_WIDTH,
-            COLOR_HEIGHT + (COLOR_HEIGHT + spacing) * Object.keys(scheme.colormap).length + spacing,
+            COLOR_HEIGHT + (COLOR_HEIGHT + Y_MARGIN) * colormap.length + Y_MARGIN + 10,
             true
         );
 
         legendGroup.name = LEGEND_NAME;
-        legendGroup.fillColor = LEGEND_BACKGROUND;
-        legendGroup.fontStyle = LEGEND_FONT_STYLE;
-        legendGroup.borderType = BORDER.RECTANGLE;
-        legendGroup.prop("Object State", "Legend");
+        legendGroup.prop("Object State", LEGEND_NAME);
+    }
+    let totalLegendHeight = (COLOR_HEIGHT + 10) * colormap.length
+    notes = $(view).find("diagram-model-note").filter(note => note.prop("Object State") == LEGEND_NAME);
+    yStart = (notes.length > 0 || legendGroup) ? legendGroup.bounds.y + legendGroup.bounds.height - totalLegendHeight : 45; //Adjusts to the bottom of the legendGroup
+
+    if (notes.length > 0) {
+        for (let note of notes) {
+            let width = note.bounds.width;
+            maxNoteWidth = maxLabelWidth;
+            if (width > maxNoteWidth) {
+                maxNoteWidth = width;
+            }
+        }
+    } else {
+	    maxNoteWidth = maxLabelWidth;
     }
 
-    
-    const colormap = Object.entries(scheme.colormap);
-    colormap.sort(isCategorical ? undefined : (a, b) => parseFloat(a[0]) - parseFloat(b[0]));
-
-    for (const [label, color] of colormap) {
-        log.trace(`legend label '${label}' color = ${color}`);
-        let noteText = scheme.name + " = " + label;
-        let noteWidth = noteText.length * CHAR_WIDTH;
-
-        // note for legend
+    for (let [label, color] of colormap) {
+        newTextNote = scheme.name + " = " + label;
         let colLegend = view.createObject(
-            "diagram-model-note", 
-            legendGroup.bounds.x + X_MARGIN, 
-            legendGroup.bounds.y + y, 
-            noteWidth, 
-            COLOR_HEIGHT, 
-            true // Enables autonesting
+            "diagram-model-note",
+            legendGroup.bounds.x + X_MARGIN,
+            yStart,
+            maxNoteWidth,
+            COLOR_HEIGHT,
+            true
         );
 
-        y += COLOR_HEIGHT + spacing - 1;
-				colLegend.prop("Object State", "Legend");
         colLegend.fillColor = color;
-        colLegend.borderType = isCategorical ? BORDER.RECTANGLE : BORDER.NONE;
-        colLegend.text = scheme.name + " = " + label;
+        colLegend.borderType = BORDER.RECTANGLE;
+        colLegend.text = newTextNote;
+        colLegend.prop("Object State", LEGEND_NAME);
 
+        if (colLegend.bounds.width >= maxNoteWidth) {
+            maxNoteWidth = colLegend.bounds.width;
+        }
+
+        yStart += COLOR_HEIGHT + 10;
     }
 
-    // if (legendGroup) {
-    // const newHeight = y + spacing;
-    // const newWidth = 2 * X_MARGIN + maxLabelWidth;
-    // legendGroup.bounds = {
-    //     x: legendGroup.bounds.x,
-    //     y: legendGroup.bounds.y,
-    //     width: newWidth,
-    //     height: newHeight
-    // };
-} 
+    // Adjust the size of notes symetrically if there is a longer note existing
+    if (notes.length > 0) {
+		for (const note of notes) {
+            note.bounds = {
+                x: note.bounds.x,
+                y: note.bounds.y,
+                width: maxNoteWidth,
+                height: note.bounds.height
+            };
+		}
+    }
+}
 
-/**
- * The Wizard main
- * 
- * @param {JavaObject} view the view to work on
- * @param {boolean} openView open the view in UI (NIY)
- * @returns {boolean} true if wizard successful, false if prematurely terminated
- */
-function colorWizard(view, openView = false) {
-    // const dir = __SCRIPTS_DIR__ + 'Heatmaps/lib/colormap/scheme';
-    // if (!mkdirs(dir)) {
-    //     MessageDialog.openWarning(shell, "Color scheme saving", `Cannot create directory '${dir}' for storing color scheme.\nWon't be able to save them for default colors.`);
-    //     log.warn(`Not possible to create directory '${dir}' for storing color scheme`);
-    // }
-		let primaryElement = getPrimaryElement(view);
+function colorWizard(view) {
+    let primaryElement = getPrimaryElement(view);
     let selectedElementType = getElement(view, primaryElement);
-    
-    if (openView) {
-        // show the view in case it is called from reapply on model
-        // view.openInUI() no api in jscript ;-(
-    }
 
     const scheme = Wizard.execute(gatherViewPropertiesInfo(view, undefined, selectedElementType));
-    // console.log("ITS the SCHEME!!! " + JSON.stringify(scheme, null, 2));
     if (scheme) {
-        log.debug(`scheme = ${JSON.stringify(scheme, null, 2)}`)
+        // log.debug(`scheme = ${JSON.stringify(scheme, null, 2)}`)
         applyColorScheme(view, scheme, primaryElement.type);
         createLegend(view, scheme);
         return true
