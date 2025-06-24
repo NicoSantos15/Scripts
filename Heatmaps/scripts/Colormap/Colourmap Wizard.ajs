@@ -78,6 +78,7 @@ function gatherViewPropertiesInfo(view, property = undefined, selected_element_t
     }
     return result;
 }
+
 /**
  * Apply to the view the heatmap as configured by the wizard
  * @param {ArchimateView} view 
@@ -99,33 +100,6 @@ function applyColorScheme(view, scheme, selectedType = "element") {
             vo.fillColor = scheme.colormap[label];
         }
     });
-}
-
-function getElement(view) {
-  const element_text = "element";
-  const general_text = "All element types";
-  let elements = $(view).find(element_text).filter(rel => rel.prop("Object State") !== "Legend");
-  let elementTypes = [general_text]; // Start with default option
-  let seenTypes = new Set(); // Track unique element types
-  let selectedType;
-
-  elements.forEach((el) => {
-    if (!el.type || seenTypes.has(el.type)) return;
-    seenTypes.add(el.type);
-    elementTypes.push(el.type);
-  });
-
-  console.log("TEST HERE" + elementTypes)
-  const selected = window.promptSelection("Select an element type from the view:", elementTypes,0);
-  if (!selected) {
-    console.log("No element selected.");
-    exit();
-  }
-
-  selectedType = selected == element_text ? element_text : selected;
-
-  console.log("Selected element type: " + selectedType);
-  return selectedType;
 }
 
 /**

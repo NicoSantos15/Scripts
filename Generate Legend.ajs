@@ -243,6 +243,7 @@ getTypeList(typesList);
 // Create the group with a default size and position
 var legendGroup = currentView.createObject("group", x, y, 10, 10, true);
 legendGroup.name = groupName;
+legendGroup.prop("Object State", groupName);
 y += 30;
 groupHeight += 30;
 
@@ -458,14 +459,6 @@ function processView() {
     }
   }
   removeRelationshipNames();
-}
-//DONT FORGET TO ADD LEGEND OBJECT STATE ON THE BIG LEGEND FOLDER
-function deleteOldLegend() {
-  // delete the old legend from view when creating a new one
-}
-
-function replaceExistingLegend() {
-  
 }
 
 listRelationshipToCreate();
