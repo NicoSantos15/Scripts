@@ -49,13 +49,12 @@ function gatherViewPropertiesInfo(view, property = undefined, selected_element_t
      * @type {Map<string,Set<string>>} 
      */
     const props = new Map();
-    let element_type = selected_element_type;
-    if (!element_type) {
+    if (!selected_element_type) {
         log.error("No element type selected, stopping");
         // MessageDialog.openError(shell, "No element type", "No element type selected. Stopping.");
         exit();
     }
-    $(view).find(element_type).each (
+    $(view).find(selected_element_type).each (
         (e) => {
             for (let p of e.prop()) {
                 if (property === undefined || p === property) {
@@ -82,120 +81,86 @@ function gatherViewPropertiesInfo(view, property = undefined, selected_element_t
  * @param {ArchimateView} view 
  * @param {ColorScheme} scheme
  */
-// function applyColorScheme(view, scheme, selectedType = "element") {
-//     const SIZE = 25;
-//     const CHAR_WIDTH = 8;
-
-//     $(view).find(selectedType).each((vo) => {
-//         const label = vo.prop(scheme.name);
-//         if (label && (label in scheme.colormap)) {
-//             const color = scheme.colormap[label];
-
-//             let noteWidth = SIZE;
-//             let noteText = "";
-//             let x = 95;
-//             let y = 30;
-
-//             // NEEDS BETTER CALCULATION OF POSITION
-//             if (Wizard.annotationEnabled) {
-//                 noteText = label;
-//                 noteWidth = label.length * CHAR_WIDTH;
-
-//                 const bounds = vo.bounds;
-//                 const maxX = bounds.width - noteWidth;
-//                 const maxY = bounds.height - SIZE;
-
-//                 x = Math.max(5, Math.min(95, maxX));
-//                 y = Math.max(5, Math.min(30, maxY));
-//             }
-
-//             const note = vo.createObject("diagram-model-note", x, y, noteWidth, SIZE);
-//             const elementType = vo.type;
-//             const propertyName = scheme.name;
-//             const elementName = vo.name || "unnamed";
-//             const noteId = `${elementType}-${propertyName}-${elementName}`;
-
-//             note.prop("note-id", noteId);
-//             note.text = noteText;
-//             note.fillColor = color;
-//             note.fontStyle = "bold";
-//             note.borderType = BORDER.RECTANGLE;
-//         }
-//     });
-// }
-function applyColorScheme(view, scheme, selectedType = "element") {
+function applyColorScheme(view, scheme, selectedType = "element", selectedElementPropType) {
     const SIZE = 25;
     const CHAR_WIDTH = 8;
-
-    $(view).find(selectedType).each((vo) => {
-        const label = vo.prop(scheme.name);
+    const elements = $(view).find(selectedElementPropType);
+    const typeValueCounts = createKeyValuePairs(view, scheme, elements);
+    
+    $(view).find(selectedType).each((vo) => { //loop through all elements of the selected type (primary element type)
+        const label = elements.prop(scheme.name); // get the value of the property
+        
         if (label && (label in scheme.colormap)) {
-            const color = scheme.colormap[label];
-
             let noteWidth = SIZE;
-            let noteText = "";
-
             const bounds = vo.bounds;
             let x = bounds.x + bounds.width - noteWidth;
             let y = bounds.y + bounds.height - SIZE;
-
-            if (Wizard.annotationEnabled) {
-                noteText = label;
-                noteWidth = label.length * CHAR_WIDTH;
-
-                // Resize element if label is wider than element width
-                if (noteWidth > bounds.width) {
-                    vo.bounds = {
-                        x: bounds.x,
-                        y: bounds.y,
-                        width: bounds.width + noteWidth,
-                        height: bounds.height
-                    };
-                }
-
-                // Recalculate x based on updated width
-                x = bounds.x + vo.bounds.width - noteWidth;
-            }
 
             const elementType = vo.type;
             const propertyName = scheme.name;
             const elementName = vo.name || "unnamed";
             const elementId = vo.id; 
             const noteId = `${elementType}-${propertyName}-${elementName}-${elementId}`;
-
-            let existingNotes = [];
-            let allNotes = $(view).find("diagram-model-note");
-
-            for (let i = 0; i < allNotes.length; i++) {
-                let note = allNotes[i];
-                if (note.prop("note-id") === noteId) {
-                    existingNotes.push(note);
-                }
-            }
-
             let noteX, noteY;
+            let existingNotes = [];
 
-            if (existingNotes.length > 0) {
-                // Stack to the left of the rightmost note
-                let totalNoteWidth = 0;
-                for (const note of existingNotes) {
-                    totalNoteWidth += note.bounds.width;
+            for (const key in typeValueCounts) {
+                console.log("I AM HERE NOW ")
+                const allNotes = $(view).find("diagram-model-note");
+                for (let i = 0; i < allNotes.length; i++) {
+                    let note = allNotes[i];
+                    if (note.prop("note-id") == noteId) {
+                        existingNotes.push(note);
+                    }
                 }
-                noteX = x - totalNoteWidth - bounds.x;
-            } else {
-                // First note – right bottom corner of the element
-                noteX = x - bounds.x;
+
+                if (Object.keys(typeValueCounts).length > 0) {
+                    // Stack to the left of the rightmost note
+                    let totalNoteWidth = 0;
+                    for (const note of existingNotes) {
+                        totalNoteWidth += note.bounds.width;
+                    }
+                    noteX = x - totalNoteWidth - bounds.x;
+                } else {
+                    // First note – right bottom corner of the element
+                    noteX = bounds.x;
+                }
+
+                noteY = y - bounds.y;
+                const SIZE = 25;
+                const value = typeValueCounts[key];
+                const [type, label] = key.split("|"); // extract label part
+                const color = scheme.colormap[label]; // get the color from the colormap
+
+                const note = vo.createObject("diagram-model-note", noteX, noteY, SIZE, SIZE);
+                note.prop("note-id", noteId);
+                note.text = value;
+                note.fillColor = color;
+                note.borderType = BORDER.RECTANGLE;
             }
-
-            noteY = y - bounds.y;
-
-            const note = vo.createObject("diagram-model-note", noteX, noteY, noteWidth, SIZE);
-            note.prop("note-id", noteId);
-            note.text = noteText;
-            note.fillColor = color;
-            note.borderType = BORDER.RECTANGLE;
         }
     });
+}
+
+function createKeyValuePairs(view, scheme, elements){
+    let typeValueCounts = {}; // key = "type|label", value = count
+    // populate typeValueCounts with the count of each label for each type
+    for (const el of elements) {
+        const label = el.prop(scheme.name);
+        const type = el.type;
+
+        if (label && (label in scheme.colormap)) {
+            const key = `${type}|${label}`;
+
+            if (!typeValueCounts[key]) {
+                typeValueCounts[key] = 1;
+            } else {
+                typeValueCounts[key]++;
+            }
+        }
+    }
+    console.log(JSON.stringify(typeValueCounts, null, 2));
+    return typeValueCounts;
 }
 
 function getElement(view, primaryElement) {
@@ -208,11 +173,13 @@ function getElement(view, primaryElement) {
         const targetEl = rel.target;
 
         if (sourceEl.id === primaryElement.id && targetEl.id !== primaryElement.id) {
-            if (!relatedElementsArr.includes(targetEl.type)) {
+            console.log("********* Source Element: " + targetEl.prop("Object State"));
+            if (!relatedElementsArr.includes(targetEl.type) && targetEl.prop("Object State") !== "Legend") {
                 relatedElementsArr.push(targetEl.type);
             }
         } else if (targetEl.id === primaryElement.id && sourceEl.id !== primaryElement.id) {
-            if (!relatedElementsArr.includes(sourceEl.type)) {
+            console.log("********* Source Element: " + sourceEl.prop("Object State"));
+            if (!relatedElementsArr.includes(sourceEl.type) && sourceEl.prop("Object State") !== "Legend") {
                 relatedElementsArr.push(sourceEl.type);
             }
         }
@@ -239,43 +206,46 @@ function getPrimaryElement(view) {
 			return el;
 		}
 	}
-
 	// return null;
 }
 
 function createLegend(view, scheme) {
+
+    // Mostly hard-coded values for the legend layout. Fix me as you wish. It's painful without a UI library. XD I love JArchi.
     const X_MARGIN = 6;
     const Y_MARGIN = 6;
     const COLOR_HEIGHT = 30;
     const CHAR_WIDTH = 6;
     const LEGEND_NAME = "Legend";
     const isCategorical = scheme.type == "Categorical";
-
     const colormap = Object.entries(scheme.colormap);
-    if (!isCategorical) {
-        colormap.sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
-    }
-
     let X_LEGEND_ORIGIN = 12;
     let Y_LEGEND_ORIGIN = 12;
     let maxLabelWidth = 0;
     let maxNoteWidth = 0;
     let notes;
     let yStart;
-    let noteText
+    let noteText;
+    let totalLegendHeight;
+    let width;
+    let legendGroup;
+    let colLegend;
 
-    for (let [label] of colormap) {
+    if (!isCategorical) {
+        colormap.sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+    }
+
+    for (const [label] of colormap) {
         noteText = scheme.name + " = " + label;
-        let width = noteText.length * CHAR_WIDTH;
+        width = noteText.length * CHAR_WIDTH;
         if (width > maxLabelWidth) maxLabelWidth = width;
     }
 
     const LEGEND_WIDTH = 2 * X_MARGIN + maxLabelWidth;
 
-    let legendGroup = $(view)
+    legendGroup = $(view)
         .find("diagram-model-group")
-        .filter(obj => obj.name == LEGEND_NAME)[0];
-            //  && obj.prop("Object State") == LEGEND_NAME)[0];
+        .filter(obj => obj.name == LEGEND_NAME && obj.prop("Object State") == LEGEND_NAME)[0];
 
     if (legendGroup) {
         const totalNewHeight = colormap.length * 40;
@@ -305,13 +275,14 @@ function createLegend(view, scheme) {
         legendGroup.name = LEGEND_NAME;
         legendGroup.prop("Object State", LEGEND_NAME);
     }
-    let totalLegendHeight = (COLOR_HEIGHT + 10) * colormap.length
+
+    totalLegendHeight = (COLOR_HEIGHT + 10) * colormap.length
     notes = $(view).find("diagram-model-note").filter(note => note.prop("Object State") == LEGEND_NAME);
     yStart = (notes.length > 0 || legendGroup) ? legendGroup.bounds.y + legendGroup.bounds.height - totalLegendHeight : 45; //Adjusts to the bottom of the legendGroup
 
     if (notes.length > 0) {
-        for (let note of notes) {
-            let width = note.bounds.width;
+        for (const note of notes) {
+            width = note.bounds.width;
             maxNoteWidth = maxLabelWidth;
             if (width > maxNoteWidth) {
                 maxNoteWidth = width;
@@ -321,9 +292,9 @@ function createLegend(view, scheme) {
 	    maxNoteWidth = maxLabelWidth;
     }
 
-    for (let [label, color] of colormap) {
+    for (const [label, color] of colormap) {
         newTextNote = scheme.name + " = " + label;
-        let colLegend = view.createObject(
+        colLegend = view.createObject(
             "diagram-model-note",
             legendGroup.bounds.x + X_MARGIN,
             yStart,
@@ -382,7 +353,7 @@ function colorWizard(view, openView = false) {
     // console.log("ITS the SCHEME!!! " + JSON.stringify(scheme, null, 2));
     if (scheme) {
         log.debug(`scheme = ${JSON.stringify(scheme, null, 2)}`)
-        applyColorScheme(view, scheme, primaryElement.type);
+        applyColorScheme(view, scheme, primaryElement.type, selectedElementType);
         createLegend(view, scheme);
         return true
     } else {
