@@ -88,58 +88,73 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
     const typeValueCounts = createKeyValuePairs(view, scheme, elements);
     
     $(view).find(selectedType).each((vo) => { //loop through all elements of the selected type (primary element type)
-        const label = elements.prop(scheme.name); // get the value of the property
         
-        if (label && (label in scheme.colormap)) {
-            let noteWidth = SIZE;
-            const bounds = vo.bounds;
-            let x = bounds.x + bounds.width - noteWidth;
-            let y = bounds.y + bounds.height - SIZE;
+        const label = elements.prop(scheme.name); // get the value of the property
+                                        // console.log( "I AM HERE**************************" + label)
 
-            const elementType = vo.type;
-            const propertyName = scheme.name;
-            const elementName = vo.name || "unnamed";
-            const elementId = vo.id; 
-            const noteId = `${elementType}-${propertyName}-${elementName}-${elementId}`;
-            let noteX, noteY;
-            let existingNotes = [];
+        if (vo.prop("Object State") !== "Legend") {
+          let noteWidth = SIZE;
+          const bounds = vo.bounds;
+          let x = bounds.x + bounds.width - noteWidth;
+          let y = bounds.y + bounds.height - SIZE;
+		  let existingNotes = [];
+          let noteIdAppend = 0;
+          const elementType = vo.type;
+          const propertyName = scheme.name;
+          const elementName = vo.name || "unnamed";
+          const elementId = vo.id;
+          let noteId = `${elementType}-${propertyName}-${elementName}-${elementId}-${noteIdAppend}`;
+          let noteX, noteY;
 
-            for (const key in typeValueCounts) {
-                console.log("I AM HERE NOW ")
-                const allNotes = $(view).find("diagram-model-note");
-                for (let i = 0; i < allNotes.length; i++) {
-                    let note = allNotes[i];
-                    if (note.prop("note-id") == noteId) {
-                        existingNotes.push(note);
-                    }
-                }
+        //   const allNotes = $(view).find("diagram-model-note");
 
-                if (Object.keys(typeValueCounts).length > 0) {
-                    // Stack to the left of the rightmost note
-                    let totalNoteWidth = 0;
-                    for (const note of existingNotes) {
-                        totalNoteWidth += note.bounds.width;
-                    }
-                    noteX = x - totalNoteWidth - bounds.x;
-                } else {
-                    // First note – right bottom corner of the element
-                    noteX = bounds.x;
-                }
+		//   for (const note of allNotes) {
+		// 	if (note.prop("note-id") && note.prop("Object State") !== "Legend") {
+		// 		existingNotes.push(note);
+		// 	}
+		//   }
 
-                noteY = y - bounds.y;
-                const SIZE = 25;
-                const value = typeValueCounts[key];
-                const [type, label] = key.split("|"); // extract label part
-                const color = scheme.colormap[label]; // get the color from the colormap
+          for (const key in typeValueCounts) {
 
-                const note = vo.createObject("diagram-model-note", noteX, noteY, SIZE, SIZE);
-                note.prop("note-id", noteId);
-                note.text = value;
-                note.fillColor = color;
-                note.borderType = BORDER.RECTANGLE;
+            // const [elementType, elementProp] = key.split("|");
+            if (Object.keys(typeValueCounts).length > 0) {
+              // Stack to the left of the rightmost note
+              let totalNoteWidth = 0;
+              for (const note of existingNotes) {
+                totalNoteWidth += note.bounds.width;
+              }
+              noteX = x - totalNoteWidth - bounds.x;
+            } else {
+              // First note – right bottom corner of the element
+              noteX = x - totalNoteWidth - bounds.x;
             }
+
+            noteY = y - bounds.y;
+            const SIZE = 25;
+            const value = typeValueCounts[key];
+            const [type, label] = key.split("|"); // extract label part
+            const color = scheme.colormap[label]; // get the color from the colormap
+            noteId = `${elementType}-${propertyName}-${elementName}-${elementId}-${noteIdAppend}`;
+            let createNote = vo.createObject(
+              "diagram-model-note",
+              noteX,
+              noteY,
+              SIZE,
+              SIZE
+            );
+            createNote.prop("note-id", noteId);
+            createNote.text = value;
+            createNote.fillColor = color;
+            createNote.borderType = BORDER.RECTANGLE;
+            existingNotes.push(createNote);
+            noteIdAppend++;
+          }
         }
     });
+}
+
+function createNoteObject() {
+    
 }
 
 function createKeyValuePairs(view, scheme, elements){
