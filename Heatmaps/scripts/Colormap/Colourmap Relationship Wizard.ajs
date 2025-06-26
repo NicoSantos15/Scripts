@@ -124,7 +124,13 @@ function getElement(view, primaryElement) {
 
 function getPrimaryElement(view) {
 	const elements = $(view).find("element");
-	const uniqueTypes = [...new Set(elements.map(el => el.type))];
+		const uniqueTypes = [
+            ...new Set(
+                elements
+                .filter(el => el.prop("Object State") !== "Legend")
+                .map(el => el.type)
+            )
+        ];
 	const selectedType = window.promptSelection("Select a primary element type from the view:", uniqueTypes, 0);
 
 	// Return the first element that matches the selected type
@@ -255,7 +261,7 @@ function colorWizard(view) {
     let primaryElement = getPrimaryElement(view);
     let selectedElementType = getElement(view, primaryElement);
 
-    const scheme = Wizard.execute(gatherViewPropertiesInfo(view, undefined, selectedElementType));
+    const scheme = Wizard.execute(gatherViewPropertiesInfo(view, undefined, selectedElementType),undefined,'cmap_rel_wizard');
     if (scheme) {
         // log.debug(`scheme = ${JSON.stringify(scheme, null, 2)}`)
         applyColorScheme(view, scheme, primaryElement.type);

@@ -38,44 +38,45 @@ const ColorMapWizardPage = Java.extend(
 );
 const Combo = Java.type("org.eclipse.swt.widgets.Combo");
 
-const pageElementTypeSelection = new ColorMapWizardPage("pageElementTypeSelection", {
-  createControl(parent) {
-      try {
-        // log.trace("pageElementTypeSelection...");
+// Use me if a dynamic wizard page is configurable
+// const pageElementTypeSelection = new ColorMapWizardPage("pageElementTypeSelection", {
+//   createControl(parent) {
+//       try {
+//         // log.trace("pageElementTypeSelection...");
 
-        const container = new Composite(parent, SWT.NONE);
-        GridLayoutFactory.swtDefaults().numColumns(2).margins(20, 10).spacing(20, 10).applyTo(container);
-        WidgetFactory.label(SWT.NONE).text("Element Type:").layoutData(GridDataFactory.fillDefaults().create()).create(container);
+//         const container = new Composite(parent, SWT.NONE);
+//         GridLayoutFactory.swtDefaults().numColumns(2).margins(20, 10).spacing(20, 10).applyTo(container);
+//         WidgetFactory.label(SWT.NONE).text("Element Type:").layoutData(GridDataFactory.fillDefaults().create()).create(container);
 
-        // get the elements from the selected view
-        const view = getCurrentView();
-        const elementsInView = $(view).find("element");
-        const elementTypesSet = new Set();
-        elementsInView.each((el) => { if (el.prop("Object State") !== "Legend") elementTypesSet.add(el.type); });
-        const elementTypes = ["All", ...Array.from(elementTypesSet).sort()];
+//         // get the elements from the selected view
+//         const view = getCurrentView();
+//         const elementsInView = $(view).find("element");
+//         const elementTypesSet = new Set();
+//         elementsInView.each((el) => { if (el.prop("Object State") !== "Legend") elementTypesSet.add(el.type); });
+//         const elementTypes = ["All", ...Array.from(elementTypesSet).sort()];
 
-        const list = new ListBox(container, SWT.BORDER | SWT.SINGLE);
-        list.setItems(Java.to(elementTypes, StringArray));
-        list.setLayoutData(new GridData(GridData.FILL_BOTH));
+//         const list = new ListBox(container, SWT.BORDER | SWT.SINGLE);
+//         list.setItems(Java.to(elementTypes, StringArray));
+//         list.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        // Wizard.selectedElementType = elementTypes[1]; // default
+//         // Wizard.selectedElementType = elementTypes[1]; // default
 
-        list.addSelectionListener(SelectionListener.widgetSelectedAdapter((e) => {
-          Wizard.cm.elementType = list.getSelection()[0];
-          // log.info(`Selected element type: ${Wizard.cm.elementType}`);
-          pageElementTypeSelection.setPageComplete(Wizard.cm.hasElementType);
-        }));
+//         list.addSelectionListener(SelectionListener.widgetSelectedAdapter((e) => {
+//           Wizard.cm.elementType = list.getSelection()[0];
+//           // log.info(`Selected element type: ${Wizard.cm.elementType}`);
+//           pageElementTypeSelection.setPageComplete(Wizard.cm.hasElementType);
+//         }));
 
-        pageElementTypeSelection.setTitle("Select Element Type");
-        pageElementTypeSelection.setDescription("Choose the type of element you want to apply colour mapping to.");
-        pageElementTypeSelection.setControl(container);
-        pageElementTypeSelection.setPageComplete(true); // or false if you want to force selection
-        // log.trace("...pageElementTypeSelection created");
-      } catch (err) {
-        log.error("Error in pageElementTypeSelection: " + err.toString());
-      }
-  }
-});
+//         pageElementTypeSelection.setTitle("Select Element Type");
+//         pageElementTypeSelection.setDescription("Choose the type of element you want to apply colour mapping to.");
+//         pageElementTypeSelection.setControl(container);
+//         pageElementTypeSelection.setPageComplete(true); // or false if you want to force selection
+//         // log.trace("...pageElementTypeSelection created");
+//       } catch (err) {
+//         log.error("Error in pageElementTypeSelection: " + err.toString());
+//       }
+//   }
+// });
 
 const pagePropertySelection = new ColorMapWizardPage("pagePropertySelection", {
   createControl(parent) {
@@ -192,13 +193,15 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
       group.setLayout(new FillLayout(SWT.HORIZONTAL));
       group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-      Wizard.btnCategorical = WidgetFactory.button(SWT.RADIO)
-        .text("Categorical (text)")
-        .tooltip("Use a discrete color scheme")
-        .onSelect((e) => (Wizard.cm.colormap.scaleClass = CategoricalScale))
-        .create(group);
-      // wizardUI.btnCategorical.setData();
-      Wizard.btnCategorical.addMouseListener(gotoNextPageOnDblClick());
+      if (Wizard.scriptId != "cmap_rel_wizard") {
+        Wizard.btnCategorical = WidgetFactory.button(SWT.RADIO)
+          .text("Categorical (text)")
+          .tooltip("Use a discrete color scheme")
+          .onSelect((e) => (Wizard.cm.colormap.scaleClass = CategoricalScale))
+          .create(group);
+        // wizardUI.btnCategorical.setData();
+        Wizard.btnCategorical.addMouseListener(gotoNextPageOnDblClick());
+      }
 
       Wizard.btnContinuous = WidgetFactory.button(SWT.RADIO)
         .text("Continuous (numeric)")
@@ -265,10 +268,11 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
         Wizard.btnContinuous.setEnabled(allNumeric);
 
         if (!allNumeric) colormap.scaleClass = CategoricalScale;
-        
-        Wizard.btnCategorical.setSelection(
-          Wizard.cm.colormap.scaleClass == CategoricalScale
-        );
+        if (Wizard.scriptId != "cmap_rel_wizard") {
+          Wizard.btnCategorical.setSelection(
+            Wizard.cm.colormap.scaleClass == CategoricalScale
+          );
+        }
         Wizard.btnContinuous.setSelection(
           Wizard.cm.colormap.scaleClass == ContinuousScale
         );
@@ -318,7 +322,9 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
       return pageContinuousColor;
     } else {
       // log.info("NextPage:", pageCategoryColor.getName());
-      return pageCategoryColor;
+      if (Wizard.scriptId != "cmap_rel_wizard") {
+        return pageCategoryColor;
+      }
     }
   },
 });
@@ -948,7 +954,6 @@ const Wizard = {
    * @returns {ColorScheme} if Wizard finished, null if cancelled
    */
   execute: function (properties, defaultProperty = undefined, script_id) {
-    console.log("HERE PROPERTIESSSSS" +  JSON.stringify(properties, null, 2));
     Wizard.cm = new ColorModel(properties, defaultProperty);
     Wizard.scriptId = script_id;
     const ColorMapWizard = Java.extend(Java.type("org.eclipse.jface.wizard.Wizard"));

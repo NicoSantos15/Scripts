@@ -83,21 +83,17 @@ function gatherViewPropertiesInfo(view, property = undefined, selected_element_t
  */
 function applyColorScheme(view, scheme, selectedType = "element", selectedElementPropType) {
     const SIZE = 25;
-    const CHAR_WIDTH = 8;
+    const CHAR_WIDTH = 10;
     const elements = $(view).find(selectedElementPropType);
     const typeValueCounts = createKeyValuePairs(view, scheme, elements);
     
     $(view).find(selectedType).each((vo) => { //loop through all elements of the selected type (primary element type)
-        
-        const label = elements.prop(scheme.name); // get the value of the property
-                                        // console.log( "I AM HERE**************************" + label)
-
         if (vo.prop("Object State") !== "Legend") {
           let noteWidth = SIZE;
           const bounds = vo.bounds;
           let x = bounds.x + bounds.width - noteWidth;
           let y = bounds.y + bounds.height - SIZE;
-		  let existingNotes = [];
+		  		let existingNotes = [];
           let noteIdAppend = 0;
           const elementType = vo.type;
           const propertyName = scheme.name;
@@ -106,55 +102,85 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
           let noteId = `${elementType}-${propertyName}-${elementName}-${elementId}-${noteIdAppend}`;
           let noteX, noteY;
 
-        //   const allNotes = $(view).find("diagram-model-note");
+          const allNotes = $(view).find("diagram-model-note");
 
-		//   for (const note of allNotes) {
-		// 	if (note.prop("note-id") && note.prop("Object State") !== "Legend") {
-		// 		existingNotes.push(note);
-		// 	}
-		//   }
+					for (const note of allNotes) {
+						if (note.prop("note-id") && note.prop("Object State") !== "Legend") {
+							existingNotes.push(note);
+						}
+					}
 
-          for (const key in typeValueCounts) {
+        	if(scheme.type !== "Categorical") {
+						noteY = y - bounds.y;
+						noteX = x - bounds.x - 10;
 
-            // const [elementType, elementProp] = key.split("|");
-            if (Object.keys(typeValueCounts).length > 0) {
-              // Stack to the left of the rightmost note
-              let totalNoteWidth = 0;
-              for (const note of existingNotes) {
-                totalNoteWidth += note.bounds.width;
-              }
-              noteX = x - totalNoteWidth - bounds.x;
-            } else {
-              // First note – right bottom corner of the element
-              noteX = x - totalNoteWidth - bounds.x;
+            let totalValue = 0;
+            for (const key in typeValueCounts) {
+                const [type, label] = key.split("|");       				// extract parts
+								// console.log('KEY**************' + label)
+								if (!isNaN(parseInt(label))) {
+									totalValue = totalValue + (parseInt(label) * typeValueCounts[key]);
+								} else {
+									console.warn(`Skipping non-numeric label: ${label}`);
+								}
+                
             }
-
-            noteY = y - bounds.y;
-            const SIZE = 25;
-            const value = typeValueCounts[key];
-            const [type, label] = key.split("|"); // extract label part
-            const color = scheme.colormap[label]; // get the color from the colormap
             noteId = `${elementType}-${propertyName}-${elementName}-${elementId}-${noteIdAppend}`;
-            let createNote = vo.createObject(
-              "diagram-model-note",
-              noteX,
-              noteY,
-              SIZE,
-              SIZE
-            );
+						noteWidth = totalValue.toString().length * CHAR_WIDTH; 	// calculate width based on total value length
+						const label = vo.prop(scheme.name); 										// get the label from the property
+            const color = scheme.colormap[label]; 									// get the color from the colormap
+                let createNote = vo.createObject(
+                "diagram-model-note",
+                noteX,
+                noteY,
+                noteWidth,
+                SIZE
+                );
             createNote.prop("note-id", noteId);
-            createNote.text = value;
+            createNote.text = totalValue;
             createNote.fillColor = color;
             createNote.borderType = BORDER.RECTANGLE;
-            existingNotes.push(createNote);
-            noteIdAppend++;
-          }
-        }
-    });
-}
+        } else {
+            for (const key in typeValueCounts) {
+                // const [elementType, elementProp] = key.split("|");
+                // if (Object.keys(typeValueCounts).length > 0) {
+                // Stack to the left of the rightmost note
+                    let totalNoteWidth = 0;
+                    for (const note of existingNotes) {
+                        totalNoteWidth += note.bounds.width;
+                    }
+										noteX = x - totalNoteWidth - bounds.x;
+                // } else {
+									// First note – right bottom corner of the element
+									// noteX = x - bounds.x;
+								// }
 
-function createNoteObject() {
-    
+								noteY = y - bounds.y;
+								const SIZE = 25;
+                let noteValue = " ";
+                if (Wizard.annotationEnabled) {
+                    noteValue = typeValueCounts[key];
+                }
+                const [type, label] = key.split("|"); // extract label part
+                const color = scheme.colormap[label]; // get the color from the colormap
+                noteId = `${elementType}-${propertyName}-${elementName}-${elementId}-${noteIdAppend}`;
+                let createNote = vo.createObject(
+									"diagram-model-note",
+									noteX,
+									noteY,
+									SIZE,
+									SIZE
+								);
+                createNote.prop("note-id", noteId);
+                createNote.text = noteValue;
+                createNote.fillColor = color;
+                createNote.borderType = BORDER.RECTANGLE;
+                existingNotes.push(createNote);
+                noteIdAppend++;
+            }
+        }
+      }
+    });
 }
 
 function createKeyValuePairs(view, scheme, elements){
@@ -212,7 +238,13 @@ function getElement(view, primaryElement) {
 
 function getPrimaryElement(view) {
 	const elements = $(view).find("element");
-	const uniqueTypes = [...new Set(elements.map(el => el.type))];
+	const uniqueTypes = [
+            ...new Set(
+                elements
+                .filter(el => el.prop("Object State") !== "Legend")
+                .map(el => el.type)
+            )
+        ];
 	const selectedType = window.promptSelection("Select a primary element type from the view:", uniqueTypes, 0);
 
 	// Return the first element that matches the selected type
@@ -230,7 +262,7 @@ function createLegend(view, scheme) {
     const X_MARGIN = 6;
     const Y_MARGIN = 6;
     const COLOR_HEIGHT = 30;
-    const CHAR_WIDTH = 6;
+    const CHAR_WIDTH = 8;
     const LEGEND_NAME = "Legend";
     const isCategorical = scheme.type == "Categorical";
     const colormap = Object.entries(scheme.colormap);
@@ -246,14 +278,18 @@ function createLegend(view, scheme) {
     let legendGroup;
     let colLegend;
 
-    if (!isCategorical) {
-        colormap.sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
-    }
+    // if (!isCategorical) {
+    //     colormap.sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+    // }
 
     for (const [label] of colormap) {
-        noteText = scheme.name + " = " + label;
-        width = noteText.length * CHAR_WIDTH;
-        if (width > maxLabelWidth) maxLabelWidth = width;
+			if(scheme.type === "Categorical") {
+        noteText = "COUNT (" + scheme.name + " = " + label+")";
+			} else {
+				noteText = "TOTAL VALUE (" + scheme.name + " = " + label+")";
+			}
+      width = noteText.length * CHAR_WIDTH;
+      if (width > maxLabelWidth) maxLabelWidth = width;
     }
 
     const LEGEND_WIDTH = 2 * X_MARGIN + maxLabelWidth;
@@ -308,7 +344,11 @@ function createLegend(view, scheme) {
     }
 
     for (const [label, color] of colormap) {
-        newTextNote = scheme.name + " = " + label;
+      if(scheme.type === "Categorical") {
+        newTextNote = "COUNT (" + scheme.name + " = " + label+")";
+			} else {
+				newTextNote = "TOTAL VALUE (" + scheme.name + " = " + label+")";
+			}
         colLegend = view.createObject(
             "diagram-model-note",
             legendGroup.bounds.x + X_MARGIN,
@@ -332,14 +372,14 @@ function createLegend(view, scheme) {
 
     // Adjust the size of notes symetrically if there is a longer note existing
     if (notes.length > 0) {
-		for (const note of notes) {
-            note.bounds = {
-                x: note.bounds.x,
-                y: note.bounds.y,
-                width: maxNoteWidth,
-                height: note.bounds.height
-            };
-		}
+			for (const note of notes) {
+							note.bounds = {
+									x: note.bounds.x,
+									y: note.bounds.y,
+									width: maxNoteWidth,
+									height: note.bounds.height
+							};
+			}
     }
 }
 
