@@ -56,6 +56,7 @@ function gatherViewPropertiesInfo(view, property = undefined, selected_element_t
     }
     $(view).find(selected_element_type).each(
         (e) => {
+            if (e.prop("Object State") === "Legend") {return;} // skip legend elements
             for (let p of e.prop()) {
                 if (property === undefined || p === property) {
                     if (!props.has(p)) {
@@ -115,21 +116,20 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
             }
 
             if (scheme.type !== "Categorical") {
-                noteY = y - bounds.y;
-                noteX = x - bounds.x - 10;
-
                 let totalValue = 0;
                 for (const key in typeValueCounts) {
                     const [type, label] = key.split("|"); // extract parts
                     // console.log('KEY**************' + label)
-                    if (!isNaN(parseInt(label))) {
-                        totalValue = totalValue + (parseInt(label) * typeValueCounts[key]);
-                    } else {
-                        console.warn(`Skipping non-numeric label: ${label}`);
+                    if (!isNaN(parseFloat(label))) {
+                        totalValue = totalValue + (parseFloat(label) * typeValueCounts[key]);
                     }
-
                 }
-
+                let totalNoteWidth = 0;
+                for (const note of existingNotes) {
+                    totalNoteWidth += note.bounds.width;
+                }
+                noteX = x - totalNoteWidth - bounds.x - 15;
+                noteY = y - bounds.y;
                 noteWidth = totalValue.toString().length * CHAR_WIDTH; // calculate width based on total value length
                 const label = vo.prop(scheme.name); // get the label from the property
                 const color = scheme.colormap[label]; // get the color from the colormap
@@ -281,7 +281,7 @@ function createLegend(view, scheme) {
         if (scheme.type === "Categorical") {
             noteText = "COUNT (" + scheme.name + " = " + label + ")";
         } else {
-            noteText = "TOTAL VALUE (" + scheme.name + " = " + label + ")";
+            noteText = "TOTAL VALUE (" + scheme.name + ")";
         }
         width = noteText.length * CHAR_WIDTH;
         if (width > maxLabelWidth) maxLabelWidth = width;

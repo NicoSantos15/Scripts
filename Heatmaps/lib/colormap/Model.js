@@ -599,8 +599,14 @@ class ContinuousScale extends CategoricalScale {
      * @param {number} edge
      */
     setGradientColor(color, edge) {
-        this.edges[edge].color = color;
-        log.trace(`edge #${edge}: ${this.edges[edge].color.toString()}`);
+        if (!this.isMiddleColorEnabled() && edge == ContinuousScale.EDGE.END) {
+            this.edges[edge-1].color = color;
+            log.trace(`edge #${edge-1} (middle disabled): ${this.edges[edge-1].color.toString()}`);
+        }
+        else {
+            this.edges[edge].color = color;
+            log.trace(`edge #${edge}: ${this.edges[edge].color.toString()}`);
+        }
         this._applyColors();
     }
 

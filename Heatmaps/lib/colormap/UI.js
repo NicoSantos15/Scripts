@@ -193,16 +193,16 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
       group.setLayout(new FillLayout(SWT.HORIZONTAL));
       group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-      if (Wizard.scriptId != "cmap_rel_wizard") {
-        Wizard.btnCategorical = WidgetFactory.button(SWT.RADIO)
+      Wizard.btnCategorical = WidgetFactory.button(SWT.RADIO)
           .text("Categorical (text)")
           .tooltip("Use a discrete color scheme")
           .onSelect((e) => (Wizard.cm.colormap.scaleClass = CategoricalScale))
           .create(group);
         // wizardUI.btnCategorical.setData();
-        Wizard.btnCategorical.addMouseListener(gotoNextPageOnDblClick());
-      }
+      Wizard.btnCategorical.addMouseListener(gotoNextPageOnDblClick());
 
+      console.log("************* CHECKKKKER allnumeric????" + Wizard.cm.colormap)
+      Wizard.btnCategorical.setEnabled(!Wizard.cm.colormap.allIncludedNumeric())
       Wizard.btnContinuous = WidgetFactory.button(SWT.RADIO)
         .text("Continuous (numeric)")
         .tooltip(
@@ -233,7 +233,6 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
 
   setVisible: function (visible) {
     // log.trace("Showing " + pageLabelsSelection.getName() + " property: " + Wizard.cm.property);
-
     /**
      *
      * @param {ColorMap} colormap
@@ -267,11 +266,19 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
         log.trace(`Enabling btnContinuous = ${allNumeric}`);
         Wizard.btnContinuous.setEnabled(allNumeric);
 
-        if (!allNumeric) colormap.scaleClass = CategoricalScale;
-        if (Wizard.scriptId != "cmap_rel_wizard") {
+      // If labels are not all numeric then force selection to categorical
+        if (!allNumeric) {
+          colormap.scaleClass = CategoricalScale;
+          Wizard.btnCategorical.setSelection(true);
+          Wizard.btnContinuous.setSelection(false);
+        }
+        
+        if (Wizard.scriptId == "cmap_rel_wizard" && !allNumeric) {
           Wizard.btnCategorical.setSelection(
             Wizard.cm.colormap.scaleClass == CategoricalScale
           );
+        }else{
+          Wizard.cm.colormap.scaleClass == CategoricalScale
         }
         Wizard.btnContinuous.setSelection(
           Wizard.cm.colormap.scaleClass == ContinuousScale
@@ -322,9 +329,9 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
       return pageContinuousColor;
     } else {
       // log.info("NextPage:", pageCategoryColor.getName());
-      if (Wizard.scriptId != "cmap_rel_wizard") {
+      // if (Wizard.scriptId != "cmap_rel_wizard") {
         return pageCategoryColor;
-      }
+      // }
     }
   },
 });
