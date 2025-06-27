@@ -327,7 +327,7 @@ function isRelatedElement(view, primaryElement, elPropHolderIds) {
     //     console.log(e);
     // })
     let relationships = $(view).find("relationship").filter(rel => rel.prop("Object State") !== "Legend");
-    relationships.forEach(rel => {
+    for(const rel of relationships) {
         sourceEl = rel.source;
         targetEl = rel.target;
 
@@ -345,7 +345,7 @@ function isRelatedElement(view, primaryElement, elPropHolderIds) {
                 return true;
             }
         }
-    })
+    }
     return false;
 }
 
