@@ -200,9 +200,7 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
           .create(group);
         // wizardUI.btnCategorical.setData();
       Wizard.btnCategorical.addMouseListener(gotoNextPageOnDblClick());
-
-      console.log("************* CHECKKKKER allnumeric????" + Wizard.cm.colormap)
-      Wizard.btnCategorical.setEnabled(!Wizard.cm.colormap.allIncludedNumeric())
+      // Wizard.btnCategorical.setEnabled(!Wizard.cm.colormap.allIncludedNumeric())
       Wizard.btnContinuous = WidgetFactory.button(SWT.RADIO)
         .text("Continuous (numeric)")
         .tooltip(
@@ -273,13 +271,9 @@ const pageLabelsSelection = new ColorMapWizardPage("pageLabelsSelection", {
           Wizard.btnContinuous.setSelection(false);
         }
         
-        if (Wizard.scriptId == "cmap_rel_wizard" && !allNumeric) {
           Wizard.btnCategorical.setSelection(
             Wizard.cm.colormap.scaleClass == CategoricalScale
           );
-        }else{
-          Wizard.cm.colormap.scaleClass == CategoricalScale
-        }
         Wizard.btnContinuous.setSelection(
           Wizard.cm.colormap.scaleClass == ContinuousScale
         );

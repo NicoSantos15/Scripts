@@ -33,6 +33,7 @@ load(__SCRIPTS_DIR__ + "Heatmaps/lib/colormap/UI.js")
 
 // name of the property stored in view referencing the Archimate selected property for colormap
 const COLORMAP_PROPERTY = ".colormap.property";
+let relatedElements = [];
 
 /**
  * Will gather all properties of all elements visual objects in the view (no relationships)
@@ -107,8 +108,8 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                 if (note.prop("note-id") && note.prop("Object State") !== "Legend") {
                     let idParts = note.prop("note-id").split("-");
                     let idToCompare = "id-" + idParts.pop();
-                    console.log("******" + idToCompare);
-                    console.log("****** ACTUAL ID ********" + elementId);
+                    // console.log("******" + idToCompare);
+                    // console.log("****** ACTUAL ID ********" + elementId);
                     if(idToCompare === elementId){
                         existingNotes.push(note);
                     }
@@ -120,8 +121,10 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                 for (const key in typeValueCounts) {
                     const [type, label] = key.split("|"); // extract parts
                     // console.log('KEY**************' + label)
-                    if (!isNaN(parseFloat(label))) {
-                        totalValue = totalValue + (parseFloat(label) * typeValueCounts[key]);
+                    const match = entry.related_ids.some(id => relatedElements.includes(id));
+
+                    if (match && !isNaN(parseFloat(label))) {
+                        totalValue = totalValue + (parseFloat(label) * typeValueCounts[key].count);
                     }
                 }
                 let totalNoteWidth = 0;
@@ -151,11 +154,10 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                         totalNoteWidth += note.bounds.width;
                     }
 
-
                     const SIZE = 25;
                     let noteValue = " ";
                     if (Wizard.annotationEnabled) {
-                        noteValue = typeValueCounts[key];
+                        noteValue = typeValueCounts[key].count;
                     }
                     const [type, label] = key.split("|"); // extract label part
                     const color = scheme.colormap[label]; // get the color from the colormap
@@ -167,6 +169,7 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                         SIZE,
                         SIZE
                     );
+
                     createNote.prop("note-id", noteId);
                     createNote.text = noteValue;
                     createNote.fillColor = color;
@@ -178,23 +181,52 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
     });
 }
 
+// function createKeyValuePairs(view, scheme, elements) {
+//     let typeValueCounts = {}; // key = "type|label", value = count
+//     // populate typeValueCounts with the count of each label for each type
+//     for (const el of elements) {
+//         const label = el.prop(scheme.name);
+//         const type = el.type;
+
+//         if (label && (label in scheme.colormap)) {
+//             const key = `${type}|${label}`;
+
+//             if (!typeValueCounts[key]) {
+//                 typeValueCounts[key] = 1;
+//             } else {
+//                 typeValueCounts[key]++;
+//             }
+//         }
+//     }
+//     console.log(JSON.stringify(typeValueCounts, null, 2));
+//     return typeValueCounts;
+// }
+
 function createKeyValuePairs(view, scheme, elements) {
-    let typeValueCounts = {}; // key = "type|label", value = count
-    // populate typeValueCounts with the count of each label for each type
+    let typeValueCounts = {}; // key = "type|label", value = { count, related_ids }
+
     for (const el of elements) {
         const label = el.prop(scheme.name);
         const type = el.type;
+        const id = el.id;
 
         if (label && (label in scheme.colormap)) {
             const key = `${type}|${label}`;
 
             if (!typeValueCounts[key]) {
-                typeValueCounts[key] = 1;
+                typeValueCounts[key] = {
+                    count: 1,
+                    related_ids: [id]
+                };
             } else {
-                typeValueCounts[key]++;
+                typeValueCounts[key].count += 1;
+                if (!typeValueCounts[key].related_ids.includes(id)) {
+                    typeValueCounts[key].related_ids.push(id);
+                }
             }
         }
     }
+
     console.log(JSON.stringify(typeValueCounts, null, 2));
     return typeValueCounts;
 }
@@ -202,6 +234,8 @@ function createKeyValuePairs(view, scheme, elements) {
 function getElement(view, primaryElement) {
     let relatedElementsArr = [];
     let selectedType;
+
+    //all relationship
     const relatedElements = $(view).find("relationship").filter(rel => rel.prop("Object State") !== "Legend");
 
     relatedElements.forEach(rel => {
@@ -209,14 +243,14 @@ function getElement(view, primaryElement) {
         const targetEl = rel.target;
 
         if (sourceEl.id === primaryElement.id && targetEl.id !== primaryElement.id) {
-            console.log("********* Source Element: " + targetEl.prop("Object State"));
             if (!relatedElementsArr.includes(targetEl.type) && targetEl.prop("Object State") !== "Legend") {
                 relatedElementsArr.push(targetEl.type);
+                getAllRelatedElements(targetEl.id);
             }
         } else if (targetEl.id === primaryElement.id && sourceEl.id !== primaryElement.id) {
-            console.log("********* Source Element: " + sourceEl.prop("Object State"));
             if (!relatedElementsArr.includes(sourceEl.type) && sourceEl.prop("Object State") !== "Legend") {
                 relatedElementsArr.push(sourceEl.type);
+                getAllRelatedElements(sourceEl.id)
             }
         }
     });
@@ -249,6 +283,10 @@ function getPrimaryElement(view) {
         }
     }
     // return null;
+}
+
+function getAllRelatedElements(elementId) {
+    relatedElements.push(elementId);
 }
 
 function createLegend(view, scheme) {
