@@ -150,8 +150,7 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                     for (const note of existingNotes) {
                         totalNoteWidth += note.bounds.width;
                     }
-                    noteX = x - totalNoteWidth - bounds.x;
-                    noteY = y - bounds.y;
+
                     const SIZE = 25;
                     let noteValue = " ";
                     if (Wizard.annotationEnabled) {
