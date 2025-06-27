@@ -151,6 +151,7 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                         totalNoteWidth += note.bounds.width;
                     }
 
+
                     const SIZE = 25;
                     let noteValue = " ";
                     if (Wizard.annotationEnabled) {
