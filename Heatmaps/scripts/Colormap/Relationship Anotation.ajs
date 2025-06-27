@@ -208,6 +208,8 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
 function createKeyValuePairs(view, scheme, elements) {
     let typeValueCounts = {}; // key = "type|label", value = { count, related_ids }
 
+    const relationships = $(view).find("relationship").filter(rel => rel.prop("Object State") !== "Legend");
+
     for (const el of elements) {
         const label = el.prop(scheme.name);
         const type = el.type;
@@ -221,13 +223,41 @@ function createKeyValuePairs(view, scheme, elements) {
                     count: 1,
                     related_ids: [id]
                 };
-            } else {
-                typeValueCounts[key].count += 1;
-                if (!typeValueCounts[key].related_ids.includes(id)) {
-                    typeValueCounts[key].related_ids.push(id);
+            } 
+            
+            // else {
+            //     typeValueCounts[key].count += 1;
+            //     if (!typeValueCounts[key].related_ids.includes(id)) {
+            //         typeValueCounts[key].related_ids.push(id);
+            //     }
+            // }
+
+            
+            // Find related element ID (source or target of a relationship)
+            let relatedId = null;
+            for (const rel of relationships) {
+                const sourceId = rel.source.id;
+                const targetId = rel.target.id;
+
+                if (sourceId === id) {
+                    relatedId = targetId;
+                    break;
+                } else if (targetId === id) {
+                    relatedId = sourceId;
+                    break;
                 }
             }
+
+            const relatedEntry = relatedId ? `${id}|${relatedId}` : `${id}|null`;
+
+            if (!typeValueCounts[key].related_ids.includes(relatedEntry)) {
+                typeValueCounts[key].related_ids.push(relatedEntry);
+            }
+
+            typeValueCounts[key].count += 1;
         }
+
+
     }
 
     console.log(JSON.stringify(typeValueCounts, null, 2));
