@@ -121,7 +121,10 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                 for (const key in typeValueCounts) {
                     const [type, label] = key.split("|"); // extract parts
                     // console.log('KEY**************' + label)
-                    const match = entry.related_ids.some(id => relatedElements.includes(id));
+                    // relatedElements.forEach(rel => {console.log(rel)})
+
+                    let match = isRelatedElement(view, vo, typeValueCounts[key].related_ids)
+                    // const match = typeValueCounts[key].related_ids.some(id => relatedElements.includes(id));
 
                     if (match && !isNaN(parseFloat(label))) {
                         totalValue = totalValue + (parseFloat(label) * typeValueCounts[key].count);
@@ -245,12 +248,10 @@ function getElement(view, primaryElement) {
         if (sourceEl.id === primaryElement.id && targetEl.id !== primaryElement.id) {
             if (!relatedElementsArr.includes(targetEl.type) && targetEl.prop("Object State") !== "Legend") {
                 relatedElementsArr.push(targetEl.type);
-                getAllRelatedElements(targetEl.id);
             }
         } else if (targetEl.id === primaryElement.id && sourceEl.id !== primaryElement.id) {
             if (!relatedElementsArr.includes(sourceEl.type) && sourceEl.prop("Object State") !== "Legend") {
                 relatedElementsArr.push(sourceEl.type);
-                getAllRelatedElements(sourceEl.id)
             }
         }
     });
@@ -287,6 +288,35 @@ function getPrimaryElement(view) {
 
 function getAllRelatedElements(elementId) {
     relatedElements.push(elementId);
+}
+
+function isRelatedElement(view, primaryElement, elPropHolderIds) {
+    let elementsFromProps = [];
+    elementsFromProps = elPropHolderIds;
+    // elementsFromProps.forEach(e=>{
+    //     console.log(e);
+    // })
+    let relationships = $(view).find("relationship").filter(rel => rel.prop("Object State") !== "Legend");
+    relationships.forEach(rel => {
+        sourceEl = rel.source;
+        targetEl = rel.target;
+
+        if(primaryElement.id === sourceEl.id) {
+            // console.log("+++++++++++++++++++++++++ TARGET: " + targetEl)
+            // console.log("+++++++++++++++++++++++++ TARGETID: " + targetEl.id)
+            if(elementsFromProps.includes(targetEl.id)){
+                return true;
+            }
+        }else if(primaryElement.id === targetEl.id) {
+            // console.log("+++++++++++++++++++++++++ SOURCE: " + sourceEl)
+            // console.log("+++++++++++++++++++++++++ SOURCEID: " + sourceEl.id)
+
+            if(elementsFromProps.includes(sourceEl.id)){
+                return true;
+            }
+        }
+    })
+    return false;
 }
 
 function createLegend(view, scheme) {
