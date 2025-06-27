@@ -115,8 +115,7 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
             }
 
             if (scheme.type !== "Categorical") {
-                noteY = y - bounds.y;
-                noteX = x - bounds.x - 10;
+
 
                 let totalValue = 0;
                 for (const key in typeValueCounts) {
@@ -129,6 +128,13 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                     }
 
                 }
+								let totalNoteWidth = 0;
+                for (const note of existingNotes) {
+                  totalNoteWidth += note.bounds.width;
+                }
+
+								noteX = x - totalNoteWidth - bounds.x - 15;
+                noteY = y - bounds.y;
 
                 noteWidth = totalValue.toString().length * CHAR_WIDTH; // calculate width based on total value length
                 const label = vo.prop(scheme.name); // get the label from the property
@@ -150,8 +156,7 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                     for (const note of existingNotes) {
                         totalNoteWidth += note.bounds.width;
                     }
-                    noteX = x - totalNoteWidth - bounds.x;
-                    noteY = y - bounds.y;
+
                     const SIZE = 25;
                     let noteValue = " ";
                     if (Wizard.annotationEnabled) {
