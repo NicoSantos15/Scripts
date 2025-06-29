@@ -12,9 +12,9 @@
  *     - Automatically generating a visual legend
  * 
  * Ownership: Property of BHP
- * Author   : Santos, Nico
+ * Author   : Nico Santos, Steve Johnson
  * Version  : 1.0
- * Last Updated: 2025-06-10
+ * Last Updated: 2025-06-30
  * ----------------------------------------------------------------------------
  */
 
@@ -120,14 +120,9 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                 let totalValue = 0;
                 for (const key in typeValueCounts) {
                     const [type, label] = key.split("|"); // extract parts
-                    // console.log('KEY**************' + label)
-                    // relatedElements.forEach(rel => {console.log(rel)})
-
                     let match = isRelatedElement(view, vo, typeValueCounts[key].related_ids)
-                    // const match = typeValueCounts[key].related_ids.some(id => relatedElements.includes(id));
-
-                    if (match && !isNaN(parseFloat(label))) {
-                        totalValue = totalValue + (parseFloat(label) * typeValueCounts[key].count);
+                    if (match > 0 && !isNaN(parseFloat(label))) {
+                        totalValue = totalValue + (parseFloat(label) * match);
                     }
                 }
                 let totalNoteWidth = 0;
@@ -136,12 +131,12 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                 }
                 noteX = x - totalNoteWidth - bounds.x - 15;
                 noteY = y - bounds.y;
-                noteWidth = totalValue.toString().length * CHAR_WIDTH; // calculate width based on total value length
+                noteWidth = totalValue.toString().length * CHAR_WIDTH + 7; // calculate width based on total value length
                 const label = vo.prop(scheme.name); // get the label from the property
                 const color = scheme.colormap[label]; // get the color from the colormap
                 let createNote = vo.createObject(
                     "diagram-model-note",
-                    noteX,
+                    noteX - 5,
                     noteY,
                     noteWidth,
                     SIZE
@@ -207,9 +202,6 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
 
 function createKeyValuePairs(view, scheme, elements) {
     let typeValueCounts = {}; // key = "type|label", value = { count, related_ids }
-
-    const relationships = $(view).find("relationship").filter(rel => rel.prop("Object State") !== "Legend");
-
     for (const el of elements) {
         const label = el.prop(scheme.name);
         const type = el.type;
@@ -223,41 +215,13 @@ function createKeyValuePairs(view, scheme, elements) {
                     count: 1,
                     related_ids: [id]
                 };
-            } 
-            
-            // else {
-            //     typeValueCounts[key].count += 1;
-            //     if (!typeValueCounts[key].related_ids.includes(id)) {
-            //         typeValueCounts[key].related_ids.push(id);
-            //     }
-            // }
-
-            
-            // Find related element ID (source or target of a relationship)
-            let relatedId = null;
-            for (const rel of relationships) {
-                const sourceId = rel.source.id;
-                const targetId = rel.target.id;
-
-                if (sourceId === id) {
-                    relatedId = targetId;
-                    break;
-                } else if (targetId === id) {
-                    relatedId = sourceId;
-                    break;
+            } else {
+                typeValueCounts[key].count += 1;
+                if (!typeValueCounts[key].related_ids.includes(id)) {
+                    typeValueCounts[key].related_ids.push(id);
                 }
             }
-
-            const relatedEntry = relatedId ? `${id}|${relatedId}` : `${id}|null`;
-
-            if (!typeValueCounts[key].related_ids.includes(relatedEntry)) {
-                typeValueCounts[key].related_ids.push(relatedEntry);
-            }
-
-            typeValueCounts[key].count += 1;
         }
-
-
     }
 
     console.log(JSON.stringify(typeValueCounts, null, 2));
@@ -326,27 +290,35 @@ function isRelatedElement(view, primaryElement, elPropHolderIds) {
     // elementsFromProps.forEach(e=>{
     //     console.log(e);
     // })
+
+    let returnVal = 0;
     let relationships = $(view).find("relationship").filter(rel => rel.prop("Object State") !== "Legend");
     for(const rel of relationships) {
         sourceEl = rel.source;
         targetEl = rel.target;
 
         if(primaryElement.id === sourceEl.id) {
-            // console.log("+++++++++++++++++++++++++ TARGET: " + targetEl)
-            // console.log("+++++++++++++++++++++++++ TARGETID: " + targetEl.id)
-            if(elementsFromProps.includes(targetEl.id)){
-                return true;
+            // if(elementsFromProps.includes(targetEl.id)){
+            //     returnVal++;
+            // }
+
+            for(const e of elementsFromProps){
+                if(targetEl.id === e) {
+                    returnVal++;
+                }
             }
         }else if(primaryElement.id === targetEl.id) {
-            // console.log("+++++++++++++++++++++++++ SOURCE: " + sourceEl)
-            // console.log("+++++++++++++++++++++++++ SOURCEID: " + sourceEl.id)
-
-            if(elementsFromProps.includes(sourceEl.id)){
-                return true;
+            // if(elementsFromProps.includes(sourceEl.id)){
+            //     return true;
+            // }
+            for(const e of elementsFromProps){
+                if(sourceEl.id === e) {
+                    returnVal++;
+                }
             }
         }
     }
-    return false;
+    return returnVal;
 }
 
 function createLegend(view, scheme) {
@@ -518,6 +490,3 @@ if (typeof __CALLER_SCRIPT__ != 'undefined') {
     colorWizard(theView);
     log.info("*** Colormap: Wizard - end.");
 }
-
-// TODO: check if the note already exists inside the element. Place the position next to existing one.
-// TODO: Legend should reuse the existing legend if it exists (object_state: "legend")
