@@ -12,9 +12,9 @@
  *     - Automatically generating a visual legend
  * 
  * Ownership: Property of BHP
- * Author   : Santos, Nico
+ * Author   : Nico Santos, Steve Johnson
  * Version  : 1.0
- * Last Updated: 2025-06-10
+ * Last Updated: 2025-06-30
  * ----------------------------------------------------------------------------
  */
 
@@ -120,12 +120,7 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                 let totalValue = 0;
                 for (const key in typeValueCounts) {
                     const [type, label] = key.split("|"); // extract parts
-                    // console.log('KEY**************' + label)
-                    // relatedElements.forEach(rel => {console.log(rel)})
-
                     let match = isRelatedElement(view, vo, typeValueCounts[key].related_ids)
-                    // const match = typeValueCounts[key].related_ids.some(id => relatedElements.includes(id));
-
                     if (match > 0 && !isNaN(parseFloat(label))) {
                         totalValue = totalValue + (parseFloat(label) * match);
                     }
@@ -136,12 +131,12 @@ function applyColorScheme(view, scheme, selectedType = "element", selectedElemen
                 }
                 noteX = x - totalNoteWidth - bounds.x - 15;
                 noteY = y - bounds.y;
-                noteWidth = totalValue.toString().length * CHAR_WIDTH; // calculate width based on total value length
+                noteWidth = totalValue.toString().length * CHAR_WIDTH + 7; // calculate width based on total value length
                 const label = vo.prop(scheme.name); // get the label from the property
                 const color = scheme.colormap[label]; // get the color from the colormap
                 let createNote = vo.createObject(
                     "diagram-model-note",
-                    noteX,
+                    noteX - 5,
                     noteY,
                     noteWidth,
                     SIZE
@@ -495,6 +490,3 @@ if (typeof __CALLER_SCRIPT__ != 'undefined') {
     colorWizard(theView);
     log.info("*** Colormap: Wizard - end.");
 }
-
-// TODO: check if the note already exists inside the element. Place the position next to existing one.
-// TODO: Legend should reuse the existing legend if it exists (object_state: "legend")
